@@ -1,0 +1,71 @@
+{
+  "name": "geostyler-mapbox-parser",
+  "version": "0.0.1",
+  "description": "GeoStyler-Style-Parser implementation for Mapbox",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terrestris/geostyler-mapbox-parser.git"
+  },
+  "keywords": [
+    "mapbox",
+    "geostyler"
+  ],
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/terrestris/geostyler-mapbox-parser/issues"
+  },
+  "homepage": "https://github.com/terrestris/geostyler-mapbox-parser#readme",
+  "dependencies": {
+    "geostyler-style": "0.14.2"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && npm run build:browser",
+    "build:browser": "webpack --config browser-build.config.js",
+    "start:dev": "webpack --config dev-build.config.js --watch",
+    "prebuild": "npm run test",
+    "pretest": "npm run lint",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "lint": "tslint --project tsconfig.json --config tslint.json && tsc --noEmit --project tsconfig.build.json",
+    "release": "np --no-yarn && git push https://github.com/terrestris/geostyler-mapbox-parser.git master --tags"
+  },
+  "devDependencies": {
+    "@babel/polyfill": "7.0.0",
+    "@types/jest": "23.3.9",
+    "@types/lodash": "4.14.118",
+    "@types/node": "10.12.10",
+    "@types/xml2js": "0.4.3",
+    "awesome-typescript-loader": "4.0.1",
+    "coveralls": "3.0.1",
+    "jest": "23.4.2",
+    "np": "3.0.4",
+    "ts-jest": "23.10.5",
+    "tslint": "5.10.0",
+    "typescript": "2.9.1",
+    "webpack": "3.12.0",
+    "webpack-cli": "3.1.2"
+  },
+  "jest": {
+    "testURL": "http://localhost/",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": "/src/.*\\.spec.(ts|js)$",
+    "collectCoverageFrom": [
+      "src/*.{ts,js}"
+    ]
+  },
+  "greenkeeper": {
+    "ignore": [
+      "webpack",
+      "webpack-cli"
+    ]
+  }
+}
