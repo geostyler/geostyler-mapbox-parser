@@ -3,7 +3,7 @@ const lineSimpleLine: any = {
   name: 'Simple Line',
   layers: [
     {
-      id: '0',
+      id: 'Simple Line',
       type: 'line',
       paint: {
         'line-color': '#000000',

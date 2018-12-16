@@ -1,5 +1,5 @@
 import MapboxStyleParser from './MapboxStyleParser';
-// import { Style } from 'geostyler-style';
+import { Style } from 'geostyler-style';
 
 import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
@@ -31,18 +31,18 @@ describe('MapboxStyleParser implements StyleParser', () => {
     it('can read a mapbox Line style', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_line_simpleline)
-        .then((mbStyle: any) => {
-          expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(line_simpleline);
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(line_simpleline);
         });
     });
 
     it('can read a mapbox style with a filter', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_line_simpleline_filter)
-        .then((mbStyle: any) => {
-          expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(line_simpleline_filter);
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(line_simpleline_filter);
         });
     });
   });

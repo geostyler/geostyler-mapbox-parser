@@ -3,7 +3,7 @@ const pointPlaceholderText: any = {
   name: 'Placeholder Text',
   layers: [
     {
-      id: 'Placeholder Text0',
+      id: 'Placeholder Text',
       type: 'symbol',
       paint: {
         'text-field': ['format',

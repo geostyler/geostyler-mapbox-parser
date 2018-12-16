@@ -3,7 +3,7 @@ const multiSimpleLineSimpleFill: any = {
   name: 'Simple Line Simple Fill',
   layers: [
     {
-      id: '0',
+      id: 'Simple Line Simple Fill',
       type: 'line',
       paint: {
         'line-color': '#000000',
@@ -13,7 +13,7 @@ const multiSimpleLineSimpleFill: any = {
         'line-join': 'miter'
       }
     }, {
-      id: '1',
+      id: 'Simple Line Simple Fill',
       type: 'fill',
       paint: {
         'fill-color': '#000000',

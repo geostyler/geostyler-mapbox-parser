@@ -3,7 +3,7 @@ const pointSimpleText: any = {
   name: 'Simple Text',
   layers: [
     {
-      id: 'Simple Text0',
+      id: 'Simple Text',
       type: 'symbol',
       paint: {
         'text-field': 'River',

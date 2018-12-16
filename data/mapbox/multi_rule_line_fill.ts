@@ -3,7 +3,7 @@ const multiRuleLineFill: any = {
   name: 'Rule Line Fill',
   layers: [
     {
-      id: 'Line Rule0',
+      id: 'Line Rule',
       type: 'line',
       paint: {
         'line-color': '#000000',
@@ -13,7 +13,7 @@ const multiRuleLineFill: any = {
         'line-join': 'miter'
       }
     }, {
-      id: 'Fill Rule0',
+      id: 'Fill Rule',
       type: 'fill',
       paint: {
         'fill-color': '#000000',

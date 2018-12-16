@@ -12,29 +12,34 @@ import {
     Operator,
     SymbolizerKind,
     MarkSymbolizer,
-    ScaleDenominator
+    ScaleDenominator,
+    UnsupportedProperties
 } from 'geostyler-style';
+
+const _cloneDeep = require('lodash/cloneDeep');
 
 type MapboxLayerType = 'fill' | 'line' | 'symbol' | 'circle' | 'heatmap' |
     'fill-extrusion' | 'raster' | 'hillshade' | 'background';
 
 export class MapboxStyleParser implements StyleParser {
 
-    static operatorMapping = {
-        '&&': true,
-        '||': true,
-        '!': true
-    };
+    static unsupportedProperties: UnsupportedProperties = {
+        ScaleDenominator: 'unsupported',
+        Symbolizer: {
+            FillSymbolizer: {
+                outlineWidth: 'unsupported',
+                outlineDasharray: 'unsupported',
+                graphicFill: {
 
-    // getRulesFromMapboxObject(mapboxObject: any): Rule[] {
-    //     // TODO Handle multiple rules properly
-    //     return [{
-    //         name: '',
-    //         symbolizers: [{
-    //             kind: 'Line'
-    //         }]
-    //     }];
-    // }
+                }
+            },
+            LineSymbolizer: {
+                dashOffset: 'unsupported'
+            },
+            MarkSymbolizer: 'unsupported',
+            IconSymbolizer: 'unsupported'
+        }
+    };
 
     /**
      * Parses the GeoStylerStyle-SymbolizerKind from a Mapbox Style Layer
@@ -136,7 +141,7 @@ export class MapboxStyleParser implements StyleParser {
             };
         }
 
-        const paint = layer.paint;
+        const paint = _cloneDeep(layer.paint);
         return {
             kind: 'Text',
             spacing: paint['symbol-spacing'],
@@ -184,7 +189,7 @@ export class MapboxStyleParser implements StyleParser {
             };
         }
 
-        const paint = layer.paint;
+        const paint = _cloneDeep(layer.paint);
         return {
             kind: 'Fill',
             visibility: paint.visibility,
@@ -210,7 +215,7 @@ export class MapboxStyleParser implements StyleParser {
                 kind: 'Line'
             };
         }
-        const paint = layer.paint;
+        const paint = _cloneDeep(layer.paint);
         return {
             kind: 'Line',
             visibility: paint.visibility,
@@ -224,7 +229,7 @@ export class MapboxStyleParser implements StyleParser {
             translateAnchor: paint['line-translate-anchor'],
             width: paint['line-width'],
             gapWidth: paint['line-gap-width'],
-            offset: paint['line-offset'],
+            perpendicularOffset: paint['line-offset'],
             blur: paint['line-blur'],
             dasharray: paint['line-dasharray'],
             graphicFill: paint['line-pattern'],
@@ -271,12 +276,28 @@ export class MapboxStyleParser implements StyleParser {
      * @return {Filter} A GeoStylerStyle-Filter
      */
     getFilterFromMapboxFilter(filter: any[]): Filter {
+        const operatorMapping = {
+            'all': true,
+            'any': true,
+            '!': true
+        };
+
         const operator: Operator = filter[0];
         let isNestedFilter: boolean = false;
-        if (MapboxStyleParser.operatorMapping[operator]) {
+        if (operatorMapping[operator]) {
             isNestedFilter = true;
         }
         if (isNestedFilter) {
+            switch (filter[0]) {
+                case 'all':
+                    filter[0] = '&&';
+                    break;
+                case 'any':
+                    filter[0] = '||';
+                    break;
+                default:
+                    break;
+            }
             let restFilter = filter.slice(1);
             restFilter.forEach((f: Filter) => {
                 this.getFilterFromMapboxFilter(f);
@@ -292,13 +313,20 @@ export class MapboxStyleParser implements StyleParser {
      *
      * @param {number} minZoom A Mapbox Style Layer minZoom property
      * @param {number} maxZoom A Mapbox Style Layer maxZoom property
+     * @return {ScaleDenominator} A GeoStylerStyle-ScaleDenominator
      */
-    getScaleDenominatorFromMapboxZoom(minZoom: number, maxZoom: number): ScaleDenominator {
-        // TODO replace dummy with actual scaleDenominator
-        return {
-            min: 0,
-            max: 0
-        };
+    getScaleDenominatorFromMapboxZoom(minZoom?: number, maxZoom?: number): ScaleDenominator|undefined {
+        let scaleDenominator: ScaleDenominator = {};
+        if (typeof minZoom !== 'undefined') {
+            // TODO
+        }
+        if (typeof maxZoom !== 'undefined') {
+            // TODO
+        }
+        if (typeof scaleDenominator.min === 'undefined' && typeof scaleDenominator.max === 'undefined') {
+            return undefined;
+        }
+        return scaleDenominator;
     }
     /**
      * Creates a GeoStylerStyle-Rule from a Mapbox Layer
@@ -307,10 +335,11 @@ export class MapboxStyleParser implements StyleParser {
      * @return {Rule} A GeoStylerStyle-Rule
      */
     getRuleFromMapboxLayer(layer: any): Rule {
+        const filter = layer.filter ? _cloneDeep(layer.filter) : undefined;
         let rule: Rule = {
             name: layer.id,
             scaleDenominator: this.getScaleDenominatorFromMapboxZoom(layer.minZoom, layer.maxZoom),
-            filter: this.getFilterFromMapboxFilter(layer.filter),
+            filter: filter ? this.getFilterFromMapboxFilter(filter) : undefined,
             symbolizers: [this.getSymbolizerFromMapboxLayer(layer)]
         } as Rule;
         return rule;
@@ -330,7 +359,7 @@ export class MapboxStyleParser implements StyleParser {
         style.name = mapboxObject.name;
         style.rules = [];
         if (!mapboxObject.layers || mapboxObject.layers.length === 0) {
-            throw new Error(`Could not parse mapbox style. No style information found.`);
+            return style;
         } else if (mapboxObject.layers.length === 1) {
             style.rules.push(this.getRuleFromMapboxLayer(mapboxObject.layers[0]));
         } else if (mapboxObject.layers.length > 1) {
@@ -344,10 +373,10 @@ export class MapboxStyleParser implements StyleParser {
 
     /**
      * The readStyle implementation of the GeoStyler-Style StylerParser interface.
-     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-Style.
+     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadResponse.
      *
      * @param mapboxStyle The Mapbox Style object
-     * @return {Promise<Style>} The Promise resolving with a GeoStylerStyle-Style
+     * @return {Promise<ReadResponse>} The Promise resolving with a GeoStylerStyle-ReadResponse
      */
     readStyle(mapboxStyle: any): Promise<Style> {
         return new Promise<Style>((resolve, reject) => {
@@ -406,29 +435,31 @@ export class MapboxStyleParser implements StyleParser {
         // one layer corresponds to a single symbolizer within a rule
         // so filters and scaleDenominators have to be set for each symbolizer explicitly
         const layers: any[] = [];
-        rules.forEach((rule: Rule) => {
+        rules.forEach((rule: Rule, i: number) => {
             // create new layer object
             let layer: any = {};
             // just setting the temporary id here
             // after iterating over each symbolizer, we will add the index of each symbolizer
             // as a suffix to the layerId;
-            const layerId: string = rule.name;
+            const layerId: string = rule.name; // + '-gs-r' + i;
             // set filters and scaleDenominator
             if (rule.filter && rule.filter.length !== 0) {
-                layer.filter = this.getMapboxFilterFromFilter(rule.filter);
+                const filterClone = _cloneDeep(rule.filter);
+                layer.filter = this.getMapboxFilterFromFilter(filterClone);
             }
 
-            if (rule.scaleDenominator) {
-                // TODO calculate zoomLevel from scaleDenominator
-            }
+            // if (rule.scaleDenominator) {
+            //     // TODO calculate zoomLevel from scaleDenominator
+            // }
 
             rule.symbolizers.forEach((symbolizer: Symbolizer, index: number) => {
                 // use existing layer properties
                 let lyr: any = {};
                 lyr.filter = layer.filter;
-                lyr.scaleDenominator = layer.scaleDenominator;
+                // lyr.scaleDenominator = layer.scaleDenominator;
                 // set name
-                lyr.id = layerId + index;
+                // lyr.id = layerId + '-s' + index;
+                lyr.id = layerId;
                 // get symbolizer type and paint
                 const {
                     layerType,
@@ -449,12 +480,28 @@ export class MapboxStyleParser implements StyleParser {
      * @return {any[]} A Mapbox filter array
      */
     getMapboxFilterFromFilter(filter: Filter): any[] {
+        const operatorMapping = {
+            '&&': true,
+            '||': true,
+            '!': true
+        };
         const operator: Operator = filter[0];
         let isNestedFilter: boolean = false;
-        if (MapboxStyleParser.operatorMapping[operator]) {
+        if (operatorMapping[operator]) {
             isNestedFilter = true;
         }
         if (isNestedFilter) {
+            switch (filter[0]) {
+                case '&&':
+                    filter[0] = 'all';
+                    break;
+                case '||':
+                    filter[0] = 'any';
+                    break;
+                default:
+                    break;
+            }
+
             let restFilter = filter.slice(1);
             restFilter.forEach((f: Filter) => {
                 this.getMapboxFilterFromFilter(f);
@@ -473,24 +520,25 @@ export class MapboxStyleParser implements StyleParser {
      *                                                   and the Mapbox Layer Paint
      */
     getStyleFromSymbolizer(symbolizer: Symbolizer): { layerType: MapboxLayerType; paint: any; } {
+        const symbolizerClone = _cloneDeep(symbolizer);
         let layerType: MapboxLayerType;
         let paint: any;
         switch (symbolizer.kind) {
             case 'Fill':
                 layerType = 'fill';
-                paint = this.getPaintFromFillSymbolizer(symbolizer as FillSymbolizer);
+                paint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
                 break;
             case 'Line':
                 layerType = 'line';
-                paint = this.getPaintFromLineSymbolizer(symbolizer as LineSymbolizer);
+                paint = this.getPaintFromLineSymbolizer(symbolizerClone as LineSymbolizer);
                 break;
             case 'Icon':
                 layerType = 'symbol';
-                paint = this.getPaintFromIconSymbolizer(symbolizer as IconSymbolizer);
+                paint = this.getPaintFromIconSymbolizer(symbolizerClone as IconSymbolizer);
                 break;
             case 'Text':
                 layerType = 'symbol';
-                paint = this.getPaintFromTextSymbolizer(symbolizer as TextSymbolizer);
+                paint = this.getPaintFromTextSymbolizer(symbolizerClone as TextSymbolizer);
                 break;
             case 'Mark':
             // TODO check if mapbox can generate regular shapes
@@ -597,7 +645,7 @@ export class MapboxStyleParser implements StyleParser {
             join,
             opacity,
             color,
-            offset,
+            perpendicularOffset,
             width,
             blur,
             dasharray,
@@ -622,7 +670,7 @@ export class MapboxStyleParser implements StyleParser {
             'line-translate-anchor': translateAnchor,
             'line-width': width,
             'line-gap-width': gapWidth,
-            'line-offset': offset,
+            'line-offset': perpendicularOffset,
             'line-blur': blur,
             'line-dasharray': dasharray,
             'line-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill),

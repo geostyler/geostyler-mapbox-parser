@@ -3,7 +3,7 @@ import { Style } from 'geostyler-style';
 const multiSimpleLineSimpleFill: Style = {
   name: 'Simple Line Simple Fill',
   rules: [{
-    name: '',
+    name: 'Simple Line Simple Fill',
     symbolizers: [{
       kind: 'Line',
       color: '#000000',
