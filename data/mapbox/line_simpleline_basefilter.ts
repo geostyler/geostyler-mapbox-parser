@@ -1,6 +1,6 @@
 const lineSimpleLine: any = {
   version: 8,
-  name: 'Simple Line Filter',
+  name: 'Small populated New Yorks',
   layers: [{
     id: 'Small populated New Yorks',
     type: 'line',
@@ -18,12 +18,7 @@ const lineSimpleLine: any = {
     ],
     paint: {
       'line-color': '#FF0000',
-      'line-width': ['case',
-        ['==', ['get', 'DENSITY'], 20],
-        3,
-        ['!=', ['get', 'DENSITY'], 20],
-        5
-      ]
+      'line-width': 3
     }
   }]
 };
