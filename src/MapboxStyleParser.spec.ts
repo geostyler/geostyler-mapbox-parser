@@ -17,6 +17,8 @@ import line_simpleline_basefilter from '../data/styles/line_simpleline_basefilte
 import mb_line_simpleline_basefilter from '../data/mapbox/line_simpleline_basefilter';
 import line_simpleline_filter from '../data/styles/line_simpleline_filter';
 import mb_line_simpleline_filter from '../data/mapbox/line_simpleline_filter';
+import line_simpleline_zoom from '../data/styles/line_simpleline_zoom';
+import mb_line_simpleline_zoom from '../data/mapbox/line_simpleline_zoom';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -54,6 +56,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline_filter);
+        });
+    });
+
+    it('can read a mapbox style with min and max zoom', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_line_simpleline_zoom.layers[0])
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(line_simpleline_zoom);
         });
     });
   });
@@ -119,6 +130,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
           expect(mbStyle).toEqual(mb_line_simpleline_basefilter.layers);
+        });
+    });
+
+    it('can write a mapbox style with min and max zoom', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(line_simpleline_zoom)
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(mbStyle).toEqual(mb_line_simpleline_zoom.layers);
         });
     });
   });

@@ -16,6 +16,8 @@ import {
     UnsupportedProperties
 } from 'geostyler-style';
 
+import MapboxStyleUtil from './Util/MapboxStyleUtil';
+
 const _cloneDeep = require('lodash/cloneDeep');
 const _isEqual = require('lodash/isEqual');
 
@@ -29,7 +31,7 @@ type SymbolType = {
 
 export class MapboxStyleParser implements StyleParser {
     isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
-        return (<SymbolType>s).iconSymb ? true: (<SymbolType>s).textSymb ? true: false;
+        return (<SymbolType> s).iconSymb ? true : (<SymbolType> s).textSymb ? true : false;
     }
 
     static unsupportedProperties: UnsupportedProperties = {
@@ -49,15 +51,6 @@ export class MapboxStyleParser implements StyleParser {
             IconSymbolizer: 'unsupported'
         }
     };
-
-    // credits to
-    // https://github.com/boundlessgeo/ol-mapbox-style/blob/e11bb81efbc242b907963fba569fd35091ed3aaf/stylefunction.js#L160
-    static resolutions = [78271.51696402048, 39135.75848201024,
-    19567.87924100512, 9783.93962050256, 4891.96981025128, 2445.98490512564,
-    1222.99245256282, 611.49622628141, 305.748113140705, 152.8740565703525,
-    76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032,
-    4.777314267823516, 2.388657133911758, 1.194328566955879, 0.5971642834779395,
-    0.29858214173896974, 0.14929107086948487, 0.07464553543474244];
 
     /**
      * Parses the GeoStylerStyle-SymbolizerKind from a Mapbox Style Layer
@@ -232,7 +225,7 @@ export class MapboxStyleParser implements StyleParser {
         return {
             textSymb: this.getTextSymbolizerFromMapboxLayer(paint),
             iconSymb: this.getIconSymbolizerFromMapboxLayer(paint)
-        }
+        };
     }
 
     /**
@@ -308,25 +301,6 @@ export class MapboxStyleParser implements StyleParser {
         return filter;
     }
 
-    // credits to
-    // https://github.com/terrestris/ol-util/blob/de1b580c63454c8110806a3d73a5f6e972b2f2b0/src/MapUtil/MapUtil.js#L104
-    getScaleForResolution (resolution: number): number {
-        var dpi = 25.4 / 0.28;
-        var mpu = 1; 
-        var inchesPerMeter = 39.37;
-
-        return resolution * mpu * inchesPerMeter * dpi;
-    }
-
-    zoomToScale(zoom: number): number {
-        const z = Math.round(zoom);
-        if (z >= MapboxStyleParser.resolutions.length) {
-            throw new Error(`Cannot parse scaleDenominator. ZoomLevel does not exist.`);
-        }
-        const resolution = MapboxStyleParser.resolutions[z];
-        return this.getScaleForResolution(resolution);
-    }
-
     /**
      * Creates a GeoStylerStyle-ScaleDenominator from a Mapvox Style Layer Min/Max Zoom
      *
@@ -337,10 +311,10 @@ export class MapboxStyleParser implements StyleParser {
     getScaleDenominatorFromMapboxZoom(minZoom?: number, maxZoom?: number): ScaleDenominator|undefined {
         let scaleDenominator: ScaleDenominator = {};
         if (typeof minZoom !== 'undefined') {
-            scaleDenominator.min = this.zoomToScale(minZoom);
+            scaleDenominator.min = MapboxStyleUtil.zoomToScale(minZoom);
         }
         if (typeof maxZoom !== 'undefined') {
-            scaleDenominator.max = this.zoomToScale(maxZoom);
+            scaleDenominator.max = MapboxStyleUtil.zoomToScale(maxZoom);
         }
         if (typeof scaleDenominator.min === 'undefined' && typeof scaleDenominator.max === 'undefined') {
             return undefined;
@@ -388,7 +362,7 @@ export class MapboxStyleParser implements StyleParser {
         // convert filters to strings
         const filterStrings: string[][] = [];
         let equal: boolean = true;
-        for(let i = 0; i < filters.length; i++) {
+        for (let i = 0; i < filters.length; i++) {
             const filterString: string[] = [];
             filters[i].forEach((exp: any, index: number, f: any) => {
                 if (index % 2 === 1 && index !== f.length - 1) {
@@ -422,7 +396,7 @@ export class MapboxStyleParser implements StyleParser {
      * @return {{filter?: Filter; symbolizers: Symbolizer[]}} Array of valid Symbolizers and optional mapbox filters
      */
     mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: Symbolizer): {filter?: Filter; symbolizers: Symbolizer[]}[] {
-        const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[];}[] = [];
+        const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[]; }[] = [];
         const props = Object.keys(tmpSymbolizer);
         const filterProps: string[] = [];
         const filters: any[] = [];
@@ -529,7 +503,7 @@ export class MapboxStyleParser implements StyleParser {
             const ruleFilter = _cloneDeep(rule.filter);
             rules.push({
                 name: layer.id,
-                scaleDenominator: this.getScaleDenominatorFromMapboxZoom(layer.minZoom, layer.maxZoom),
+                scaleDenominator: this.getScaleDenominatorFromMapboxZoom(layer.minzoom, layer.maxzoom),
                 // merge layer filter with attribute filters
                 filter: this.mergeFilters(filter, ruleFilter),
                 symbolizers: rule.symbolizers
@@ -629,15 +603,22 @@ export class MapboxStyleParser implements StyleParser {
                 layer.filter = this.getMapboxFilterFromFilter(filterClone);
             }
 
-            // if (rule.scaleDenominator) {
-            //     // TODO calculate zoomLevel from scaleDenominator
-            // }
+            if (rule.scaleDenominator) {
+                // calculate zoomLevel from scaleDenominator
+                if (typeof rule.scaleDenominator.min !== 'undefined') {
+                    layer.minzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.min);
+                }
+                if (typeof rule.scaleDenominator.max !== 'undefined') {
+                    layer.maxzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.max);
+                }
+            }
 
             rule.symbolizers.forEach((symbolizer: Symbolizer, index: number) => {
                 // use existing layer properties
                 let lyr: any = {};
                 lyr.filter = layer.filter;
-                // lyr.scaleDenominator = layer.scaleDenominator;
+                lyr.minzoom = layer.minzoom;
+                lyr.maxzoom = layer.maxzoom;
                 // set name
                 // lyr.id = layerId + '-s' + index;
                 lyr.id = layerId;
@@ -652,6 +633,60 @@ export class MapboxStyleParser implements StyleParser {
             });
         });
         return layers;
+    }
+    
+    /**
+     * Get the mapbox zoomlevel from a scaleDenominator.
+     * Interpolates the zoomlevel if calculated resolutions do not match.
+     *
+     * Note: Resolutions will be rounded to the closest integer to avoid
+     * comparison errors on floating point numbers.
+     *
+     * @param scaleDenominator The scaleDenominator of the GeoStyler-Style Rule
+     * @return number The corresponding zoom level
+     */
+    getMapboxZoomFromScaleDenominator(scaleDenominator: number): number {
+        // transform scaledenom to resolution
+        const scale: number = Math.round(MapboxStyleUtil.getResolutionForScale(scaleDenominator));
+        let pre: number|undefined = undefined;
+        let post: number|undefined = undefined;
+        let zoom: number;
+        const resolutions = MapboxStyleUtil.resolutions;
+        for (let i = 0; i < MapboxStyleUtil.resolutions.length; i++) {
+            const res = Math.round(resolutions[i]);
+            // if resolution matches index exactly return index
+            if (scale === Math.round(res)) {
+                zoom = i;
+                break;
+            }
+            // else get surrounding indexes and interpolate value
+            if (i !== (resolutions.length - 1) && scale < res && scale > Math.round(resolutions[i + 1])) {
+                pre = i;
+                post = i + 1;
+                break;
+            }
+            // handle if scale is bigger than maximum zoom level
+            if (i === 0 && scale > res) {
+                zoom = i;
+                break;
+            }
+            // handle if scale is smaller than minimum zoom level
+            if (i === resolutions.length - 1 && scale < res) {
+                zoom = i;
+                break;
+            }
+        }
+
+        if (typeof pre !== 'undefined' && typeof post !== 'undefined') {
+            // interpolate between zoomlevels
+            const preVal = resolutions[pre];
+            const postVal = resolutions[post];
+            const range = preVal - postVal;
+            const diff = scale - postVal;
+            zoom = pre + (range / 100 * diff);
+        }
+
+        return zoom!;
     }
 
     /**
