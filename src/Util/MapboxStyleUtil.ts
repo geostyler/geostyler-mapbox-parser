@@ -8,12 +8,12 @@ class MapboxStyleUtil {
     76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032,
     4.777314267823516, 2.388657133911758, 1.194328566955879, 0.5971642834779395,
     0.29858214173896974, 0.14929107086948487, 0.07464553543474244];
-  
+
   // credits to
   // https://github.com/terrestris/ol-util/blob/de1b580c63454c8110806a3d73a5f6e972b2f2b0/src/MapUtil/MapUtil.js#L104
   public static getScaleForResolution(resolution: number): number {
     var dpi = 25.4 / 0.28;
-    var mpu = 1; 
+    var mpu = 1;
     var inchesPerMeter = 39.37;
 
     return resolution * mpu * inchesPerMeter * dpi;
@@ -31,7 +31,7 @@ class MapboxStyleUtil {
    *                       resolution for.
    * @return {number} The calculated resolution.
    */
-  static getResolutionForScale (scale: number): number {
+  static getResolutionForScale(scale: number): number {
     let dpi = 25.4 / 0.28;
     let mpu = 1;
     let inchesPerMeter = 39.37;
@@ -40,11 +40,23 @@ class MapboxStyleUtil {
   }
 
   public static zoomToScale(zoom: number): number {
-    const z = Math.round(zoom);
-    if (z >= MapboxStyleUtil.resolutions.length) {
-        throw new Error(`Cannot parse scaleDenominator. ZoomLevel does not exist.`);
+    // if zoom is integer
+    if (zoom >= MapboxStyleUtil.resolutions.length) {
+      throw new Error(`Cannot parse scaleDenominator. ZoomLevel does not exist.`);
     }
-    const resolution = MapboxStyleUtil.resolutions[z];
+    let resolution: number;
+    if (Number.isInteger(zoom)) {
+      resolution = MapboxStyleUtil.resolutions[zoom];
+    } else {
+      // interpolate values
+      const pre = Math.floor(zoom);
+      const post = Math.ceil(zoom);
+      const preVal = MapboxStyleUtil.resolutions[pre];
+      const postVal = MapboxStyleUtil.resolutions[post];
+      const range = preVal - postVal;
+      const decimal = zoom % 1;
+      resolution = preVal - (range * decimal);
+    }
     return this.getScaleForResolution(resolution);
   }
 
