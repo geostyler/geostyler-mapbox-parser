@@ -639,9 +639,6 @@ export class MapboxStyleParser implements StyleParser {
      * Get the mapbox zoomlevel from a scaleDenominator.
      * Interpolates the zoomlevel if calculated resolutions do not match.
      *
-     * Note: Resolutions will be rounded to the closest integer to avoid
-     * comparison errors on floating point numbers.
-     *
      * @param scaleDenominator The scaleDenominator of the GeoStyler-Style Rule
      * @return number The corresponding zoom level
      */
