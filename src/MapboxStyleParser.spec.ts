@@ -67,6 +67,24 @@ describe('MapboxStyleParser implements StyleParser', () => {
           expect(geoStylerStyle).toEqual(line_simpleline_zoom);
         });
     });
+
+    it('can read a mapbox Text style', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_point_simpletext.layers[0])
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(point_simpletext);
+        });
+    });
+
+    it('can read a mapbox Text style with placeholder Text', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_point_placeholdertext.layers[0])
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(point_placeholdertext);
+        });
+    });
   });
 
   describe('#writeStyle', () => {
@@ -97,7 +115,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
-    it('can write a mapbox Text style', () => {
+    it('can write a mapbox Text style with a placeholder Text', () => {
       expect.assertions(2);
       return styleParser.writeStyle(point_placeholdertext)
         .then((mbStyle: any) => {

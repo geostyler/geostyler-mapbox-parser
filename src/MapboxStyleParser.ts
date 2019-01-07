@@ -34,15 +34,15 @@ export class MapboxStyleParser implements StyleParser {
         return (<SymbolType> s).iconSymb ? true : (<SymbolType> s).textSymb ? true : false;
     }
 
+    /**
+     * Object of unsupported properties.
+     */
     static unsupportedProperties: UnsupportedProperties = {
-        ScaleDenominator: 'unsupported',
         Symbolizer: {
             FillSymbolizer: {
                 outlineWidth: 'unsupported',
                 outlineDasharray: 'unsupported',
-                graphicFill: {
-
-                }
+                graphicFill: 'unsupported',
             },
             LineSymbolizer: {
                 dashOffset: 'unsupported'
@@ -72,7 +72,7 @@ export class MapboxStyleParser implements StyleParser {
     }
 
     /**
-     * Creats a GeoStylerStyle-TextSymbolizer label from a Mapbox Layer Paint Symbol text-field
+     * Creates a GeoStylerStyle-TextSymbolizer label from a Mapbox Layer Paint Symbol text-field
      *
      * @param {string | any[]} label A Mapbox Layer Paint Symbol text-field
      * @return {string} A GeoStylerStyle-TextSymbolizer label
@@ -86,7 +86,7 @@ export class MapboxStyleParser implements StyleParser {
         }
         let gsLabel = '';
         // ignore all even indexes since we cannot handle them 
-        for (let i = 1; i < label.length; i + 2) {
+        for (let i = 1; i < label.length; i = i + 2) {
             if (typeof label[i] === 'string') {
                 gsLabel += label[i];
             } else {
@@ -464,11 +464,14 @@ export class MapboxStyleParser implements StyleParser {
         const tmpSymbolizer: Symbolizer|SymbolType = this.getSymbolizerFromMapboxLayer(paint, type);
         let pseudoRules: any[] = [];
         if (this.isSymbolType(tmpSymbolizer)) {
-            if (tmpSymbolizer.hasOwnProperty('textSymb')) {
-                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymb as Symbolizer);
-            }
+            // TODO fix distinction between iconSymb and textSymb. Currently, both properties always
+            // exist (but might be empty) and thus, iconSymb will be overwritten by textSymb.
+            // This is just a temporary solution as we are not able to properly parse iconSymb currently, anyway.
             if (tmpSymbolizer.hasOwnProperty('iconSymb')) {
                 pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymb as Symbolizer);
+            }
+            if (tmpSymbolizer.hasOwnProperty('textSymb')) {
+                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymb as Symbolizer);
             }
         } else {
             pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer);
