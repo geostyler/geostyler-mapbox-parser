@@ -37,7 +37,6 @@
     "@types/jest": "23.3.9",
     "@types/lodash": "4.14.118",
     "@types/node": "10.12.10",
-    "@types/xml2js": "0.4.3",
     "awesome-typescript-loader": "4.0.1",
     "coveralls": "3.0.1",
     "jest": "23.4.2",
@@ -60,12 +59,6 @@
     "testRegex": "/src/.*\\.spec.(ts|js)$",
     "collectCoverageFrom": [
       "src/*.{ts,js}"
-    ]
-  },
-  "greenkeeper": {
-    "ignore": [
-      "webpack",
-      "webpack-cli"
     ]
   }
 }

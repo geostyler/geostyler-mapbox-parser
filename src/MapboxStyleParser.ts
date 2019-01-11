@@ -67,7 +67,8 @@ export class MapboxStyleParser implements StyleParser {
             case 'symbol':
                 return 'Symbol';
             default:
-                throw new Error(`Could not parse mapbox style. Unsupported layer type.`);
+                throw new Error(`Could not parse mapbox style. Unsupported layer type.
+                We support types 'fill', 'line' and 'symbol' only.`);
         }
     }
 
@@ -156,7 +157,7 @@ export class MapboxStyleParser implements StyleParser {
             allowOverlap: paint['text-allow-overlap'],
             ignorePlacement: paint['text-ignore-placement'],
             optional: paint['text-optional'],
-            visibility: paint.visibility,
+            visibility: paint['visibility'],
             opacity: paint['text-opacity'],
             color: paint['text-color'],
             haloColor: paint['text-halo-color'],
@@ -176,7 +177,7 @@ export class MapboxStyleParser implements StyleParser {
     getFillSymbolizerFromMapboxLayer(paint: any): FillSymbolizer {
         return {
             kind: 'Fill',
-            visibility: paint.visibility,
+            visibility: paint['visibility'],
             antialias: paint['fill-antialias'],
             opacity: paint['fill-opacity'],
             color: paint['fill-color'],
@@ -414,6 +415,15 @@ export class MapboxStyleParser implements StyleParser {
                 return;
             }
             // is expression
+            // switch (tmpSymbolizer[prop][0]) {
+            //     case 'case':
+            //         break;
+            //     case 'match':
+            //         break;
+            //     default:
+            //         throw new Error(`Unsupported expression.
+            // Only expressions of type 'case' and 'match' are allowed.`);
+            // }
             if (tmpSymbolizer[prop][0] !== 'case') {
                 throw new Error(`Unsupported expression. Only expressions of type 'case' are allowed.`);
             }
@@ -426,19 +436,29 @@ export class MapboxStyleParser implements StyleParser {
             if (!equalFilters) {
                 throw new Error(`Cannot parse attributes. Filters do not match`);
             }
+            // iterate over each value in a single filter
+            // we can use filters[0] as we checked beforehand if all filters are equal.
             filters[0].forEach((filter: any, index: number) => {
+                // ignore all even indexes as we are not interested in the values at this point
                 if (index % 2 !== 1) {
                     return;
                 }
+                // make a deep clone to avoid call-by-reference issues
                 let symbolizer: Symbolizer = _cloneDeep(tmpSymbolizer);
                 let values: any[] = [];
+                // iterate over each filter and push the corresponding value of the current filter expression
                 filters.forEach((f: any) => {
                     values.push(f[index + 1]);
                 });
+                // set the value of the corresponding symbolizer property to value of current filter expression
                 values.forEach((val: any, i: number) => {
                     const p = filterProps[i];
                     symbolizer[p] = val;
                 });
+                // push the created symbolizers and the corresponding filter expression.
+                // Results in an object containing a single Filter expression (in mapbox expression format)
+                // and the corresponding symbolizers only containing values.
+                // Number of symbolizers corresponds to the number of outcomes of a filter expression.
                 pseudoRules.push({
                     symbolizers: [symbolizer],
                     filter: filter
