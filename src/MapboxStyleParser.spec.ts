@@ -34,7 +34,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
   describe('#readStyle', () => {
     it('can read a mapbox Line style', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_line_simpleline.layers[0])
+      return styleParser.readStyle(mb_line_simpleline)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline);
@@ -43,7 +43,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox style with a basefilter', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_line_simpleline_basefilter.layers[0])
+      return styleParser.readStyle(mb_line_simpleline_basefilter)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline_basefilter);
@@ -52,7 +52,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox style with a filter', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_line_simpleline_filter.layers[0])
+      return styleParser.readStyle(mb_line_simpleline_filter)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline_filter);
@@ -61,7 +61,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox style with min and max zoom', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_line_simpleline_zoom.layers[0])
+      return styleParser.readStyle(mb_line_simpleline_zoom)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline_zoom);
@@ -70,7 +70,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox Text style', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_point_simpletext.layers[0])
+      return styleParser.readStyle(mb_point_simpletext)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(point_simpletext);
@@ -79,10 +79,19 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox Text style with placeholder Text', () => {
       expect.assertions(2);
-      return styleParser.readStyle(mb_point_placeholdertext.layers[0])
+      return styleParser.readStyle(mb_point_placeholdertext)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(point_placeholdertext);
+        });
+    });
+
+    it('can read a mapbox style with multiple layers', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_multi_simpleline_simplefill)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(multi_simpleline_simplefill);
         });
     });
   });
@@ -93,7 +102,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline.layers);
+          expect(mbStyle).toEqual(mb_line_simpleline);
         });
     });
 
@@ -102,7 +111,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(fill_simplefill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_fill_simplefill.layers);
+          expect(mbStyle).toEqual(mb_fill_simplefill);
         });
     });
 
@@ -111,7 +120,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(point_simpletext)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_point_simpletext.layers);
+          expect(mbStyle).toEqual(mb_point_simpletext);
         });
     });
 
@@ -120,7 +129,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(point_placeholdertext)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_point_placeholdertext.layers);
+          expect(mbStyle).toEqual(mb_point_placeholdertext);
         });
     });
 
@@ -129,7 +138,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(multi_simpleline_simplefill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_multi_simpleline_simplefill.layers);
+          expect(mbStyle).toEqual(mb_multi_simpleline_simplefill);
         });
     });
 
@@ -138,7 +147,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(multi_rule_line_fill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_multi_rule_line_fill.layers);
+          expect(mbStyle).toEqual(mb_multi_rule_line_fill);
         });
     });
 
@@ -147,7 +156,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline_basefilter)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline_basefilter.layers);
+          expect(mbStyle).toEqual(mb_line_simpleline_basefilter);
         });
     });
 
@@ -156,7 +165,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline_zoom)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline_zoom.layers);
+          expect(mbStyle).toEqual(mb_line_simpleline_zoom);
         });
     });
   });

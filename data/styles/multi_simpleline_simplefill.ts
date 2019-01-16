@@ -10,13 +10,15 @@ const multiSimpleLineSimpleFill: Style = {
       width: 3,
       dasharray: [13, 37],
       cap: 'round',
-      join: 'miter',
-      dashOffset: 10
-    }, {
+      join: 'miter'
+    }]
+  },{
+    name: 'Simple Line Simple Fill',
+    symbolizers: [{
       kind: 'Fill',
       color: '#000000',
       opacity: 1
-    }]
+      }]
   }]
 };
 

@@ -1,7 +1,7 @@
 import { Style } from 'geostyler-style';
 
 const lineSimpleLine: Style = {
-  name: 'Small populated New Yorks',
+  name: 'Simple Line Filter',
   rules: [{
     name: 'Small populated New Yorks',
     scaleDenominator: {

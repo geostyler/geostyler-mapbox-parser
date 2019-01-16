@@ -538,13 +538,20 @@ export class MapboxStyleParser implements StyleParser {
     /**
      * Creates a GeoStylerStyle-Style from a Mapbox Style
      *
-     * @param {any} mapboxLayer The Mapbox Style object
+     * @param {any} mapboxStyle The Mapbox Style object
      * @return {Style} A GeoStylerStyle-Style
      */
-    mapboxLayerToGeoStylerStyle(mapboxLayer: any): Style {
+    mapboxLayerToGeoStylerStyle(mapboxStyle: any): Style {
         let style: Style = {} as Style;
-        style.name = mapboxLayer.id;
-        style.rules = this.mapboxLayerToGeoStylerRules(mapboxLayer);
+        style.name = mapboxStyle.name;
+        style.rules = [];
+        // style.rules = this.mapboxLayerToGeoStylerRules(mapboxStyle);
+        if (mapboxStyle.layers) {
+            mapboxStyle.layers.forEach((layer: any) => {
+                const rules = this.mapboxLayerToGeoStylerRules(layer);
+                style.rules = style.rules.concat(rules);
+            });
+        }
         return style;
     }
 
@@ -555,10 +562,10 @@ export class MapboxStyleParser implements StyleParser {
      * @param mapboxLayer The Mapbox Style object
      * @return {Promise<ReadResponse>} The Promise resolving with a GeoStylerStyle-ReadResponse
      */
-    readStyle(mapboxLayer: any): Promise<Style> {
+    readStyle(mapboxStyle: any): Promise<Style> {
         return new Promise<Style>((resolve, reject) => {
             try {
-                const geoStylerStyle: Style = this.mapboxLayerToGeoStylerStyle(mapboxLayer);
+                const geoStylerStyle: Style = this.mapboxLayerToGeoStylerStyle(mapboxStyle);
                 resolve(geoStylerStyle);
             } catch (e) {
                 reject(e);
@@ -576,8 +583,8 @@ export class MapboxStyleParser implements StyleParser {
     writeStyle(geoStylerStyle: Style): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             try {
-                // const mapboxStyle: any = this.geoStylerStyleToMapboxObject(geoStylerStyle);
-                const mapboxStyle: any = this.getMapboxLayersFromRules(geoStylerStyle.rules);
+                const mapboxStyle: any = this.geoStylerStyleToMapboxObject(geoStylerStyle);
+                // const mapboxStyle: any = this.getMapboxLayersFromRules(geoStylerStyle.rules);
                 resolve(mapboxStyle);
             } catch (e) {
                 reject(e);
