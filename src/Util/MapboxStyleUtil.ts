@@ -60,6 +60,44 @@ class MapboxStyleUtil {
     return this.getScaleForResolution(resolution);
   }
 
+  /**
+   * Checks if all keys of an object are undefined.
+   * Returns true if so.
+   *
+   * @param obj The object to be checked
+   */
+  public static allUndefined(obj: any): boolean {
+    const keys = Object.keys(obj);
+    return !keys.some((k: string) => {
+      return typeof obj[k] !== 'undefined';
+    });
+  }
+
+  // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L143
+  // static urlRe = /^(\w+):\/\/([^/?]*)(\/[^?]+)?\??(.+)?/;
+  // public static parseUrl(url: string): {protocol: string; authority: string; path: string; params: string[]} {
+  //     const parts = url.match(this.urlRe);
+  //     if (!parts) {
+  //         throw new Error('Unable to parse URL object');
+  //     }
+  //     return {
+  //         protocol: parts[1],
+  //         authority: parts[2],
+  //         path: parts[3] || '/',
+  //         params: parts[4] ? parts[4].split('&') : []
+  //     };
+  // }
+
+  // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L82
+  // public static normalizeSpriteURL(url: string, format: string, extension: string, accessToken?: string): string {
+  //   const urlObject = MapboxStyleUtil.parseUrl(url);
+  //   if (url.indexOf('mapbox:') !== 0) {
+  //     throw new Error(`Cannot parse Url. Url is not a mapbox url.`);
+  //   }
+  //   urlObject.path = `/styles/v1${urlObject.path}/sprite${format}${extension}`;
+  //   // return makeAPIURL(urlObject, accessToken);
+  //   return `https://api.mapbox.com${urlObject.path}${urlObject.params}`;
+  // }
 }
 
 export default MapboxStyleUtil;

@@ -5,8 +5,10 @@ const pointSimpleText: any = {
     {
       id: 'Simple Text',
       type: 'symbol',
+      layout: {
+        'text-field': 'River'
+      },
       paint: {
-        'text-field': 'River',
         'text-color': '#000000',
         'text-opacity': 1
       }
