@@ -34,6 +34,8 @@ export class MapboxStyleParser implements StyleParser {
         return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
     }
 
+    _spriteBaseUrl: string;
+
     /**
      * Object of unsupported properties.
      */
@@ -47,8 +49,7 @@ export class MapboxStyleParser implements StyleParser {
             LineSymbolizer: {
                 dashOffset: 'unsupported'
             },
-            MarkSymbolizer: 'unsupported',
-            IconSymbolizer: 'unsupported'
+            MarkSymbolizer: 'unsupported'
         }
     };
 
@@ -78,7 +79,10 @@ export class MapboxStyleParser implements StyleParser {
      * @param {string | any[]} label A Mapbox Layer Paint Symbol text-field
      * @return {string} A GeoStylerStyle-TextSymbolizer label
      */
-    getLabelFromTextField(label: string | any[]): string {
+    getLabelFromTextField(label: string | any[]): (string|undefined) {
+        if (typeof label === 'undefined') {
+            return;
+        }
         if (typeof label === 'string') {
             return label;
         }
@@ -115,15 +119,58 @@ export class MapboxStyleParser implements StyleParser {
     }
 
     /**
+     * Creates an image url based on the sprite baseurl and the sprite name.
+     *
+     * @param {string} spriteName Name of the sprite
+     * @return {string} the url that returns the single image
+     */
+    getIconImage(spriteName: string): (string|undefined) {
+        if (!spriteName) {
+            return;
+        }
+        if (!this._spriteBaseUrl) {
+            return;
+        }
+        // TODO update endpoint as soon as api specification was made
+        let url: string = '/sprites/?';
+        url += 'name=' + spriteName;
+        url += '&baseurl=' + encodeURIComponent(this._spriteBaseUrl);
+        return url;
+    }
+
+    /**
      * Creates a GeoStylerStyle-IconSymbolizer from a Mapbox Style Layer
      *
      * @param {any} layer A Mapbox Style Layer
      * @return {IconSymbolizer} A GeoStylerStyle-IconSymbolizer
      */
     getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer {
-        // TODO parse IconSymbolizer
         return {
-            kind: 'Icon'
+            kind: 'Icon',
+            spacing: layout["symbol-spacing"],
+            avoidEdges: layout["symbol-avoid-edges"],
+            allowOverlap: layout["icon-allow-overlap"],
+            ignorePlacement: layout["icon-ignore-placement"],
+            optional: layout["icon-optional"],
+            rotationAlignment: layout["icon-rotation-alignment"],
+            size: layout["icon-size"],
+            textFit: layout["icon-text-fit"],
+            textFitPadding: layout["icon-text-fit-padding"],
+            image: this.getIconImage(layout["icon-image"]),
+            rotate: layout["icon-rotate"],
+            padding: layout["icon-padding"],
+            keepUpright: layout["icon-keep-upright"],
+            offset: layout["icon-offset"],
+            anchor: layout["icon-anchor"],
+            pitchAlignment: layout["icon-pitch-alignment"],
+            visibility: layout["visibility"],
+            opacity: paint["icon-opacity"],
+            color: paint["icon-color"],
+            haloColor: paint["icon-halo-color"],
+            haloWidth: paint["icon-halo-width"],
+            haloBlur: paint["icon-halo-blur"],
+            translate: paint["icon-translate"],
+            translateAnchor: paint["icon-translate-anchor"]
         };
     }
 
@@ -243,9 +290,6 @@ export class MapboxStyleParser implements StyleParser {
             case 'Fill':
                 symbolizer = this.getFillSymbolizerFromMapboxLayer(paint, layout);
                 break;
-            case 'Icon':
-                symbolizer = this.getIconSymbolizerFromMapboxLayer(paint, layout);
-                break;
             case 'Line':
                 symbolizer = this.getLineSymbolizerFromMapboxLayer(paint, layout);
                 break;
@@ -253,9 +297,6 @@ export class MapboxStyleParser implements StyleParser {
                 return this.getIconTextSymbolizersFromMapboxLayer(paint, layout);
             case 'Mark':
                 symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
-                break;
-            case 'Text':
-                symbolizer = this.getTextSymbolizerFromMapboxLayer(paint, layout);
                 break;
             default:
                 throw new Error(`Cannot parse mapbox style. Unsupported Symbolizer kind.`);
@@ -482,19 +523,23 @@ export class MapboxStyleParser implements StyleParser {
     mapboxPaintToGeoStylerRules(paint: any, layout: any, type: string): Rule[] {
         const rules: Rule[] = [];
         const tmpSymbolizer: Symbolizer|SymbolType = this.getSymbolizerFromMapboxLayer(paint, layout, type);
-        let pseudoRules: any[] = [];
+        const pseudoRules: any[] = [];
         if (this.isSymbolType(tmpSymbolizer)) {
-            // TODO fix distinction between iconSymb and textSymb. Currently, both properties always
-            // exist (but might be empty) and thus, iconSymb will be overwritten by textSymb.
-            // This is just a temporary solution as we are not able to properly parse iconSymb currently, anyway.
+            // Concatenates all pseudorules.
             if (tmpSymbolizer.hasOwnProperty('iconSymbolizer')) {
-                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer);
+                // check if all properties except 'kind' are undefined. If so, skip
+                if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.iconSymbolizer as Symbolizer)) {
+                    pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer));
+                }
             }
             if (tmpSymbolizer.hasOwnProperty('textSymbolizer')) {
-                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer);
+                // check if all properties except 'kind' are undefined. If so, skip
+                if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.textSymbolizer as Symbolizer)) {
+                    pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer));
+                }
             }
         } else {
-            pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer);
+            pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer));
         }
         pseudoRules.forEach((rule: any) => {
             const {
@@ -551,6 +596,9 @@ export class MapboxStyleParser implements StyleParser {
         let style: Style = {} as Style;
         style.name = mapboxStyle.name;
         style.rules = [];
+        if (mapboxStyle.sprite) {
+            this._spriteBaseUrl = mapboxStyle.sprite;
+        }
         // style.rules = this.mapboxLayerToGeoStylerRules(mapboxStyle);
         if (mapboxStyle.layers) {
             mapboxStyle.layers.forEach((layer: any) => {
@@ -611,10 +659,12 @@ export class MapboxStyleParser implements StyleParser {
         const version = 8;
         const name = geoStylerStyle.name;
         const layers = this.getMapboxLayersFromRules(geoStylerStyle.rules);
+        const sprite = this._spriteBaseUrl;
         return {
             version,
             name,
-            layers
+            layers,
+            sprite
         };
     }
 
@@ -886,12 +936,26 @@ export class MapboxStyleParser implements StyleParser {
      * @param {string} path The source of an image
      * @return {string} The name of the sprite
      */
-    handleSprite(path: string): string {
-        // TODO
-        // set image url from IconSymbolizer.image
-        // set sprite in global style
-        // return name of sprite
-        return '';
+    handleSprite(path: string): (string|undefined) {
+        let spritename: string = '';
+        let baseurl: string = '';
+        const query = path.split('?')[1];
+        if (query.length === 0) {
+            return ;
+        }
+
+        const params = query.split('&');
+        params.forEach((param: string) => {
+            const [key, value] = param.split('=');
+            if (key === 'name') {
+                spritename = value;
+            } else if (key === 'baseurl') {
+                baseurl = decodeURIComponent(value);
+            }
+        });
+
+        this._spriteBaseUrl = baseurl;
+        return spritename;
     }
 
     /**

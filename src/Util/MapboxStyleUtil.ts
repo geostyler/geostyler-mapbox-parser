@@ -1,3 +1,5 @@
+import { Symbolizer } from "geostyler-style";
+
 class MapboxStyleUtil {
 
   // credits to
@@ -71,6 +73,17 @@ class MapboxStyleUtil {
     return !keys.some((k: string) => {
       return typeof obj[k] !== 'undefined';
     });
+  }
+
+  /**
+   * Checks if all keys of a Symbolizer are undefined except 'kind'.
+   *
+   * @param symbolizer A GeoStylerStyle Symbolizer
+   */
+  public static symbolizerAllUndefined (symbolizer: Symbolizer): boolean {
+    return !Object.keys(symbolizer)
+      .filter((val: string) => val !== 'kind')
+      .some((val: string) => typeof symbolizer[val] !== 'undefined');
   }
 
   // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L143

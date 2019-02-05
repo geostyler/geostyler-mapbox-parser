@@ -19,6 +19,8 @@ import line_simpleline_filter from '../data/styles/line_simpleline_filter';
 import mb_line_simpleline_filter from '../data/mapbox/line_simpleline_filter';
 import line_simpleline_zoom from '../data/styles/line_simpleline_zoom';
 import mb_line_simpleline_zoom from '../data/mapbox/line_simpleline_zoom';
+import icon_simpleicon from '../data/styles/icon_simpleicon';
+import mb_icon_simpleicon from '../data/mapbox/icon_simpleicon';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -94,6 +96,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
           expect(geoStylerStyle).toEqual(multi_simpleline_simplefill);
         });
     });
+
+    it('can read a mapbox style with an icon', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_icon_simpleicon)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(icon_simpleicon);
+        });
+    });
   });
 
   describe('#writeStyle', () => {
@@ -166,6 +177,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
           expect(mbStyle).toEqual(mb_line_simpleline_zoom);
+        });
+    });
+
+    it('can write a mapbox style with an icon', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(icon_simpleicon)
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(mbStyle).toEqual(mb_icon_simpleicon);
         });
     });
   });
