@@ -1,4 +1,4 @@
-import { Symbolizer } from "geostyler-style";
+import { Symbolizer } from 'geostyler-style';
 
 class MapboxStyleUtil {
 

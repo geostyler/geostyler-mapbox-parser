@@ -147,30 +147,30 @@ export class MapboxStyleParser implements StyleParser {
     getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer {
         return {
             kind: 'Icon',
-            spacing: layout["symbol-spacing"],
-            avoidEdges: layout["symbol-avoid-edges"],
-            allowOverlap: layout["icon-allow-overlap"],
-            ignorePlacement: layout["icon-ignore-placement"],
-            optional: layout["icon-optional"],
-            rotationAlignment: layout["icon-rotation-alignment"],
-            size: layout["icon-size"],
-            textFit: layout["icon-text-fit"],
-            textFitPadding: layout["icon-text-fit-padding"],
-            image: this.getIconImage(layout["icon-image"]),
-            rotate: layout["icon-rotate"],
-            padding: layout["icon-padding"],
-            keepUpright: layout["icon-keep-upright"],
-            offset: layout["icon-offset"],
-            anchor: layout["icon-anchor"],
-            pitchAlignment: layout["icon-pitch-alignment"],
-            visibility: layout["visibility"],
-            opacity: paint["icon-opacity"],
-            color: paint["icon-color"],
-            haloColor: paint["icon-halo-color"],
-            haloWidth: paint["icon-halo-width"],
-            haloBlur: paint["icon-halo-blur"],
-            translate: paint["icon-translate"],
-            translateAnchor: paint["icon-translate-anchor"]
+            spacing: layout['symbol-spacing'],
+            avoidEdges: layout['symbol-avoid-edges'],
+            allowOverlap: layout['icon-allow-overlap'],
+            ignorePlacement: layout['icon-ignore-placement'],
+            optional: layout['icon-optional'],
+            rotationAlignment: layout['icon-rotation-alignment'],
+            size: layout['icon-size'],
+            textFit: layout['icon-text-fit'],
+            textFitPadding: layout['icon-text-fit-padding'],
+            image: this.getIconImage(layout['icon-image']),
+            rotate: layout['icon-rotate'],
+            padding: layout['icon-padding'],
+            keepUpright: layout['icon-keep-upright'],
+            offset: layout['icon-offset'],
+            anchor: layout['icon-anchor'],
+            pitchAlignment: layout['icon-pitch-alignment'],
+            visibility: layout['visibility'],
+            opacity: paint['icon-opacity'],
+            color: paint['icon-color'],
+            haloColor: paint['icon-halo-color'],
+            haloWidth: paint['icon-halo-width'],
+            haloBlur: paint['icon-halo-blur'],
+            translate: paint['icon-translate'],
+            translateAnchor: paint['icon-translate-anchor']
         };
     }
 
@@ -529,13 +529,17 @@ export class MapboxStyleParser implements StyleParser {
             if (tmpSymbolizer.hasOwnProperty('iconSymbolizer')) {
                 // check if all properties except 'kind' are undefined. If so, skip
                 if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.iconSymbolizer as Symbolizer)) {
-                    pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer));
+                    pseudoRules.push(
+                        ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer)
+                    );
                 }
             }
             if (tmpSymbolizer.hasOwnProperty('textSymbolizer')) {
                 // check if all properties except 'kind' are undefined. If so, skip
                 if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.textSymbolizer as Symbolizer)) {
-                    pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer));
+                    pseudoRules.push(
+                        ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer)
+                    );
                 }
             }
         } else {
