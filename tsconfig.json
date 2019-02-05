@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "build/dist",
+    "declaration": true,
     "module": "commonjs",
     "target": "es5",
     "lib": [
@@ -9,7 +10,6 @@
       "es2017"
     ],
     "sourceMap": true,
-    "allowJs": true,
     "moduleResolution": "node",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,

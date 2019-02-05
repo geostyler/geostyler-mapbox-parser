@@ -2,7 +2,8 @@
   "name": "geostyler-mapbox-parser",
   "version": "0.0.1",
   "description": "GeoStyler-Style-Parser implementation for Mapbox",
-  "main": "index.js",
+  "main": "build/dist/MapboxStyleParser.js",
+  "types": "build/dist/MapboxStyleParser.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/terrestris/geostyler-mapbox-parser.git"

@@ -25,13 +25,13 @@ type MapboxLayerType = 'fill' | 'line' | 'symbol' | 'circle' | 'heatmap' |
     'fill-extrusion' | 'raster' | 'hillshade' | 'background';
 
 type SymbolType = {
-    textSymb?: TextSymbolizer;
-    iconSymb?: IconSymbolizer;
+    textSymbolizer?: TextSymbolizer;
+    iconSymbolizer?: IconSymbolizer;
 };
 
 export class MapboxStyleParser implements StyleParser {
     isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
-        return (<SymbolType> s).iconSymb ? true : (<SymbolType> s).textSymb ? true : false;
+        return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
     }
 
     /**
@@ -224,8 +224,8 @@ export class MapboxStyleParser implements StyleParser {
      */
     getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): SymbolType {
         return {
-            textSymb: this.getTextSymbolizerFromMapboxLayer(paint, layout),
-            iconSymb: this.getIconSymbolizerFromMapboxLayer(paint, layout)
+            textSymbolizer: this.getTextSymbolizerFromMapboxLayer(paint, layout),
+            iconSymbolizer: this.getIconSymbolizerFromMapboxLayer(paint, layout)
         };
     }
 
@@ -487,11 +487,11 @@ export class MapboxStyleParser implements StyleParser {
             // TODO fix distinction between iconSymb and textSymb. Currently, both properties always
             // exist (but might be empty) and thus, iconSymb will be overwritten by textSymb.
             // This is just a temporary solution as we are not able to properly parse iconSymb currently, anyway.
-            if (tmpSymbolizer.hasOwnProperty('iconSymb')) {
-                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymb as Symbolizer);
+            if (tmpSymbolizer.hasOwnProperty('iconSymbolizer')) {
+                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer);
             }
-            if (tmpSymbolizer.hasOwnProperty('textSymb')) {
-                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymb as Symbolizer);
+            if (tmpSymbolizer.hasOwnProperty('textSymbolizer')) {
+                pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer);
             }
         } else {
             pseudoRules = this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer);
