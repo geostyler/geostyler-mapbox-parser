@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/terrestris/geostyler-mapbox-parser#readme",
   "dependencies": {
-    "geostyler-style": "0.14.2"
+    "geostyler-style": "0.14.3"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && npm run build:browser",
