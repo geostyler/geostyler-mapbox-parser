@@ -601,7 +601,7 @@ export class MapboxStyleParser implements StyleParser {
         style.name = mapboxStyle.name;
         style.rules = [];
         if (mapboxStyle.sprite) {
-            this._spriteBaseUrl = mapboxStyle.sprite;
+            this._spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
         }
         // style.rules = this.mapboxLayerToGeoStylerRules(mapboxStyle);
         if (mapboxStyle.layers) {
@@ -663,7 +663,7 @@ export class MapboxStyleParser implements StyleParser {
         const version = 8;
         const name = geoStylerStyle.name;
         const layers = this.getMapboxLayersFromRules(geoStylerStyle.rules);
-        const sprite = this._spriteBaseUrl;
+        const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this._spriteBaseUrl);
         return {
             version,
             name,
