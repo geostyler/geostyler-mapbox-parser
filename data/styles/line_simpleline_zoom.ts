@@ -5,8 +5,8 @@ const lineSimpleLine: Style = {
   rules: [{
     name: 'Small populated New Yorks',
     scaleDenominator: {
-      min: 8735642.904127963,
-      max: 272988.84075399884
+      min: 545978.7733895439,
+      max: 13103464.356191942,
     },
     symbolizers: [{
       kind: 'Line',

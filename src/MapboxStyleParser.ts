@@ -385,10 +385,10 @@ export class MapboxStyleParser implements StyleParser {
     getScaleDenominatorFromMapboxZoom(minZoom?: number, maxZoom?: number): ScaleDenominator|undefined {
         let scaleDenominator: ScaleDenominator = {};
         if (typeof minZoom !== 'undefined') {
-            scaleDenominator.min = MapboxStyleUtil.zoomToScale(minZoom);
+            scaleDenominator.max = MapboxStyleUtil.zoomToScale(minZoom);
         }
         if (typeof maxZoom !== 'undefined') {
-            scaleDenominator.max = MapboxStyleUtil.zoomToScale(maxZoom);
+            scaleDenominator.min = MapboxStyleUtil.zoomToScale(maxZoom);
         }
         if (typeof scaleDenominator.min === 'undefined' && typeof scaleDenominator.max === 'undefined') {
             return undefined;
@@ -730,10 +730,10 @@ export class MapboxStyleParser implements StyleParser {
             if (rule.scaleDenominator) {
                 // calculate zoomLevel from scaleDenominator
                 if (typeof rule.scaleDenominator.min !== 'undefined') {
-                    layer.minzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.min);
+                    layer.maxzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.min);
                 }
                 if (typeof rule.scaleDenominator.max !== 'undefined') {
-                    layer.maxzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.max);
+                    layer.minzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.max);
                 }
             }
 
@@ -774,31 +774,35 @@ export class MapboxStyleParser implements StyleParser {
         let pre: number|undefined = undefined;
         let post: number|undefined = undefined;
         let zoom: number;
-        const resolutions = MapboxStyleUtil.resolutions;
-        for (let i = 0; i < MapboxStyleUtil.resolutions.length; i++) {
-            const res = resolutions[i];
-            // // if resolution matches index exactly return index
-            if (resolution.toString(18) === res.toString(18)) {
-                zoom = i;
-                break;
-            }
-            // else get surrounding indexes and interpolate value
-            if (i !== (resolutions.length - 1) && resolution < res && resolution > resolutions[i + 1]) {
-                pre = i;
-                post = i + 1;
-                break;
-            }
-            // handle if scale is smaller than minimum zoom level
-            if (i === 0 && resolution > res) {
-                zoom = i;
-                break;
-            }
-            // handle if scale is bigger than maximum zoom level
-            if (i === resolutions.length - 1 && resolution < res) {
-                zoom = i;
-                break;
-            }
+        const resolutions = MapboxStyleUtil.getResolutions();
+        zoom = resolutions.indexOf(resolution);
+        if (zoom === -1) {
+            zoom = MapboxStyleUtil.getZoomForResolution(resolution);
         }
+        // for (let i = 0; i < MapboxStyleUtil.resolutions.length; i++) {
+        //     const res = resolutions[i];
+        //     // // if resolution matches index exactly return index
+        //     if (resolution.toString(18) === res.toString(18)) {
+        //         zoom = i;
+        //         break;
+        //     }
+        //     // else get surrounding indexes and interpolate value
+        //     if (i !== (resolutions.length - 1) && resolution < res && resolution > resolutions[i + 1]) {
+        //         pre = i;
+        //         post = i + 1;
+        //         break;
+        //     }
+        //     // handle if scale is smaller than minimum zoom level
+        //     if (i === 0 && resolution > res) {
+        //         zoom = i;
+        //         break;
+        //     }
+        //     // handle if scale is bigger than maximum zoom level
+        //     if (i === resolutions.length - 1 && resolution < res) {
+        //         zoom = i;
+        //         break;
+        //     }
+        // }
 
         if (typeof pre !== 'undefined' && typeof post !== 'undefined') {
             // interpolate between zoomlevels
