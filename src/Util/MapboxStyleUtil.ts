@@ -1,3 +1,5 @@
+import { Symbolizer } from 'geostyler-style';
+
 class MapboxStyleUtil {
 
   // credits to
@@ -71,6 +73,45 @@ class MapboxStyleUtil {
     return !keys.some((k: string) => {
       return typeof obj[k] !== 'undefined';
     });
+  }
+
+  /**
+   * Checks if all keys of a Symbolizer are undefined except 'kind'.
+   *
+   * @param symbolizer A GeoStylerStyle Symbolizer
+   */
+  public static symbolizerAllUndefined (symbolizer: Symbolizer): boolean {
+    return !Object.keys(symbolizer)
+      .filter((val: string) => val !== 'kind')
+      .some((val: string) => typeof symbolizer[val] !== 'undefined');
+  }
+
+  /**
+   * Replaces the mapbox api placeholder with its actual url.
+   *
+   * @param url URL
+   */
+  public static getUrlForMbPlaceholder (url: string): string {
+    const mbPlaceholder = 'mapbox://';
+    const mbUrl = 'https://api.mapbox.com/';
+    if (url && url.startsWith(mbPlaceholder)) {
+      return url.replace(mbPlaceholder, mbUrl);
+    }
+    return url;
+  }
+
+  /**
+   * Replaces the actual mapbox url with its api placeholder.
+   *
+   * @param url URL
+   */
+  public static getMbPlaceholderForUrl (url: string): string {
+    const mbPlaceholder = 'mapbox://';
+    const mbUrl = 'https://api.mapbox.com/';
+    if (url && url.startsWith(mbUrl)) {
+      return url.replace(mbUrl, mbPlaceholder);
+    }
+    return url;
   }
 
   // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L143
