@@ -66,11 +66,17 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can read a mapbox style with min and max zoom', () => {
-      expect.assertions(2);
+      expect.assertions(5);
       return styleParser.readStyle(mb_line_simpleline_zoom)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
-          expect(geoStylerStyle).toEqual(line_simpleline_zoom);
+          const buffer = 2;
+          const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
+          const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
+          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! - buffer);
+          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! + buffer);
+          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! - buffer);
+          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! + buffer);
         });
     });
 
@@ -203,11 +209,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can write a mapbox style with min and max zoom', () => {
-      expect.assertions(2);
+      expect.assertions(3);
       return styleParser.writeStyle(line_simpleline_zoom)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline_zoom);
+          expect(mbStyle.layers[0].minzoom).toBeCloseTo(mb_line_simpleline_zoom.layers[0].minzoom, 0);
+          expect(mbStyle.layers[0].maxzoom).toBeCloseTo(mb_line_simpleline_zoom.layers[0].maxzoom, 0);
         });
     });
 
