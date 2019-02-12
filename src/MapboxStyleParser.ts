@@ -43,11 +43,11 @@ export class MapboxStyleParser implements StyleParser {
         Symbolizer: {
             FillSymbolizer: {
                 outlineWidth: 'unsupported',
-                outlineDasharray: 'unsupported',
-                graphicFill: 'unsupported',
+                outlineDasharray: 'unsupported'
             },
             LineSymbolizer: {
-                dashOffset: 'unsupported'
+                dashOffset: 'unsupported',
+                graphicStroke: 'unsupported'
             },
             MarkSymbolizer: 'unsupported'
         }
@@ -261,8 +261,18 @@ export class MapboxStyleParser implements StyleParser {
             outlineColor: paint['fill-outline-color'],
             translate: paint['fill-translate'],
             translateAnchor: paint['fill-translate-anchor'],
-            graphicFill: paint['fill-pattern']
+            graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['fill-pattern'])
         };
+    }
+
+    getPatternOrGradientFromMapboxLayer(icon: any): IconSymbolizer|undefined {
+        if (Array.isArray(icon)) {
+            throw new Error(`Cannot parse pattern or gradient. No Mapbox expressions allowed`);
+        }
+        if (!icon) {
+            return;
+        }
+        return this.getIconSymbolizerFromMapboxLayer({}, {'icon-image': icon});
     }
 
     /**
@@ -288,8 +298,8 @@ export class MapboxStyleParser implements StyleParser {
             perpendicularOffset: paint['line-offset'],
             blur: paint['line-blur'],
             dasharray: paint['line-dasharray'],
-            graphicFill: paint['line-pattern'],
-            graphicStroke: paint['line-gradient']
+            gradient: paint['line-gradient'],
+            graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['line-pattern'])
         };
     }
 
@@ -1035,7 +1045,7 @@ export class MapboxStyleParser implements StyleParser {
             dasharray,
             graphicFill,
             gapWidth,
-            graphicStroke,
+            gradient,
             translate,
             translateAnchor
         } = symbolizer;
@@ -1051,7 +1061,7 @@ export class MapboxStyleParser implements StyleParser {
             'line-blur': blur,
             'line-dasharray': dasharray,
             'line-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill),
-            'line-gradient': this.getPatternOrGradientFromPointSymbolizer(graphicStroke)
+            'line-gradient': gradient
         };
         return paint;
     }
