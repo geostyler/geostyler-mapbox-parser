@@ -92,6 +92,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can read a mapbox Circle style', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_circle_simplecircle)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(circle_simplecircle);
+        });
+    });
+
     it('can read a mapbox style with multiple layers', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_multi_simpleline_simplefill)
