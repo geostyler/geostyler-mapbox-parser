@@ -23,6 +23,8 @@ import icon_simpleicon from '../data/styles/icon_simpleicon';
 import mb_icon_simpleicon from '../data/mapbox/icon_simpleicon';
 import icon_simpleicon_mapboxapi from '../data/styles/icon_simpleicon_mapboxapi';
 import mb_icon_simpleicon_mapboxapi from '../data/mapbox/icon_simpleicon_mapboxapi';
+import circle_simplecircle from '../data/styles/circle_simplecircle';
+import mb_circle_simplecircle from '../data/mapbox/circle_simplecircle';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -90,6 +92,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can read a mapbox Circle style', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_circle_simplecircle)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(circle_simplecircle);
+        });
+    });
+
     it('can read a mapbox style with multiple layers', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_multi_simpleline_simplefill)
@@ -140,18 +151,27 @@ describe('MapboxStyleParser implements StyleParser', () => {
     it('can write a mapbox Text style', () => {
       expect.assertions(2);
       return styleParser.writeStyle(point_simpletext)
-        .then((mbStyle: any) => {
-          expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_point_simpletext);
-        });
+      .then((mbStyle: any) => {
+        expect(mbStyle).toBeDefined();
+        expect(mbStyle).toEqual(mb_point_simpletext);
+      });
     });
 
     it('can write a mapbox Text style with a placeholder Text', () => {
       expect.assertions(2);
       return styleParser.writeStyle(point_placeholdertext)
+      .then((mbStyle: any) => {
+        expect(mbStyle).toBeDefined();
+        expect(mbStyle).toEqual(mb_point_placeholdertext);
+      });
+    });
+
+    it('can write a mapbox Circle style', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(circle_simplecircle)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_point_placeholdertext);
+          expect(mbStyle).toEqual(mb_circle_simplecircle);
         });
     });
 

@@ -59,7 +59,7 @@ export class MapboxStyleParser implements StyleParser {
      * @param {any} layer A Mapbox Style Layer
      * @return {SymbolizerKind} A GeoStylerStyle-SymbolizerKind
      */
-    getSymbolizerKindFromMapboxLayer(type: string): SymbolizerKind|'Symbol' {
+    getSymbolizerKindFromMapboxLayer(type: string): SymbolizerKind|'Symbol'|'Circle' {
         switch (type) {
             case 'fill':
                 return 'Fill';
@@ -67,6 +67,8 @@ export class MapboxStyleParser implements StyleParser {
                 return 'Line';
             case 'symbol':
                 return 'Symbol';
+            case 'circle':
+                return 'Circle';
             default:
                 throw new Error(`Could not parse mapbox style. Unsupported layer type.
                 We support types 'fill', 'line' and 'symbol' only.`);
@@ -136,6 +138,34 @@ export class MapboxStyleParser implements StyleParser {
         url += 'name=' + spriteName;
         url += '&baseurl=' + encodeURIComponent(this._spriteBaseUrl);
         return url;
+    }
+
+    /**
+     * Creates a GeoStylerStyle-MarkSymbolizer with wellKnownName 'circle'
+     * from a Mapbox Style Layer. This one will be handled explicitly
+     * because mapbox has a dedicated layer type for circles. Other shapes are covered
+     * in layer type 'symbol' using fonts.
+     *
+     * @param {any} layer A Mapbox Style Layer
+     * @return {MarkSymbolizer} A GeoStylerStyle-MarkSymbolizer
+     */
+    getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
+        return {
+            kind: 'Mark',
+            wellKnownName: 'Circle',
+            visibility: layout['visibility'],
+            radius: paint['circle-radius'],
+            color: paint['circle-color'],
+            blur: paint['circle-blur'],
+            opacity: paint['circle-opacity'],
+            translate: paint['circle-translate'],
+            translateAnchor: paint['circle-translate-anchor'],
+            pitchScale: paint['circle-pitch-scale'],
+            pitchAlignment: paint['circle-pitch-alignment'],
+            strokeWidth: paint['circle-stroke-width'],
+            strokeColor: paint['circle-stroke-color'],
+            strokeOpacity: paint['circle-stroke-opacity']
+        };
     }
 
     /**
@@ -284,7 +314,7 @@ export class MapboxStyleParser implements StyleParser {
      */
     getSymbolizerFromMapboxLayer(paint: any, layout: any, type: string): Symbolizer|SymbolType {
         let symbolizer: Symbolizer = {} as Symbolizer;
-        const kind: SymbolizerKind|'Symbol' = this.getSymbolizerKindFromMapboxLayer(type);
+        const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayer(type);
 
         switch (kind) {
             case 'Fill':
@@ -295,6 +325,8 @@ export class MapboxStyleParser implements StyleParser {
                 break;
             case 'Symbol':
                 return this.getIconTextSymbolizersFromMapboxLayer(paint, layout);
+            case 'Circle':
+                return this.getCircleSymbolizerFromMapboxLayer(paint, layout);
             case 'Mark':
                 symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
                 break;
@@ -857,6 +889,15 @@ export class MapboxStyleParser implements StyleParser {
                 layout = this.getLayoutFromTextSymbolizer(symbolizerClone as TextSymbolizer);
                 break;
             case 'Mark':
+                if (symbolizer.wellKnownName === 'Circle') {
+                    layerType = 'circle';
+                    paint = this.getPaintFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
+                    layout = this.getLayoutFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
+                    break;
+                } else {
+                    throw new Error(`Cannot get Style. Unsupported MarkSymbolizer`);
+                }
+
             // TODO check if mapbox can generate regular shapes
             default:
                 throw new Error(`Cannot get Style. Unsupported kind.`);
@@ -885,7 +926,7 @@ export class MapboxStyleParser implements StyleParser {
             translateAnchor
         } = symbolizer;
 
-        let paint: any = {
+        const paint: any = {
             'fill-antialias': antialias,
             'fill-opacity': opacity,
             'fill-color': color,
@@ -908,7 +949,7 @@ export class MapboxStyleParser implements StyleParser {
             visibility
         } = symbolizer;
 
-        let layout: any = {
+        const layout: any = {
             'visibility': this.getVisibility(visibility)
         };
         return layout;
@@ -999,7 +1040,7 @@ export class MapboxStyleParser implements StyleParser {
             translateAnchor
         } = symbolizer;
 
-        let paint: any = {
+        const paint: any = {
             'line-opacity': opacity,
             'line-color': color,
             'line-translate': translate,
@@ -1057,7 +1098,7 @@ export class MapboxStyleParser implements StyleParser {
             translateAnchor,
         } = symbolizer;
 
-        let paint: any = {
+        const paint: any = {
             'icon-opacity': opacity,
             'icon-color': color,
             'icon-halo-color': haloColor,
@@ -1135,7 +1176,7 @@ export class MapboxStyleParser implements StyleParser {
             translateAnchor
         } = symbolizer;
 
-        let paint: any = {
+        const paint: any = {
             'text-opacity': opacity,
             'text-color': color,
             'text-halo-color': haloColor,
@@ -1180,7 +1221,7 @@ export class MapboxStyleParser implements StyleParser {
             visibility
         } = symbolizer;
 
-        let paint: any = {
+        const paint: any = {
             'symbol-spacing': spacing,
             'symbol-avoid-edges': avoidEdges,
             'text-pitch-alignment': pitchAlignment,
@@ -1253,6 +1294,65 @@ export class MapboxStyleParser implements StyleParser {
         }
     }
 
+    /**
+     * Creates a Mapbox Layer Paint object from a GeoStylerStyle-MarkSymbolizer
+     * that uses the wellKnownName 'circle'. This one will be handled explicitly
+     * because mapbox has a dedicated layer type for circles. Other shapes are covered
+     * in layer type 'symbol' using fonts.
+     *
+     * @param {MarkSymbolizer} symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
+     * @return {any} A Mapbox Layer Paint object
+     */
+    getPaintFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
+        const {
+            radius,
+            color,
+            blur,
+            opacity,
+            translate,
+            translateAnchor,
+            pitchScale,
+            pitchAlignment,
+            strokeWidth,
+            strokeColor,
+            strokeOpacity
+        } = symbolizer;
+
+        const paint = {
+            'circle-radius': radius,
+            'circle-color': color,
+            'circle-blur': blur,
+            'circle-opacity': opacity,
+            'circle-translate': translate,
+            'circle-translate-anchor': translateAnchor,
+            'circle-pitch-scale': pitchScale,
+            'circle-pitch-alignment': pitchAlignment,
+            'circle-stroke-width': strokeWidth,
+            'circle-stroke-color': strokeColor,
+            'circle-stroke-opacity': strokeOpacity
+        };
+        return paint;
+    }
+
+    /**
+     * Creates a Mapbox Layer Layout object from a GeoStylerStyle-MarkSymbolizer
+     * that uses the wellKnownName 'circle'. This one will be handled explicitly
+     * because mapbox has a dedicated layer type for circles. Other shapes are covered
+     * in layer type 'symbol' using fonts.
+     *
+     * @param {MarkSymbolizer} symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
+     * @return {any} A Mapbox Layer Layout object
+     */
+    getLayoutFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
+        const {
+            visibility
+        } = symbolizer;
+
+        const layout = {
+            'visibility': visibility
+        };
+        return layout;
+    }
 }
 
 export default MapboxStyleParser;
