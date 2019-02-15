@@ -25,6 +25,10 @@ import icon_simpleicon_mapboxapi from '../data/styles/icon_simpleicon_mapboxapi'
 import mb_icon_simpleicon_mapboxapi from '../data/mapbox/icon_simpleicon_mapboxapi';
 import circle_simplecircle from '../data/styles/circle_simplecircle';
 import mb_circle_simplecircle from '../data/mapbox/circle_simplecircle';
+import fill_patternfill from '../data/styles/fill_patternfill';
+import mb_fill_patternfill from '../data/mapbox/fill_patternfill';
+import line_patternline from '../data/styles/line_patternline';
+import mb_line_patternline from '../data/mapbox/line_patternline';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -44,6 +48,33 @@ describe('MapboxStyleParser implements StyleParser', () => {
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(line_simpleline);
+        });
+    });
+
+    it('can read a mapbox Line style with fill pattern', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_line_patternline)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(line_patternline);
+        });
+    });
+
+    it('can read a mapbox Fill style', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_fill_simplefill)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(fill_simplefill);
+        });
+    });
+
+    it('can read a mapbox Fill style with fill pattern', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_fill_patternfill)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(fill_patternfill);
         });
     });
 
@@ -139,12 +170,30 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can write a mapbox Line style with fill pattern', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(line_patternline)
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(mbStyle).toEqual(mb_line_patternline);
+        });
+    });
+
     it('can write a mapbox Fill style', () => {
       expect.assertions(2);
       return styleParser.writeStyle(fill_simplefill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
           expect(mbStyle).toEqual(mb_fill_simplefill);
+        });
+    });
+
+    it('can write a mapbox Fill style with fill pattern', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(fill_patternfill)
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(mbStyle).toEqual(mb_fill_patternfill);
         });
     });
 

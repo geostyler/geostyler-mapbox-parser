@@ -80,7 +80,7 @@ class MapboxStyleUtil {
    *
    * @param symbolizer A GeoStylerStyle Symbolizer
    */
-  public static symbolizerAllUndefined (symbolizer: Symbolizer): boolean {
+  public static symbolizerAllUndefined(symbolizer: Symbolizer): boolean {
     return !Object.keys(symbolizer)
       .filter((val: string) => val !== 'kind')
       .some((val: string) => typeof symbolizer[val] !== 'undefined');
@@ -91,7 +91,7 @@ class MapboxStyleUtil {
    *
    * @param url URL
    */
-  public static getUrlForMbPlaceholder (url: string): string {
+  public static getUrlForMbPlaceholder(url: string): string {
     const mbPlaceholder = 'mapbox://';
     const mbUrl = 'https://api.mapbox.com/';
     if (url && url.startsWith(mbPlaceholder)) {
