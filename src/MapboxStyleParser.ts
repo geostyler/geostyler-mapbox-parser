@@ -71,7 +71,7 @@ export class MapboxStyleParser implements StyleParser {
                 return 'Circle';
             default:
                 throw new Error(`Could not parse mapbox style. Unsupported layer type.
-                We support types 'fill', 'line' and 'symbol' only.`);
+                We support types 'fill', 'line', 'circle' and 'symbol' only.`);
         }
     }
 
@@ -86,7 +86,7 @@ export class MapboxStyleParser implements StyleParser {
             return;
         }
         if (typeof label === 'string') {
-            return label;
+            return MapboxStyleUtil.resolveMbTextPlaceholder(label);
         }
         if (label[0] !== 'format') {
             throw new Error(`Cannot parse mapbox style. Unsupported text format.`);
@@ -1254,34 +1254,9 @@ export class MapboxStyleParser implements StyleParser {
         // RegExp to match all occurences encapsuled between two curly braces
         // including the curly braces
         let regExp: RegExp = new RegExp(prefix + '.*?' + suffix, 'g');
-        let regExpRes = template.match(regExp);
-
-        // if no template was used, return as fix string
-        if (!regExpRes) {
-            return template;
-            // if templates are being used
-        } else {
-            // split the original string before the occurence of a placeholder
-            const regLookAhead = new RegExp('(?=' + prefix + '.*?' + suffix + ')', 'g');
-            const literalsWEmptyStrings = template.split(regLookAhead);
-            // mapbox format
-            const format: any[] = ['format'];
-            literalsWEmptyStrings.forEach((lit: string) => {
-                if (lit.startsWith('{{')) {
-                    const delimiter = lit.indexOf('}}');
-                    const placeholder = lit.substring(2, delimiter);
-                    const text = lit.substring(delimiter + 2);
-                    format.push(['get', placeholder], {});
-                    if (text.length > 0) {
-                        format.push(text, {});
-                    }
-                } else {
-                    format.push(lit, {});
-                }
-            });
-
-            return format;
-        }
+        return template.replace(regExp, (match: string) => {
+            return match.slice(1, -1);
+        });
     }
 
     /**

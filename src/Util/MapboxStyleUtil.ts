@@ -125,13 +125,32 @@ class MapboxStyleUtil {
    *
    * @param url URL
    */
-  public static getMbPlaceholderForUrl (url: string): string {
+  public static getMbPlaceholderForUrl(url: string): string {
     const mbPlaceholder = 'mapbox://';
     const mbUrl = 'https://api.mapbox.com/';
     if (url && url.startsWith(mbUrl)) {
       return url.replace(mbUrl, mbPlaceholder);
     }
     return url;
+  }
+
+  /**
+   * Resolves a mapbox text-field placeholder string to a geostyler-style
+   * placeholder string. I.e. replaces {varname} with {{varname}}.
+   *
+   * @param template Template string that should be resolved
+   */
+  public static resolveMbTextPlaceholder(template: string): string {
+    // prefix indicating that a template is being used
+    const prefix: string = '\\{';
+    // suffix indicating that a template is being used
+    const suffix: string = '\\}';
+
+    let regExp: RegExp = new RegExp(prefix + '.*?' + suffix, 'g');
+    const gsLabel = template.replace(regExp, (match: string) => {
+      return `{${match}}`;
+    });
+    return gsLabel;
   }
 }
 
