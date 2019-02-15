@@ -779,30 +779,6 @@ export class MapboxStyleParser implements StyleParser {
         if (zoom === -1) {
             zoom = MapboxStyleUtil.getZoomForResolution(resolution);
         }
-        // for (let i = 0; i < MapboxStyleUtil.resolutions.length; i++) {
-        //     const res = resolutions[i];
-        //     // // if resolution matches index exactly return index
-        //     if (resolution.toString(18) === res.toString(18)) {
-        //         zoom = i;
-        //         break;
-        //     }
-        //     // else get surrounding indexes and interpolate value
-        //     if (i !== (resolutions.length - 1) && resolution < res && resolution > resolutions[i + 1]) {
-        //         pre = i;
-        //         post = i + 1;
-        //         break;
-        //     }
-        //     // handle if scale is smaller than minimum zoom level
-        //     if (i === 0 && resolution > res) {
-        //         zoom = i;
-        //         break;
-        //     }
-        //     // handle if scale is bigger than maximum zoom level
-        //     if (i === resolutions.length - 1 && resolution < res) {
-        //         zoom = i;
-        //         break;
-        //     }
-        // }
 
         if (typeof pre !== 'undefined' && typeof post !== 'undefined') {
             // interpolate between zoomlevels
