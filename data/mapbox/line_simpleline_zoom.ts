@@ -4,7 +4,7 @@ const lineSimpleLine: any = {
   "layers": [{
   "id": "Small populated New Yorks",
   "type": "line",
-  "minzoom": 5,
+  "minzoom": 5.5,
   "maxzoom": 10,
   "paint": {
       "line-color": "#FF0000",

@@ -2,15 +2,18 @@ import { Symbolizer } from 'geostyler-style';
 
 class MapboxStyleUtil {
 
-  // credits to
-  // https://github.com/boundlessgeo/ol-mapbox-style/blob/e11bb81efbc242b907963fba569fd35091ed3aaf/stylefunction.js#L160
-  public static resolutions = [78271.51696402048, 39135.75848201024,
-    19567.87924100512, 9783.93962050256, 4891.96981025128, 2445.98490512564,
-    1222.99245256282, 611.49622628141, 305.748113140705, 152.8740565703525,
-    76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032,
-    4.777314267823516, 2.388657133911758, 1.194328566955879, 0.5971642834779395,
-    0.29858214173896974, 0.14929107086948487, 0.07464553543474244];
-
+  public static getResolutions(): number[] {
+    const resolutions = [];
+    let res = 78271.51696402048;
+    // adding resolution for arbitrary zoom level 0
+    // This simplyfies working with zoom levels but might lead to unexpected
+    // behaviour.
+    resolutions.push(res * 2);
+    for (res; resolutions.length < 22; res /= 2) {
+      resolutions.push(res);
+    }
+    return resolutions;
+  }
   // credits to
   // https://github.com/terrestris/ol-util/blob/de1b580c63454c8110806a3d73a5f6e972b2f2b0/src/MapUtil/MapUtil.js#L104
   public static getScaleForResolution(resolution: number): number {
@@ -19,6 +22,22 @@ class MapboxStyleUtil {
     var inchesPerMeter = 39.37;
 
     return resolution * mpu * inchesPerMeter * dpi;
+  }
+
+  // credits to
+  // https://github.com/openlayers/ol-mapbox-style/blob/e632c935e7e34bd27079b7fc234202a9ac3b73ee/util.js
+  public static getZoomForResolution(resolution: number): number {
+    let i = 0;
+    const resolutions = MapboxStyleUtil.getResolutions();
+    const ii = resolutions.length;
+    for (; i < ii; ++i) {
+      const candidate = resolutions[i];
+      if (candidate < resolution && i + 1 < ii) {
+        const zoomFactor = resolutions[i] / resolutions[i + 1];
+        return i + Math.log(resolutions[i] / resolution) / Math.log(zoomFactor);
+      }
+    }
+    return ii - 1;
   }
 
   /**
@@ -42,19 +61,20 @@ class MapboxStyleUtil {
   }
 
   public static zoomToScale(zoom: number): number {
+    const resolutions = MapboxStyleUtil.getResolutions();
     // if zoom is integer
-    if (zoom >= MapboxStyleUtil.resolutions.length) {
+    if (zoom >= resolutions.length) {
       throw new Error(`Cannot parse scaleDenominator. ZoomLevel does not exist.`);
     }
     let resolution: number;
     if (Number.isInteger(zoom)) {
-      resolution = MapboxStyleUtil.resolutions[zoom];
+      resolution = resolutions[zoom];
     } else {
       // interpolate values
       const pre = Math.floor(zoom);
       const post = Math.ceil(zoom);
-      const preVal = MapboxStyleUtil.resolutions[pre];
-      const postVal = MapboxStyleUtil.resolutions[post];
+      const preVal = resolutions[pre];
+      const postVal = resolutions[post];
       const range = preVal - postVal;
       const decimal = zoom % 1;
       resolution = preVal - (range * decimal);
@@ -113,32 +133,6 @@ class MapboxStyleUtil {
     }
     return url;
   }
-
-  // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L143
-  // static urlRe = /^(\w+):\/\/([^/?]*)(\/[^?]+)?\??(.+)?/;
-  // public static parseUrl(url: string): {protocol: string; authority: string; path: string; params: string[]} {
-  //     const parts = url.match(this.urlRe);
-  //     if (!parts) {
-  //         throw new Error('Unable to parse URL object');
-  //     }
-  //     return {
-  //         protocol: parts[1],
-  //         authority: parts[2],
-  //         path: parts[3] || '/',
-  //         params: parts[4] ? parts[4].split('&') : []
-  //     };
-  // }
-
-  // // source: https://github.com/mapbox/mapbox-gl-js/blob/master/src/util/mapbox.js#L82
-  // public static normalizeSpriteURL(url: string, format: string, extension: string, accessToken?: string): string {
-  //   const urlObject = MapboxStyleUtil.parseUrl(url);
-  //   if (url.indexOf('mapbox:') !== 0) {
-  //     throw new Error(`Cannot parse Url. Url is not a mapbox url.`);
-  //   }
-  //   urlObject.path = `/styles/v1${urlObject.path}/sprite${format}${extension}`;
-  //   // return makeAPIURL(urlObject, accessToken);
-  //   return `https://api.mapbox.com${urlObject.path}${urlObject.params}`;
-  // }
 }
 
 export default MapboxStyleUtil;
