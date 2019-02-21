@@ -5,15 +5,15 @@ const lineSimpleLine: any = {
     id: "Small populated New Yorks",
     type: "line",
     filter: ["all",
-      ["==", ["get", "NAME"], "New York"],
-      ["==", ["get", "TEST_BOOL"], "true"],
-      ["==", ["get", "TEST"], null],
-      ["*=", ["get", "TEST2"], "*York*"],
-      ["*=", ["get", "TEST1"], "*New*"],
-      ["!", [">", ["get", "POPULATION"], "100000"]],
+      ["==", "NAME", "New York"],
+      ["==", "TEST_BOOL", "true"],
+      ["==", "TEST", null],
+      ["*=", "TEST2", "*York*"],
+      ["*=", "TEST1", "*New*"],
+      ["!", [">", "POPULATION", "100000"]],
       ["any",
-        ["==", ["get", "TEST2"], "1"],
-        ["==", ["get", "TEST2"], "2"]
+        ["==", "TEST2", "1"],
+        ["==", "TEST2", "2"]
       ]
     ],
     paint: {
