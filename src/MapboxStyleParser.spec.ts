@@ -29,6 +29,8 @@ import fill_patternfill from '../data/styles/fill_patternfill';
 import mb_fill_patternfill from '../data/mapbox/fill_patternfill';
 import line_patternline from '../data/styles/line_patternline';
 import mb_line_patternline from '../data/mapbox/line_patternline';
+import point_placeholdertext_simple from '../data/styles/point_placeholderText_simple';
+import mb_point_placeholdertext_simple from '../data/mapbox/point_placeholderText_simple';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -129,6 +131,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can read a mapbox Text style with formatted Text', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_point_placeholdertext_simple)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(point_placeholdertext_simple);
+        });
+    });
+
     it('can read a mapbox Circle style', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_circle_simplecircle)
@@ -214,10 +225,10 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can write a mapbox Text style with a placeholder Text', () => {
       expect.assertions(2);
-      return styleParser.writeStyle(point_placeholdertext)
+      return styleParser.writeStyle(point_placeholdertext_simple)
       .then((mbStyle: any) => {
         expect(mbStyle).toBeDefined();
-        expect(mbStyle).toEqual(mb_point_placeholdertext);
+        expect(mbStyle).toEqual(mb_point_placeholdertext_simple);
       });
     });
 
