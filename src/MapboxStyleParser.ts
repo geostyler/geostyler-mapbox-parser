@@ -379,8 +379,6 @@ export class MapboxStyleParser implements StyleParser {
             restFilter.forEach((f: Filter) => {
                 this.getFilterFromMapboxFilter(f);
             });
-        } else {
-            filter[1] = filter[1][1];
         }
         return filter;
     }
@@ -839,8 +837,6 @@ export class MapboxStyleParser implements StyleParser {
             restFilter.forEach((f: Filter) => {
                 this.getMapboxFilterFromFilter(f);
             });
-        } else {
-            filter[1] = ['get', filter[1]];
         }
         return filter;
     }
