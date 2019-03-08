@@ -8,6 +8,11 @@
     "type": "git",
     "url": "git+https://github.com/terrestris/geostyler-mapbox-parser.git"
   },
+  "files": [
+    "build",
+    "index.d.ts",
+    "browser"
+  ],
   "keywords": [
     "mapbox",
     "geostyler"
