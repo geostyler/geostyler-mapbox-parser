@@ -19,7 +19,7 @@ class MapboxStyleUtil {
   public static getScaleForResolution(resolution: number): number {
     var dpi = 25.4 / 0.28;
     var mpu = 1;
-    var inchesPerMeter = 39.37;
+    var inchesPerMeter = 39.37008;
 
     return resolution * mpu * inchesPerMeter * dpi;
   }
@@ -55,7 +55,7 @@ class MapboxStyleUtil {
   static getResolutionForScale(scale: number): number {
     let dpi = 25.4 / 0.28;
     let mpu = 1;
-    let inchesPerMeter = 39.37;
+    let inchesPerMeter = 39.37008;
 
     return scale / (mpu * inchesPerMeter * dpi);
   }
@@ -72,12 +72,14 @@ class MapboxStyleUtil {
     } else {
       // interpolate values
       const pre = Math.floor(zoom);
-      const post = Math.ceil(zoom);
       const preVal = resolutions[pre];
-      const postVal = resolutions[post];
-      const range = preVal - postVal;
-      const decimal = zoom % 1;
-      resolution = preVal - (range * decimal);
+      // after carefully rearranging
+      // zoom = i + Math.log(resolutions[i] / resolution) / Math.log(zoomFactor)
+      // with the zoomFactor being 2 I've arrived at this formula to properly
+      // calculate the resolution:
+      resolution = Math.pow(2, pre) * preVal / Math.pow(2, zoom);
+      // this still gives some smallish rounding errors, but at the 8th digit after
+      // the dot this is ok
     }
     return this.getScaleForResolution(resolution);
   }
