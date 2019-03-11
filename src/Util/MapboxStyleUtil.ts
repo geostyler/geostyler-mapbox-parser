@@ -89,6 +89,9 @@ class MapboxStyleUtil {
    * @param obj The object to be checked
    */
   public static allUndefined(obj: any): boolean {
+    if (!obj) {
+      return true;
+    }
     const keys = Object.keys(obj);
     return !keys.some((k: string) => {
       return typeof obj[k] !== 'undefined';

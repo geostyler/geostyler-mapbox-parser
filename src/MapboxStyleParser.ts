@@ -29,9 +29,25 @@ type SymbolType = {
     iconSymbolizer?: IconSymbolizer;
 };
 
+type OptionsType = {
+    ignoreConversionErrors?: boolean;
+} | undefined;
+
 export class MapboxStyleParser implements StyleParser {
 
+    // looks like there's no way to access static properties from an instance
+    // without a reference to the constructor function, so we have to duplicate
+    // the title here
+    public title = 'Mapbox';
     public static title = 'Mapbox';
+
+    public ignoreConversionErrors: boolean = false;
+
+    constructor(options: OptionsType) {
+        if (options && options.ignoreConversionErrors) {
+            this.ignoreConversionErrors = options.ignoreConversionErrors;
+        }
+    }
 
     isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
         return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
@@ -73,6 +89,9 @@ export class MapboxStyleParser implements StyleParser {
             case 'circle':
                 return 'Circle';
             default:
+                if (this.ignoreConversionErrors) {
+                    return 'Circle';
+                }
                 throw new Error(`Could not parse mapbox style. Unsupported layer type.
                 We support types 'fill', 'line', 'circle' and 'symbol' only.`);
         }
@@ -91,7 +110,7 @@ export class MapboxStyleParser implements StyleParser {
         if (typeof label === 'string') {
             return MapboxStyleUtil.resolveMbTextPlaceholder(label);
         }
-        if (label[0] !== 'format') {
+        if (label[0] !== 'format' && !this.ignoreConversionErrors) {
             throw new Error(`Cannot parse mapbox style. Unsupported text format.`);
         }
         let gsLabel = '';
@@ -100,7 +119,7 @@ export class MapboxStyleParser implements StyleParser {
             if (typeof label[i] === 'string') {
                 gsLabel += label[i];
             } else {
-                if (label[i][0] !== 'get') {
+                if (label[i][0] !== 'get' && !this.ignoreConversionErrors) {
                     throw new Error(`Cannot parse mapbox style. Unsupported lookup type.`);
                 }
                 gsLabel += '{{' + label[i][1] + '}}';
@@ -269,7 +288,7 @@ export class MapboxStyleParser implements StyleParser {
     }
 
     getPatternOrGradientFromMapboxLayer(icon: any): IconSymbolizer|undefined {
-        if (Array.isArray(icon)) {
+        if (Array.isArray(icon) && !this.ignoreConversionErrors) {
             throw new Error(`Cannot parse pattern or gradient. No Mapbox expressions allowed`);
         }
         if (!icon) {
@@ -325,7 +344,7 @@ export class MapboxStyleParser implements StyleParser {
      * @param {any} layer A Mapbox Style Layer
      * @return {Symbolizer} A GeoStylerStyle-Symbolizer
      */
-    getSymbolizerFromMapboxLayer(paint: any, layout: any, type: string): Symbolizer|SymbolType {
+    getSymbolizerFromMapboxLayer(paint: any, layout: any, type: string): Symbolizer|SymbolType|undefined {
         let symbolizer: Symbolizer = {} as Symbolizer;
         const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayer(type);
 
@@ -344,6 +363,9 @@ export class MapboxStyleParser implements StyleParser {
                 symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
                 break;
             default:
+                if (this.ignoreConversionErrors) {
+                    return;
+                }
                 throw new Error(`Cannot parse mapbox style. Unsupported Symbolizer kind.`);
         }
         return symbolizer;
@@ -508,7 +530,7 @@ export class MapboxStyleParser implements StyleParser {
             //         throw new Error(`Unsupported expression.
             // Only expressions of type 'case' and 'match' are allowed.`);
             // }
-            if (tmpSymbolizer[prop][0] !== 'case') {
+            if (tmpSymbolizer[prop][0] !== 'case' && !this.ignoreConversionErrors) {
                 throw new Error(`Unsupported expression. Only expressions of type 'case' are allowed.`);
             }
             filterProps.push(prop);
@@ -517,7 +539,7 @@ export class MapboxStyleParser implements StyleParser {
 
         if (filters.length > 0) {
             const equalFilters: boolean = this.equalMapboxAttributeFilters(filters);
-            if (!equalFilters) {
+            if (!equalFilters && !this.ignoreConversionErrors) {
                 throw new Error(`Cannot parse attributes. Filters do not match`);
             }
             // iterate over each value in a single filter
@@ -565,7 +587,10 @@ export class MapboxStyleParser implements StyleParser {
      */
     mapboxPaintToGeoStylerRules(paint: any, layout: any, type: string): Rule[] {
         const rules: Rule[] = [];
-        const tmpSymbolizer: Symbolizer|SymbolType = this.getSymbolizerFromMapboxLayer(paint, layout, type);
+        const tmpSymbolizer: Symbolizer|SymbolType|undefined = this.getSymbolizerFromMapboxLayer(paint, layout, type);
+        if (tmpSymbolizer === undefined) {
+            return rules;
+        }
         const pseudoRules: any[] = [];
         if (this.isSymbolType(tmpSymbolizer)) {
             // Concatenates all pseudorules.
@@ -640,13 +665,15 @@ export class MapboxStyleParser implements StyleParser {
      * @return {Style} A GeoStylerStyle-Style
      */
     mapboxLayerToGeoStylerStyle(mapboxStyle: any): Style {
+        if (!(mapboxStyle instanceof Object)) {
+            mapboxStyle = JSON.parse(mapboxStyle);
+        }
         let style: Style = {} as Style;
         style.name = mapboxStyle.name;
         style.rules = [];
         if (mapboxStyle.sprite) {
             this._spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
         }
-        // style.rules = this.mapboxLayerToGeoStylerRules(mapboxStyle);
         if (mapboxStyle.layers) {
             mapboxStyle.layers.forEach((layer: any) => {
                 const rules = this.mapboxLayerToGeoStylerRules(layer);
@@ -687,8 +714,7 @@ export class MapboxStyleParser implements StyleParser {
             try {
                 const gsStyle = _cloneDeep(geoStylerStyle);
                 const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
-                // const mapboxStyle: any = this.getMapboxLayersFromRules(geoStylerStyle.rules);
-                resolve(mapboxStyle);
+                resolve(JSON.stringify(mapboxStyle));
             } catch (e) {
                 reject(e);
             }
@@ -883,13 +909,19 @@ export class MapboxStyleParser implements StyleParser {
                     paint = this.getPaintFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
                     layout = this.getLayoutFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
                     break;
-                } else {
+                } else if (!this.ignoreConversionErrors) {
                     throw new Error(`Cannot get Style. Unsupported MarkSymbolizer`);
+                } else {
+                    layerType = 'symbol';
                 }
-
+                break;
             // TODO check if mapbox can generate regular shapes
             default:
-                throw new Error(`Cannot get Style. Unsupported kind.`);
+                if (!this.ignoreConversionErrors) {
+                    throw new Error(`Cannot get Style. Unsupported kind.`);
+                } else {
+                    layerType = 'symbol';
+                }
         }
         return {
             layerType,
@@ -955,6 +987,9 @@ export class MapboxStyleParser implements StyleParser {
             return undefined;
         }
         if (symbolizer.kind !== 'Icon') {
+            if (this.ignoreConversionErrors) {
+                return;
+            }
             throw new Error(`Cannot parse pattern or gradient. Mapbox only supports Icons.`);
         }
         if (!symbolizer.image) {
