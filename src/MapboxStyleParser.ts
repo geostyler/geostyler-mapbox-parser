@@ -30,6 +30,9 @@ type SymbolType = {
 };
 
 export class MapboxStyleParser implements StyleParser {
+
+    public static title = 'Mapbox';
+
     isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
         return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
     }
@@ -92,7 +95,7 @@ export class MapboxStyleParser implements StyleParser {
             throw new Error(`Cannot parse mapbox style. Unsupported text format.`);
         }
         let gsLabel = '';
-        // ignore all even indexes since we cannot handle them 
+        // ignore all even indexes since we cannot handle them
         for (let i = 1; i < label.length; i = i + 2) {
             if (typeof label[i] === 'string') {
                 gsLabel += label[i];
@@ -306,7 +309,7 @@ export class MapboxStyleParser implements StyleParser {
     /**
      * Creates GeoStyler-Style TextSymbolizer and IconSymbolizer from
      * a mapbox layer paint object.
-     * 
+     *
      * @param paint The paint object of a mapbox layer
      */
     getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): SymbolType {
@@ -416,7 +419,7 @@ export class MapboxStyleParser implements StyleParser {
         let gsBaseFilter: Filter|undefined = undefined;
         let gsFilter: Filter|undefined = undefined;
         if (baseFilter && filter) {
-           gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter); 
+           gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
            gsFilter = this.getFilterFromMapboxFilter(filter);
            return [
                '&&',
@@ -437,7 +440,7 @@ export class MapboxStyleParser implements StyleParser {
 
     /**
      * Compares an arbitrary number of filters for equality
-     * 
+     *
      * @param filters Array of mapbox filters
      */
     equalMapboxAttributeFilters(filters: any[]): boolean {
@@ -453,7 +456,7 @@ export class MapboxStyleParser implements StyleParser {
             });
             filterStrings.forEach((filter: any) => {
                 if (!_isEqual(filterString, filter)) {
-                    equal = false; 
+                    equal = false;
                 }
             });
             if (equal) {
@@ -473,7 +476,7 @@ export class MapboxStyleParser implements StyleParser {
      *
      * IMPORTANT: Currently only the 'case' filter expression is supported. Furthermore, handling of multiple properties
      * with filter expressions is only supported if all filter expressions are equal. Otherwise errors will be thrown.
-     * 
+     *
      * @param tmpSymbolizer A possibly invalid GeoStyler-Style Symbolizer
      * @return {{filter?: Filter; symbolizers: Symbolizer[]}} Array of valid Symbolizers and optional mapbox filters
      */
@@ -490,7 +493,7 @@ export class MapboxStyleParser implements StyleParser {
                 return;
             }
             if (typeof tmpSymbolizer[prop][0] !== 'string') {
-                return; 
+                return;
             }
             if (prop === 'font' && !(tmpSymbolizer[prop].some((x: any) => typeof x !== 'string'))) {
                 return;
@@ -677,7 +680,7 @@ export class MapboxStyleParser implements StyleParser {
      * It reads a GeoStyler-Style Style and returns a Promise.
      *
      * @param {Style} geoStylerStyle A GeoStylerStyle-Style
-     * @return {Promise<any>} The Promise resolving with an mapbox style object 
+     * @return {Promise<any>} The Promise resolving with an mapbox style object
      */
     writeStyle(geoStylerStyle: Style): Promise<any> {
         return new Promise<any>((resolve, reject) => {
@@ -768,7 +771,7 @@ export class MapboxStyleParser implements StyleParser {
         });
         return layers;
     }
-    
+
     /**
      * Get the mapbox zoomlevel from a scaleDenominator.
      * Interpolates the zoomlevel if calculated resolutions do not match.
@@ -807,7 +810,7 @@ export class MapboxStyleParser implements StyleParser {
     /**
      * Writes a Mapbox-filter from a GeoStylerStyle-Filter
      *
-     * @param {Filter} filter A GeoStylerStyle-Filter 
+     * @param {Filter} filter A GeoStylerStyle-Filter
      * @return {any[]} A Mapbox filter array
      */
     getMapboxFilterFromFilter(filter: Filter): any[] {
