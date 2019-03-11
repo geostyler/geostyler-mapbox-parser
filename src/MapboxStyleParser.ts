@@ -43,7 +43,7 @@ export class MapboxStyleParser implements StyleParser {
 
     public ignoreConversionErrors: boolean = false;
 
-    constructor(options: OptionsType) {
+    constructor(options?: OptionsType) {
         if (options && options.ignoreConversionErrors) {
             this.ignoreConversionErrors = options.ignoreConversionErrors;
         }
