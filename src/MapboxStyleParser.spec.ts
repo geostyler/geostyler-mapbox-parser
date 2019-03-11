@@ -103,13 +103,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.readStyle(mb_line_simpleline_zoom)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
-          const buffer = 2;
           const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
           const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
-          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! - buffer);
-          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! + buffer);
-          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! - buffer);
-          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! + buffer);
+          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
         });
     });
 
