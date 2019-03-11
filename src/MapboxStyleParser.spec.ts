@@ -112,6 +112,23 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can write and read a mapbox style with min and max zoom', () => {
+      expect.assertions(5);
+      return styleParser.writeStyle(line_simpleline_zoom)
+        .then(mbStyle => {
+          styleParser.readStyle(mbStyle)
+            .then((geoStylerStyle: Style) => {
+              expect(geoStylerStyle).toBeDefined();
+              const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
+              const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
+              expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+              expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+              expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+              expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+            });
+          });
+    });
+
     it('can read a mapbox Text style', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_point_simpletext)
