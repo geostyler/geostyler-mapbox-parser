@@ -103,14 +103,30 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.readStyle(mb_line_simpleline_zoom)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
-          const buffer = 2;
           const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
           const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
-          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! - buffer);
-          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min! + buffer);
-          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! - buffer);
-          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max! + buffer);
+          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
         });
+    });
+
+    it('can write and read a mapbox style with min and max zoom', () => {
+      expect.assertions(5);
+      return styleParser.writeStyle(line_simpleline_zoom)
+        .then(mbStyle => {
+          styleParser.readStyle(mbStyle)
+            .then((geoStylerStyle: Style) => {
+              expect(geoStylerStyle).toBeDefined();
+              const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
+              const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
+              expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+              expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
+              expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+              expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+            });
+          });
     });
 
     it('can read a mapbox Text style', () => {
@@ -183,7 +199,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline);
+          expect(JSON.parse(mbStyle)).toEqual(mb_line_simpleline);
         });
     });
 
@@ -192,7 +208,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_patternline)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_patternline);
+          expect(JSON.parse(mbStyle)).toEqual(mb_line_patternline);
         });
     });
 
@@ -201,7 +217,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(fill_simplefill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_fill_simplefill);
+          expect(JSON.parse(mbStyle)).toEqual(mb_fill_simplefill);
         });
     });
 
@@ -210,7 +226,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(fill_patternfill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_fill_patternfill);
+          expect(JSON.parse(mbStyle)).toEqual(mb_fill_patternfill);
         });
     });
 
@@ -219,7 +235,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(point_simpletext)
       .then((mbStyle: any) => {
         expect(mbStyle).toBeDefined();
-        expect(mbStyle).toEqual(mb_point_simpletext);
+        expect(JSON.parse(mbStyle)).toEqual(mb_point_simpletext);
       });
     });
 
@@ -228,7 +244,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(point_placeholdertext_simple)
       .then((mbStyle: any) => {
         expect(mbStyle).toBeDefined();
-        expect(mbStyle).toEqual(mb_point_placeholdertext_simple);
+        expect(JSON.parse(mbStyle)).toEqual(mb_point_placeholdertext_simple);
       });
     });
 
@@ -237,7 +253,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(circle_simplecircle)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_circle_simplecircle);
+          expect(JSON.parse(mbStyle)).toEqual(mb_circle_simplecircle);
         });
     });
 
@@ -246,7 +262,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(multi_simpleline_simplefill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_multi_simpleline_simplefill);
+          expect(JSON.parse(mbStyle)).toEqual(mb_multi_simpleline_simplefill);
         });
     });
 
@@ -255,7 +271,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(multi_rule_line_fill)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_multi_rule_line_fill);
+          expect(JSON.parse(mbStyle)).toEqual(mb_multi_rule_line_fill);
         });
     });
 
@@ -264,7 +280,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline_basefilter)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_line_simpleline_basefilter);
+          expect(JSON.parse(mbStyle)).toEqual(mb_line_simpleline_basefilter);
         });
     });
 
@@ -273,6 +289,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(line_simpleline_zoom)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
+          mbStyle = JSON.parse(mbStyle);
           expect(mbStyle.layers[0].minzoom).toBeCloseTo(mb_line_simpleline_zoom.layers[0].minzoom, 0);
           expect(mbStyle.layers[0].maxzoom).toBeCloseTo(mb_line_simpleline_zoom.layers[0].maxzoom, 0);
         });
@@ -283,7 +300,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(icon_simpleicon)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_icon_simpleicon);
+          expect(JSON.parse(mbStyle)).toEqual(mb_icon_simpleicon);
         });
     });
 
@@ -292,7 +309,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       return styleParser.writeStyle(icon_simpleicon_mapboxapi)
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
-          expect(mbStyle).toEqual(mb_icon_simpleicon_mapboxapi);
+          expect(JSON.parse(mbStyle)).toEqual(mb_icon_simpleicon_mapboxapi);
         });
     });
   });
