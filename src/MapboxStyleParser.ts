@@ -31,7 +31,7 @@ type SymbolType = {
 
 type OptionsType = {
     ignoreConversionErrors?: boolean;
-} | undefined;
+};
 
 export class MapboxStyleParser implements StyleParser {
 
