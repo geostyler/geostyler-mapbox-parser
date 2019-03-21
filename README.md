@@ -17,3 +17,64 @@ Mapbox Styles require the properties [`sources`](https://docs.mapbox.com/mapbox-
 
 ### Issues
 Please provide related issues here https://github.com/terrestris/geostyler/issues
+
+### How to use
+
+ES6:
+```js
+import MapboxParser from "geostyler-mapbox-parser";
+
+const pointSimplePoint = {
+  name: "My Style",
+  rules: [
+    {
+      name: "My Rule",
+      symbolizers: [
+        {
+          kind: "Mark",
+          wellKnownName: "Circle",
+          color: "#FF0000",
+          radius: 6
+        }
+      ]
+    }
+  ]
+};
+
+const parser = new MapboxParser();
+
+parser
+  .writeStyle(pointSimplePoint)
+  .then(mbStyle => console.log(mbStyle))
+  .catch(error => console.log(error));
+```
+
+Browser:
+
+```js
+const pointSimplePoint = {
+  name: "My Style",
+  rules: [
+    {
+      name: "My Rule",
+      symbolizers: [
+        {
+          kind: "Mark",
+          wellKnownName: "Circle",
+          color: "#FF0000",
+          radius: 6
+        }
+      ]
+    }
+  ]
+};
+var parser = new GeoStylerMapboxParser.MapboxStyleParser();
+parser
+  .writeStyle(pointSimplePoint)
+  .then(function(mbStyle) {
+    console.log(mbStyle);
+  })
+  catch(function(error) {
+    console.log(error);
+  });
+```
