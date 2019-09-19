@@ -62,7 +62,7 @@ var wrappedStyle = wrapper(sources, mapper, style);
 ```
 
 ### Issues
-Please provide related issues here https://github.com/terrestris/geostyler/issues
+Please provide related issues here https://github.com/geostyler/geostyler/issues
 
 ### How to use
 

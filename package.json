@@ -6,7 +6,7 @@
   "types": "build/dist/MapboxStyleParser.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/terrestris/geostyler-mapbox-parser.git"
+    "url": "git+https://github.com/geostyler/geostyler-mapbox-parser.git"
   },
   "files": [
     "build",
@@ -20,9 +20,9 @@
   "author": "",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/terrestris/geostyler-mapbox-parser/issues"
+    "url": "https://github.com/geostyler/geostyler-mapbox-parser/issues"
   },
-  "homepage": "https://github.com/terrestris/geostyler-mapbox-parser#readme",
+  "homepage": "https://github.com/geostyler/geostyler-mapbox-parser#readme",
   "dependencies": {
     "geostyler-style": "0.14.3"
   },
@@ -36,7 +36,7 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lint": "tslint --project tsconfig.json --config tslint.json && tsc --noEmit --project tsconfig.build.json",
-    "release": "np --no-yarn && git push https://github.com/terrestris/geostyler-mapbox-parser.git master --tags"
+    "release": "np --no-yarn && git push https://github.com/geostyler/geostyler-mapbox-parser.git master --tags"
   },
   "devDependencies": {
     "@babel/polyfill": "7.0.0",
