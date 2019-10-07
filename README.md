@@ -1,4 +1,7 @@
 # geostyler-mapbox-parser
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/geostyler/geostyler-mapbox-parser.svg)](https://greenkeeper.io/)
+
 GeoStyler-Style-Parser implementation for Mapbox
 
 ### Important Notes
