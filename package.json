@@ -43,7 +43,7 @@
     "@types/jest": "23.3.9",
     "@types/lodash": "4.14.118",
     "@types/node": "10.12.10",
-    "awesome-typescript-loader": "4.0.1",
+    "awesome-typescript-loader": "5.2.1",
     "coveralls": "3.0.1",
     "jest": "23.4.2",
     "np": "3.0.4",
