@@ -13,7 +13,8 @@ import {
     SymbolizerKind,
     MarkSymbolizer,
     ScaleDenominator,
-    UnsupportedProperties
+    UnsupportedProperties,
+    RasterSymbolizer
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -88,12 +89,14 @@ export class MapboxStyleParser implements StyleParser {
                 return 'Symbol';
             case 'circle':
                 return 'Circle';
+            case 'raster':
+                return 'Raster';
             default:
                 if (this.ignoreConversionErrors) {
                     return 'Circle';
                 }
                 throw new Error(`Could not parse mapbox style. Unsupported layer type.
-                We support types 'fill', 'line', 'circle' and 'symbol' only.`);
+                We support types 'fill', 'line', 'circle', 'symbol' and 'raster' only.`);
         }
     }
 
@@ -160,6 +163,27 @@ export class MapboxStyleParser implements StyleParser {
         url += 'name=' + spriteName;
         url += '&baseurl=' + encodeURIComponent(this._spriteBaseUrl);
         return url;
+    }
+
+    /**
+     * Creates a GeoStylerStyle-RasterSymbolizer from a Mapbox Style Layer
+     *
+     * @param {any} layer A Mapbox Style Layer
+     * @return {RasterSymbolizer} A GeoStylerStyle-RasterSymbolizer
+     */
+    getRasterSymbolizerFromMapboxLayer(paint: any, layout: any): RasterSymbolizer {
+        return {
+            kind: 'Raster',
+            visibility: layout['visibility'],
+            brightnessMax: paint['raster-brightness-max'],
+            brightnessMin: paint['raster-brightness-min'],
+            contrast: paint['raster-contrast'],
+            fadeDuration: paint['raster-fade-duration'],
+            hueRotate: paint['raster-hue-rotate'],
+            opacity: paint['raster-opacity'],
+            resampling: paint['raster-resampling'],
+            saturation: paint['raster-saturation']
+        };
     }
 
     /**
@@ -362,6 +386,8 @@ export class MapboxStyleParser implements StyleParser {
             case 'Mark':
                 symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
                 break;
+            case 'Raster':
+                return this.getRasterSymbolizerFromMapboxLayer(paint, layout);
             default:
                 if (this.ignoreConversionErrors) {
                     return;
@@ -915,6 +941,11 @@ export class MapboxStyleParser implements StyleParser {
                     layerType = 'symbol';
                 }
                 break;
+            case 'Raster':
+                layerType = 'raster';
+                paint = this.getPaintFromRasterSymbolizer(symbolizerClone as RasterSymbolizer);
+                layout = this.getLayoutFromRasterSymbolizer(symbolizerClone as RasterSymbolizer);
+                break;
             // TODO check if mapbox can generate regular shapes
             default:
                 if (!this.ignoreConversionErrors) {
@@ -1343,6 +1374,54 @@ export class MapboxStyleParser implements StyleParser {
      * @return {any} A Mapbox Layer Layout object
      */
     getLayoutFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
+        const {
+            visibility
+        } = symbolizer;
+
+        const layout = {
+            'visibility': visibility
+        };
+        return layout;
+    }
+
+    /**
+     * Creates a Mapbox Layer Paint object from a GeoStylerStyle-RasterSymbolizer
+     *
+     * @param {RasterSymbolizer} symbolizer A GeoStylerStyle RasterSymbolizer
+     * @return {any} A Mapbox Layer Paint object
+     */
+    getPaintFromRasterSymbolizer(symbolizer: RasterSymbolizer): any {
+        const {
+            brightnessMax,
+            brightnessMin,
+            contrast,
+            fadeDuration,
+            hueRotate,
+            opacity,
+            resampling,
+            saturation
+        } = symbolizer;
+
+        const paint = {
+            'raster-opacity': opacity,
+            'raster-hue-rotate': hueRotate,
+            'raster-brightness-min': brightnessMin,
+            'raster-brightness-max': brightnessMax,
+            'raster-saturation': saturation,
+            'raster-contrast': contrast,
+            'raster-resampling': resampling,
+            'raster-fade-duration': fadeDuration
+        };
+        return paint;
+    }
+
+    /**
+     * Creates a Mapbox Layer Layout object from a GeoStylerStyle-RasterSymbolizer
+     *
+     * @param {RasterSymbolizer} symbolizer A GeoStylerStyle RasterSymbolizer
+     * @return {any} A Mapbox Layer Layout object
+     */
+    getLayoutFromRasterSymbolizer(symbolizer: RasterSymbolizer): any {
         const {
             visibility
         } = symbolizer;

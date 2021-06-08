@@ -31,6 +31,8 @@ import line_patternline from '../data/styles/line_patternline';
 import mb_line_patternline from '../data/mapbox/line_patternline';
 import point_placeholdertext_simple from '../data/styles/point_placeholderText_simple';
 import mb_point_placeholdertext_simple from '../data/mapbox/point_placeholderText_simple';
+import raster_simpleraster from '../data/styles/raster_simpleraster';
+import mb_raster_simpleraster from '../data/mapbox/raster_simpleraster';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -165,6 +167,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         });
     });
 
+    it('can read a mapbox Raster style', () => {
+      expect.assertions(2);
+      return styleParser.readStyle(mb_raster_simpleraster)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(raster_simpleraster);
+        });
+    });
+
     it('can read a mapbox style with multiple layers', () => {
       expect.assertions(2);
       return styleParser.readStyle(mb_multi_simpleline_simplefill)
@@ -254,6 +265,15 @@ describe('MapboxStyleParser implements StyleParser', () => {
         .then((mbStyle: any) => {
           expect(mbStyle).toBeDefined();
           expect(JSON.parse(mbStyle)).toEqual(mb_circle_simplecircle);
+        });
+    });
+
+    it('can write a mapbox Raster style', () => {
+      expect.assertions(2);
+      return styleParser.writeStyle(raster_simpleraster)
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(JSON.parse(mbStyle)).toEqual(mb_raster_simpleraster);
         });
     });
 
