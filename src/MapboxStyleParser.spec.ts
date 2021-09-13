@@ -99,21 +99,19 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can read a mapbox style with min and max zoom', () => {
-      expect.assertions(5);
+      expect.assertions(3);
       return styleParser.readStyle(mb_line_simpleline_zoom)
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
           const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
-          expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
-          expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
-          expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
-          expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+          expect(min).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!, 4);
+          expect(max).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!, 4);
         });
     });
 
     it('can write and read a mapbox style with min and max zoom', () => {
-      expect.assertions(5);
+      expect.assertions(3);
       return styleParser.writeStyle(line_simpleline_zoom)
         .then(mbStyle => {
           styleParser.readStyle(mbStyle)
@@ -121,10 +119,8 @@ describe('MapboxStyleParser implements StyleParser', () => {
               expect(geoStylerStyle).toBeDefined();
               const min = geoStylerStyle.rules[0]!.scaleDenominator!.min!;
               const max = geoStylerStyle.rules[0]!.scaleDenominator!.max!;
-              expect(min).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
-              expect(min).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!);
-              expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
-              expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
+              expect(min).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!, 4);
+              expect(max).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!, 4);
             });
         });
     });

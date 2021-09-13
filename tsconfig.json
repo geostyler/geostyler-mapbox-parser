@@ -20,18 +20,17 @@
     "target": "es5"
   },
   "exclude": [
-    "node_modules",
-    "build",
-    "scripts",
     "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts",
-    "src/**.spec.ts",
-    "data",
-    "coverage",
-    "browser",
     "browser-build.config.js",
-    "dev-build.config.js"
+    "browser",
+    "build",
+    "coverage",
+    "data",
+    "dev-build.config.js",
+    "jest",
+    "node_modules",
+    "scripts",
+    "src/**.spec.ts",
+    "webpack"
   ]
 }

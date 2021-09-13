@@ -6,7 +6,7 @@ const circleSimpleCircle: Style = {
     name: 'Simple Circle',
     symbolizers: [{
       kind: 'Mark',
-      wellKnownName: 'Circle',
+      wellKnownName: 'circle',
       color: '#000000',
       radius: 5,
       opacity: 1,

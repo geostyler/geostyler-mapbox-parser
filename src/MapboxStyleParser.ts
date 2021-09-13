@@ -830,19 +830,13 @@ export class MapboxStyleParser implements StyleParser {
      * @return {any[]} A Mapbox filter array
      */
   getMapboxFilterFromFilter(filter: Filter): any[] {
-    const mbFilter = [...filter];
-    const operatorMapping = {
-      '&&': true,
-      '||': true,
-      '!': true
-    };
-    const operator: Operator = filter[0];
-    let isNestedFilter: boolean = false;
-    if (operatorMapping[operator]) {
-      isNestedFilter = true;
-    }
+    let mbFilter = [...filter];
+    const nestingOperators = ['&&', '||', '!'];
+    const operator: Operator = mbFilter[0] as Operator;
+    let isNestedFilter = nestingOperators.includes(operator);
+
     if (isNestedFilter) {
-      switch (filter[0]) {
+      switch (operator) {
         case '&&':
           mbFilter[0] = 'all';
           break;
@@ -853,12 +847,16 @@ export class MapboxStyleParser implements StyleParser {
           break;
       }
 
-      let restFilter = mbFilter.slice(1);
-      restFilter.forEach((f: Filter) => {
-        this.getMapboxFilterFromFilter(f);
+      mbFilter = mbFilter.map((f: Filter, index) => {
+        if (index > 1) {
+          return this.getMapboxFilterFromFilter(f);
+        } else {
+          return f as any;
+        }
       });
     }
-    return filter;
+
+    return mbFilter;
   }
 
   /**
@@ -895,7 +893,7 @@ export class MapboxStyleParser implements StyleParser {
         layout = this.getLayoutFromTextSymbolizer(symbolizerClone as TextSymbolizer);
         break;
       case 'Mark':
-        if (symbolizer.wellKnownName === 'Circle') {
+        if (symbolizer.wellKnownName === 'circle') {
           layerType = 'circle';
           paint = this.getPaintFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
           layout = this.getLayoutFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
