@@ -126,7 +126,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
               expect(max).toBeGreaterThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
               expect(max).toBeLessThanOrEqual(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!);
             });
-          });
+        });
     });
 
     it('can read a mapbox Text style', () => {
@@ -233,19 +233,19 @@ describe('MapboxStyleParser implements StyleParser', () => {
     it('can write a mapbox Text style', () => {
       expect.assertions(2);
       return styleParser.writeStyle(point_simpletext)
-      .then((mbStyle: any) => {
-        expect(mbStyle).toBeDefined();
-        expect(JSON.parse(mbStyle)).toEqual(mb_point_simpletext);
-      });
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(JSON.parse(mbStyle)).toEqual(mb_point_simpletext);
+        });
     });
 
     it('can write a mapbox Text style with a placeholder Text', () => {
       expect.assertions(2);
       return styleParser.writeStyle(point_placeholdertext_simple)
-      .then((mbStyle: any) => {
-        expect(mbStyle).toBeDefined();
-        expect(JSON.parse(mbStyle)).toEqual(mb_point_placeholdertext_simple);
-      });
+        .then((mbStyle: any) => {
+          expect(mbStyle).toBeDefined();
+          expect(JSON.parse(mbStyle)).toEqual(mb_point_placeholdertext_simple);
+        });
     });
 
     it('can write a mapbox Circle style', () => {

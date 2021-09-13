@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/geostyler/geostyler-mapbox-parser#readme",
   "dependencies": {
-    "geostyler-style": "0.14.3"
+    "geostyler-style": "4.0.3"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && npm run build:browser",
@@ -35,21 +35,25 @@
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watchAll",
-    "lint": "tslint --project tsconfig.json --config tslint.json && tsc --noEmit --project tsconfig.build.json",
+    "lint": "eslint -c .eslintrc.js --ext .ts,tsx src/ && tsc --noEmit --project tsconfig.json",
     "release": "np --no-yarn && git push https://github.com/geostyler/geostyler-mapbox-parser.git master --tags"
   },
   "devDependencies": {
     "@babel/polyfill": "7.0.0",
+    "@terrestris/eslint-config-typescript": "^2.0.0",
     "@types/jest": "23.3.9",
     "@types/lodash": "4.14.149",
-    "@types/node": "10.12.10",
+    "@types/node": "16.9.1",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
     "awesome-typescript-loader": "4.0.1",
     "coveralls": "3.0.1",
+    "eslint": "^7.32.0",
     "jest": "23.6.0",
     "np": "3.0.4",
     "ts-jest": "23.10.5",
-    "tslint": "5.10.0",
-    "typescript": "2.9.2",
+    "typescript": "4.4.3",
     "webpack": "3.12.0",
     "webpack-cli": "3.3.11"
   },

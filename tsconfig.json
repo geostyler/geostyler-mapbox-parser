@@ -1,24 +1,23 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "baseUrl": ".",
-    "outDir": "build/dist",
     "declaration": true,
-    "module": "commonjs",
-    "target": "es5",
-    "lib": [
-      "dom",
-      "es2017"
-    ],
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "rootDir": "src",
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["es2020", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "outDir": "build/dist",
+    "rootDir": "src",
+    "sourceMap": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
+    "target": "es5"
   },
   "exclude": [
     "node_modules",
