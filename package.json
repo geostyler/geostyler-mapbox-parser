@@ -27,16 +27,18 @@
     "geostyler-style": "^4.0.3"
   },
   "scripts": {
-    "build": "tsc && npm run build:browser",
+    "build-browser": "webpack --config browser-build.config.js",
+    "build-dist": "tsc -p tsconfig.json",
     "build:browser": "webpack --config browser-build.config.js",
-    "start:dev": "webpack --config dev-build.config.js --watch",
-    "prebuild": "npm run test",
-    "pretest": "npm run lint",
+    "build": "npm run build-dist && npm run build-browser",
+    "lint:test:build": "npm run lint && npm run test && npm run build",
+    "lint:test": "npm run lint && npm run test",
+    "lint": "eslint -c .eslintrc.js --ext .ts . && tsc --noEmit --project tsconfig.json",
     "prepublishOnly": "npm run build",
-    "test": "jest",
-    "test:watch": "jest --watchAll",
-    "lint": "eslint -c .eslintrc.js --ext .ts,tsx src/ && tsc --noEmit --project tsconfig.json",
-    "release": "np --no-yarn && git push https://github.com/geostyler/geostyler-mapbox-parser.git master --tags"
+    "release": "np --no-yarn && git push https://github.com/geostyler/geostyler-mapbox-parser.git master --tags",
+    "start:dev": "webpack --config dev-build.config.js --watch",
+    "test-watch": "jest --watchAll",
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.12.1",
@@ -57,19 +59,5 @@
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0"
-  },
-  "jest": {
-    "testURL": "http://localhost/",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "transform": {
-      "\\.(ts)$": "ts-jest"
-    },
-    "testRegex": "/src/.*\\.spec.(ts|js)$",
-    "collectCoverageFrom": [
-      "src/*.{ts,js}"
-    ]
   }
 }
