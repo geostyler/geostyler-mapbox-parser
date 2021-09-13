@@ -64,7 +64,7 @@ class MapboxStyleUtil {
     const resolutions = MapboxStyleUtil.getResolutions();
     // if zoom is integer
     if (zoom >= resolutions.length) {
-      throw new Error(`Cannot parse scaleDenominator. ZoomLevel does not exist.`);
+      throw new Error('Cannot parse scaleDenominator. ZoomLevel does not exist.');
     }
     let resolution: number;
     if (Number.isInteger(zoom)) {
