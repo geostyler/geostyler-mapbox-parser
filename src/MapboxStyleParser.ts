@@ -13,7 +13,9 @@ import {
   SymbolizerKind,
   MarkSymbolizer,
   ScaleDenominator,
-  UnsupportedProperties
+  UnsupportedProperties,
+  ReadStyleResult,
+  WriteStyleResult
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -680,14 +682,18 @@ export class MapboxStyleParser implements StyleParser {
      * @param mapboxLayer The Mapbox Style object
      * @return {Promise<ReadResponse>} The Promise resolving with a GeoStylerStyle-ReadResponse
      */
-  readStyle(mapboxStyle: any): Promise<Style> {
-    return new Promise<Style>((resolve, reject) => {
+  readStyle(mapboxStyle: any): Promise<ReadStyleResult> {
+    return new Promise<ReadStyleResult>(resolve => {
       try {
         const mbStyle = _cloneDeep(mapboxStyle);
         const geoStylerStyle: Style = this.mapboxLayerToGeoStylerStyle(mbStyle);
-        resolve(geoStylerStyle);
+        resolve({
+          output: geoStylerStyle
+        });
       } catch (e) {
-        reject(e);
+        resolve({
+          errors: [e]
+        });
       }
     });
   }
@@ -699,14 +705,18 @@ export class MapboxStyleParser implements StyleParser {
      * @param {Style} geoStylerStyle A GeoStylerStyle-Style
      * @return {Promise<any>} The Promise resolving with an mapbox style object
      */
-  writeStyle(geoStylerStyle: Style): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
+  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
+    return new Promise<any>(resolve => {
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
         const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
-        resolve(JSON.stringify(mapboxStyle));
+        resolve({
+          output: JSON.stringify(mapboxStyle)
+        });
       } catch (e) {
-        reject(e);
+        resolve({
+          errors: [e]
+        });
       }
     });
   }
