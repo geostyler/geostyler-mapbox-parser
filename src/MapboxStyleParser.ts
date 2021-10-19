@@ -706,7 +706,7 @@ export class MapboxStyleParser implements StyleParser {
      * @return {Promise<any>} The Promise resolving with an mapbox style object
      */
   writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
-    return new Promise<any>(resolve => {
+    return new Promise<WriteStyleResult<string>>(resolve => {
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
         const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
