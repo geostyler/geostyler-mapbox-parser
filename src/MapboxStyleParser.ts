@@ -13,7 +13,9 @@ import {
   SymbolizerKind,
   MarkSymbolizer,
   ScaleDenominator,
-  UnsupportedProperties
+  UnsupportedProperties,
+  ReadStyleResult,
+  WriteStyleResult
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -675,19 +677,23 @@ export class MapboxStyleParser implements StyleParser {
 
   /**
      * The readStyle implementation of the GeoStyler-Style StylerParser interface.
-     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadResponse.
+     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadStyleResult.
      *
      * @param mapboxLayer The Mapbox Style object
-     * @return {Promise<ReadResponse>} The Promise resolving with a GeoStylerStyle-ReadResponse
+     * @return {Promise<ReadStyleResult>} The Promise resolving with a GeoStylerStyle-ReadStyleResult
      */
-  readStyle(mapboxStyle: any): Promise<Style> {
-    return new Promise<Style>((resolve, reject) => {
+  readStyle(mapboxStyle: any): Promise<ReadStyleResult> {
+    return new Promise<ReadStyleResult>(resolve => {
       try {
         const mbStyle = _cloneDeep(mapboxStyle);
         const geoStylerStyle: Style = this.mapboxLayerToGeoStylerStyle(mbStyle);
-        resolve(geoStylerStyle);
+        resolve({
+          output: geoStylerStyle
+        });
       } catch (e) {
-        reject(e);
+        resolve({
+          errors: [e]
+        });
       }
     });
   }
@@ -697,16 +703,20 @@ export class MapboxStyleParser implements StyleParser {
      * It reads a GeoStyler-Style Style and returns a Promise.
      *
      * @param {Style} geoStylerStyle A GeoStylerStyle-Style
-     * @return {Promise<any>} The Promise resolving with an mapbox style object
+     * @return {Promise<WriteStyleResult<string>>} The Promise resolving with a GeoStylerStyle-WriteStyleResult
      */
-  writeStyle(geoStylerStyle: Style): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
+  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
+    return new Promise<WriteStyleResult<string>>(resolve => {
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
         const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
-        resolve(JSON.stringify(mapboxStyle));
+        resolve({
+          output: JSON.stringify(mapboxStyle)
+        });
       } catch (e) {
-        reject(e);
+        resolve({
+          errors: [e]
+        });
       }
     });
   }

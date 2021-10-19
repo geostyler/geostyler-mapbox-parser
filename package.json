@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/geostyler/geostyler-mapbox-parser#readme",
   "dependencies": {
-    "geostyler-style": "^4.0.3"
+    "geostyler-style": "^5.0.0"
   },
   "scripts": {
     "build-browser": "webpack --config browser-build.config.js",
