@@ -677,10 +677,10 @@ export class MapboxStyleParser implements StyleParser {
 
   /**
      * The readStyle implementation of the GeoStyler-Style StylerParser interface.
-     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadResponse.
+     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadStyleResult.
      *
      * @param mapboxLayer The Mapbox Style object
-     * @return {Promise<ReadResponse>} The Promise resolving with a GeoStylerStyle-ReadResponse
+     * @return {Promise<ReadStyleResult>} The Promise resolving with a GeoStylerStyle-ReadStyleResult
      */
   readStyle(mapboxStyle: any): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
@@ -703,7 +703,7 @@ export class MapboxStyleParser implements StyleParser {
      * It reads a GeoStyler-Style Style and returns a Promise.
      *
      * @param {Style} geoStylerStyle A GeoStylerStyle-Style
-     * @return {Promise<any>} The Promise resolving with an mapbox style object
+     * @return {Promise<WriteStyleResult<string>>} The Promise resolving with a GeoStylerStyle-WriteStyleResult
      */
   writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
     return new Promise<WriteStyleResult<string>>(resolve => {
