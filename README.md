@@ -75,7 +75,7 @@ const pointSimplePoint = {
       symbolizers: [
         {
           kind: "Mark",
-          wellKnownName: "Circle",
+          wellKnownName: "circle",
           color: "#FF0000",
           radius: 6
         }
@@ -86,10 +86,8 @@ const pointSimplePoint = {
 
 const parser = new MapboxParser();
 
-parser
-  .writeStyle(pointSimplePoint)
-  .then(mbStyle => console.log(mbStyle))
-  .catch(error => console.log(error));
+const { output: mbStyle } = await parser.writeStyle(pointSimplePoint);
+console.log(mbStyle);
 ```
 
 Browser:
@@ -114,10 +112,8 @@ const pointSimplePoint = {
 var parser = new GeoStylerMapboxParser.MapboxStyleParser();
 parser
   .writeStyle(pointSimplePoint)
-  .then(function(mbStyle) {
+  .then(function(res) {
+    var mbStyle = res.output;
     console.log(mbStyle);
-  })
-  catch(function(error) {
-    console.log(error);
   });
 ```
