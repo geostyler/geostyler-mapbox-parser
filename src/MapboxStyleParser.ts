@@ -1281,6 +1281,7 @@ export class MapboxStyleParser implements StyleParser {
     const {
       radius,
       color,
+      fillOpacity,
       blur,
       opacity,
       offset,
@@ -1296,7 +1297,7 @@ export class MapboxStyleParser implements StyleParser {
       'circle-radius': radius,
       'circle-color': color,
       'circle-blur': blur,
-      'circle-opacity': opacity,
+      'circle-opacity': opacity ? opacity : fillOpacity,
       'circle-translate': offset,
       'circle-translate-anchor': offsetAnchor,
       'circle-pitch-scale': pitchScale,
