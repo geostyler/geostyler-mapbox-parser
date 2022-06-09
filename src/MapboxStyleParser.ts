@@ -74,8 +74,15 @@ export class MapboxStyleParser implements StyleParser {
         widthUnit: 'none'
       },
       MarkSymbolizer: {
-        info: 'WellknownName is not supported',
-        support: 'partial'
+        support: 'partial',
+        wellKnownName: {
+          support: 'partial',
+          info: 'Only circle symbolizers are supported for the moment.'
+        },
+        opacity: {
+          support: 'none',
+          info: 'General opacity is not supported. Use fillOpacity and strokeOpacity instead.'
+        },
       },
       IconSymbolizer: {
         haloOpacity: 'none',
@@ -1347,7 +1354,6 @@ export class MapboxStyleParser implements StyleParser {
       color,
       fillOpacity,
       blur,
-      opacity,
       offset,
       offsetAnchor,
       pitchScale,
@@ -1361,7 +1367,7 @@ export class MapboxStyleParser implements StyleParser {
       'circle-radius': radius,
       'circle-color': color,
       'circle-blur': blur,
-      'circle-opacity': opacity ? opacity : fillOpacity,
+      'circle-opacity': fillOpacity,
       'circle-translate': offset,
       'circle-translate-anchor': offsetAnchor,
       'circle-pitch-scale': pitchScale,
