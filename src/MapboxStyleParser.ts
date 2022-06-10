@@ -228,7 +228,7 @@ export class MapboxStyleParser implements StyleParser {
       color: paint['circle-color'],
       offset: paint['circle-translate'],
       offsetAnchor: paint['circle-translate-anchor'],
-      opacity: paint['circle-opacity'],
+      fillOpacity: paint['circle-opacity'],
       pitchAlignment: paint['circle-pitch-alignment'],
       pitchScale: paint['circle-pitch-scale'],
       radius: paint['circle-radius'],
