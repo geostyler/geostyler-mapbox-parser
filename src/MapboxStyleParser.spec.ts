@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import MapboxStyleParser from './MapboxStyleParser';
 
 import line_simpleline from '../data/styles/line_simpleline';
@@ -89,10 +90,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect.assertions(3);
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_line_simpleline_zoom);
       expect(geoStylerStyle).toBeDefined();
-      const min = geoStylerStyle!.rules[0]!.scaleDenominator!.min!;
-      const max = geoStylerStyle!.rules[0]!.scaleDenominator!.max!;
-      expect(min).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!, 4);
-      expect(max).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!, 4);
+      const min = geoStylerStyle?.rules[0].scaleDenominator?.min;
+      const max = geoStylerStyle?.rules[0].scaleDenominator?.max;
+      const gotMin = line_simpleline_zoom.rules[0].scaleDenominator?.min as number;
+      const gotMax = line_simpleline_zoom.rules[0].scaleDenominator?.max as number;
+      expect(min).toBeCloseTo(gotMin, 4);
+      expect(max).toBeCloseTo(gotMax, 4);
     });
 
     it('can write and read a mapbox style with min and max zoom', async () => {
@@ -100,10 +103,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
       const { output: geoStylerStyle } = await styleParser.readStyle(mbStyle);
       expect(geoStylerStyle).toBeDefined();
-      const min = geoStylerStyle!.rules[0]!.scaleDenominator!.min!;
-      const max = geoStylerStyle!.rules[0]!.scaleDenominator!.max!;
-      expect(min).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.min!, 4);
-      expect(max).toBeCloseTo(line_simpleline_zoom.rules[0]!.scaleDenominator!.max!, 4);
+      const min = geoStylerStyle?.rules[0].scaleDenominator?.min;
+      const max = geoStylerStyle?.rules[0].scaleDenominator?.max;
+      const gotMin = line_simpleline_zoom.rules[0].scaleDenominator?.min as number;
+      const gotMax = line_simpleline_zoom.rules[0].scaleDenominator?.max as number;
+      expect(min).toBeCloseTo(gotMin, 4);
+      expect(max).toBeCloseTo(gotMax, 4);
     });
 
     it('can read a mapbox Text style', async () => {
