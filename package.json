@@ -1,6 +1,6 @@
 {
   "name": "geostyler-mapbox-parser",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "GeoStyler-Style-Parser implementation for Mapbox",
   "main": "build/dist/MapboxStyleParser.js",
   "types": "build/dist/MapboxStyleParser.d.ts",
