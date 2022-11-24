@@ -10,7 +10,7 @@ const fillPatternFill: Style = {
       opacity: 1,
       graphicFill: {
         kind: 'Icon',
-        image: "/sprites/?name=poi&baseurl=" + encodeURIComponent("https://testurl.com")
+        image: '/sprites/?name=poi&baseurl=' + encodeURIComponent('https://testurl.com')
       }
     }]
   }]

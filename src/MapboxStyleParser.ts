@@ -15,6 +15,9 @@ import {
   ScaleDenominator,
   UnsupportedProperties,
   ReadStyleResult,
+  isGeoStylerFunction,
+  GeoStylerBooleanFunction,
+  GeoStylerStringFunction,
   WriteStyleResult
 } from 'geostyler-style';
 
@@ -77,10 +80,10 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Parses the GeoStylerStyle-SymbolizerKind from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {SymbolizerKind} A GeoStylerStyle-SymbolizerKind
+     * @param type A Mapbox Style Layer
+     * @return A GeoStylerStyle-SymbolizerKind
      */
-  getSymbolizerKindFromMapboxLayer(type: string): SymbolizerKind|'Symbol'|'Circle' {
+  getSymbolizerKindFromMapboxLayerType(type: string): SymbolizerKind|'Symbol'|'Circle' {
     switch (type) {
       case 'fill':
         return 'Fill';
@@ -102,8 +105,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-TextSymbolizer label from a Mapbox Layer Paint Symbol text-field
      *
-     * @param {string | any[]} label A Mapbox Layer Paint Symbol text-field
-     * @return {string} A GeoStylerStyle-TextSymbolizer label
+     * @param label A Mapbox Layer Paint Symbol text-field
+     * @return A GeoStylerStyle-TextSymbolizer label
      */
   getLabelFromTextField(label: string | any[]): (string|undefined) {
     if (typeof label === 'undefined') {
@@ -133,11 +136,12 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-MarkSymbolizer from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {MarkSymbolizer} A GeoStylerStyle-MarkSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-MarkSymbolizer
      */
   getMarkSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
-    // TODO parse MarkSymbolizer
+    // TODO: parse MarkSymbolizer
     return {
       kind: 'Mark',
       wellKnownName: 'circle'
@@ -147,8 +151,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates an image url based on the sprite baseurl and the sprite name.
      *
-     * @param {string} spriteName Name of the sprite
-     * @return {string} the url that returns the single image
+     * @param spriteName Name of the sprite
+     * @return the url that returns the single image
      */
   getIconImage(spriteName: string): (string|undefined) {
     if (!spriteName) {
@@ -170,8 +174,9 @@ export class MapboxStyleParser implements StyleParser {
      * because mapbox has a dedicated layer type for circles. Other shapes are covered
      * in layer type 'symbol' using fonts.
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {MarkSymbolizer} A GeoStylerStyle-MarkSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-MarkSymbolizer
      */
   getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
     return {
@@ -195,8 +200,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-IconSymbolizer from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {IconSymbolizer} A GeoStylerStyle-IconSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-IconSymbolizer
      */
   getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer {
     return {
@@ -228,8 +234,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-TextSymbolizer from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {TextSymbolizer} A GeoStylerStyle-TextSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-TextSymbolizer
      */
   getTextSymbolizerFromMapboxLayer(paint: any, layout: any): TextSymbolizer {
     return {
@@ -266,8 +273,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-FillSymbolizer from a Mapbox Style Layer.
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {FillSymbolizer} A GeoStylerStyle-FillSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-FillSymbolizer
      */
   getFillSymbolizerFromMapboxLayer(paint: any, layout: any): FillSymbolizer {
     return {
@@ -294,8 +302,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-LineSymbolizer from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {LineSymbolizer} A GeoStylerStyle-LineSymbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @return A GeoStylerStyle-LineSymbolizer
      */
   getLineSymbolizerFromMapboxLayer(paint: any, layout: any): LineSymbolizer {
     return {
@@ -321,7 +330,8 @@ export class MapboxStyleParser implements StyleParser {
      * Creates GeoStyler-Style TextSymbolizer and IconSymbolizer from
      * a mapbox layer paint object.
      *
-     * @param paint The paint object of a mapbox layer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
      */
   getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): SymbolType {
     return {
@@ -333,12 +343,14 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-Symbolizer from a Mapbox Style Layer
      *
-     * @param {any} layer A Mapbox Style Layer
-     * @return {Symbolizer} A GeoStylerStyle-Symbolizer
+     * @param paint A Mapbox paint
+     * @param layout A Mapbox layout
+     * @param type A Mapbox LayerType
+     * @return A GeoStylerStyle-Symbolizer
      */
   getSymbolizerFromMapboxLayer(paint: any, layout: any, type: string): Symbolizer|SymbolType|undefined {
     let symbolizer: Symbolizer = {} as Symbolizer;
-    const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayer(type);
+    const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayerType(type);
 
     switch (kind) {
       case 'Fill':
@@ -367,7 +379,7 @@ export class MapboxStyleParser implements StyleParser {
      * Creates a GeoStylerStyle-Filter from a Mapbox Style Layer Filter
      *
      * @param filter A Mapbox Style Layer Filter
-     * @return {Filter} A GeoStylerStyle-Filter
+     * @return A GeoStylerStyle-Filter
      */
   getFilterFromMapboxFilter(filter: any[]): Filter {
     const operatorMapping = {
@@ -403,9 +415,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-ScaleDenominator from a Mapvox Style Layer Min/Max Zoom
      *
-     * @param {number} minZoom A Mapbox Style Layer minZoom property
-     * @param {number} maxZoom A Mapbox Style Layer maxZoom property
-     * @return {ScaleDenominator} A GeoStylerStyle-ScaleDenominator
+     * @param minZoom A Mapbox Style Layer minZoom property
+     * @param maxZoom A Mapbox Style Layer maxZoom property
+     * @return A GeoStylerStyle-ScaleDenominator
      */
   getScaleDenominatorFromMapboxZoom(minZoom?: number, maxZoom?: number): ScaleDenominator|undefined {
     let scaleDenominator: ScaleDenominator = {};
@@ -492,7 +504,7 @@ export class MapboxStyleParser implements StyleParser {
      * with filter expressions is only supported if all filter expressions are equal. Otherwise errors will be thrown.
      *
      * @param tmpSymbolizer A possibly invalid GeoStyler-Style Symbolizer
-     * @return {{filter?: Filter; symbolizers: Symbolizer[]}} Array of valid Symbolizers and optional mapbox filters
+     * @return Array of valid Symbolizers and optional mapbox filters
      */
   mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: Symbolizer): {filter?: Filter; symbolizers: Symbolizer[]}[] {
     const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[] }[] = [];
@@ -573,9 +585,9 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates GeoStyler-Style Rules from a mapbox paint object.
      *
-     * @param {any} paint A mapbox layer paint object
-     * @param {string} type The type of the mapbox layer
-     * @return {Rule[]} Array of GeoStyler-Style Rules
+     * @param paint A mapbox layer paint object
+     * @param type The type of the mapbox layer
+     * @return Array of GeoStyler-Style Rules
      */
   mapboxPaintToGeoStylerRules(paint: any, layout: any, type: string): Rule[] {
     const rules: Rule[] = [];
@@ -623,8 +635,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStyler-Style Rule from a mapbox layer.
      *
-     * @param {any} layer The mapbox Layer
-     * @return {Rule[]} A GeoStyler-Style Rule Array
+     * @param layer The mapbox Layer
+     * @return A GeoStyler-Style Rule Array
      */
   mapboxLayerToGeoStylerRules(layer: any): Rule[] {
     let rules: Rule[] = [];
@@ -653,8 +665,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a GeoStylerStyle-Style from a Mapbox Style
      *
-     * @param {any} mapboxStyle The Mapbox Style object
-     * @return {Style} A GeoStylerStyle-Style
+     * @param mapboxStyle The Mapbox Style object
+     * @return A GeoStylerStyle-Style
      */
   mapboxLayerToGeoStylerStyle(mapboxStyle: any): Style {
     if (!(mapboxStyle instanceof Object)) {
@@ -676,12 +688,12 @@ export class MapboxStyleParser implements StyleParser {
   }
 
   /**
-     * The readStyle implementation of the GeoStyler-Style StylerParser interface.
-     * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadStyleResult.
-     *
-     * @param mapboxLayer The Mapbox Style object
-     * @return {Promise<ReadStyleResult>} The Promise resolving with a GeoStylerStyle-ReadStyleResult
-     */
+   * The readStyle implementation of the GeoStyler-Style StylerParser interface.
+   * It reads a Mapbox Style and returns a Promise resolving with a GeoStylerStyle-ReadStyleResult.
+   *
+   * @param mapboxStyle The Mapbox Style object
+   * @return The Promise resolving with a GeoStylerStyle-ReadStyleResult
+   */
   readStyle(mapboxStyle: any): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
       try {
@@ -699,12 +711,12 @@ export class MapboxStyleParser implements StyleParser {
   }
 
   /**
-     * The writeStyle implementation of the GeoStyler-Style StyleParser interface.
-     * It reads a GeoStyler-Style Style and returns a Promise.
-     *
-     * @param {Style} geoStylerStyle A GeoStylerStyle-Style
-     * @return {Promise<WriteStyleResult<string>>} The Promise resolving with a GeoStylerStyle-WriteStyleResult
-     */
+   * The writeStyle implementation of the GeoStyler-Style StyleParser interface.
+   * It reads a GeoStyler-Style Style and returns a Promise.
+   *
+   * @param geoStylerStyle A GeoStylerStyle-Style
+   * @return The Promise resolving with a GeoStylerStyle-WriteStyleResult
+   */
   writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
     return new Promise<WriteStyleResult<string>>(resolve => {
       try {
@@ -724,8 +736,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Write a Mapbox Style Object based on a GeoStylerStyle.
      *
-     * @param {Style} geoStylerStyle A GeoStylerStyle-Style
-     * @return {any} A Mapbox Style object
+     * @param geoStylerStyle A GeoStylerStyle-Style
+     * @return A Mapbox Style object
      */
   geoStylerStyleToMapboxObject(geoStylerStyle: Style): any {
     // Mapbox Style version
@@ -744,8 +756,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a layer for each Rule and each Symbolizer.
      *
-     * @param {Rule[]} rules An array of GeoStylerStyle-Rules
-     * @return {any[]} An array of Mapbox Layers
+     * @param rules An array of GeoStylerStyle-Rules
+     * @return An array of Mapbox Layers
      */
   getMapboxLayersFromRules(rules: Rule[]): any[] {
     // one layer corresponds to a single symbolizer within a rule
@@ -767,10 +779,14 @@ export class MapboxStyleParser implements StyleParser {
       if (rule.scaleDenominator) {
         // calculate zoomLevel from scaleDenominator
         if (typeof rule.scaleDenominator.min !== 'undefined') {
-          layer.maxzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.min);
+          if (!isGeoStylerFunction(rule.scaleDenominator.min)) {
+            layer.maxzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.min);
+          }
         }
         if (typeof rule.scaleDenominator.max !== 'undefined') {
-          layer.minzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.max);
+          if (!isGeoStylerFunction(rule.scaleDenominator.max)) {
+            layer.minzoom = this.getMapboxZoomFromScaleDenominator(rule.scaleDenominator.max);
+          }
         }
       }
 
@@ -836,8 +852,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Writes a Mapbox-filter from a GeoStylerStyle-Filter
      *
-     * @param {Filter} filter A GeoStylerStyle-Filter
-     * @return {any[]} A Mapbox filter array
+     * @param filter A GeoStylerStyle-Filter
+     * @return A Mapbox filter array
      */
   getMapboxFilterFromFilter(filter: Filter): any[] {
     let mbFilter = [...filter];
@@ -872,9 +888,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Paint object and the layerType from a GeoStylerStyle-Symbolizer
      *
-     * @param {Symbolizer} symbolizer A GeoStylerStyle-Symbolizer
-     * @return {MapboxLayerType, any} {layertype, paint} An object consisting of the MapboxLayerType
-     *                                                   and the Mapbox Layer Paint
+     * @param symbolizer A GeoStylerStyle-Symbolizer
+     * @return {layertype, paint} An object consisting of the MapboxLayerType and the Mapbox Layer Paint
      */
   getStyleFromSymbolizer(symbolizer: Symbolizer): { layerType: MapboxLayerType; paint: any; layout: any } {
     const symbolizerClone = _cloneDeep(symbolizer);
@@ -932,8 +947,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Paint object from a GeostylerStyle-FillSymbolizer
      *
-     * @param {FillSymbolizer} symbolizer A GeostylerStyle-FillSymbolizer
-     * @return {any} A Mapbox Layer Paint object
+     * @param symbolizer A GeostylerStyle-FillSymbolizer
+     * @return A Mapbox Layer Paint object
      */
   getPaintFromFillSymbolizer(symbolizer: FillSymbolizer): any {
     const {
@@ -957,8 +972,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Layout object from a GeostylerStyle-FillSymbolizer
      *
-     * @param {FillSymbolizer} symbolizer A GeostylerStyle-FillSymbolizer
-     * @return {any} A Mapbox Layer Layout object
+     * @param symbolizer A GeostylerStyle-FillSymbolizer
+     * @return A Mapbox Layer Layout object
      */
   getLayoutFromFillSymbolizer(symbolizer: FillSymbolizer): any {
     const {
@@ -1000,12 +1015,16 @@ export class MapboxStyleParser implements StyleParser {
      * @param {string} path The source of an image
      * @return {string} The name of the sprite
      */
-  handleSprite(path: string): (string|undefined) {
+  handleSprite(path: string | GeoStylerStringFunction): (string|undefined) {
+    if (isGeoStylerFunction(path)) {
+      return;
+    }
+
     let spritename: string = '';
     let baseurl: string = '';
     const query = path.split('?')[1];
     if (query.length === 0) {
-      return ;
+      return;
     }
 
     const params = query.split('&');
@@ -1028,7 +1047,7 @@ export class MapboxStyleParser implements StyleParser {
      * @param {boolean|undefined} visibility The visibility of a layer
      * @return {'none'|'visible'|undefined} The Mapbox visibility attribute. If undefined Mapbox's default will be used
      */
-  getVisibility(visibility: boolean | undefined): 'none' | 'visible' | undefined {
+  getVisibility(visibility: boolean | GeoStylerBooleanFunction | undefined): 'none' | 'visible' | undefined {
     if (visibility === true) {
       return 'visible';
     } else if (visibility === false) {
@@ -1041,8 +1060,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Paint object from a GeoStylerStyle-LineSymbolizer
      *
-     * @param {LineSymbolizer} symbolizer A GeoStylerStyle-LineSymbolizer
-     * @return {any} A Mapbox Layer Paint object
+     * @param symbolizer A GeoStylerStyle-LineSymbolizer
+     * @return A Mapbox Layer Paint object
      */
   getPaintFromLineSymbolizer(symbolizer: LineSymbolizer): any {
     const {
@@ -1074,8 +1093,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Layout object from a GeoStylerStyle-LineSymbolizer
      *
-     * @param {LineSymbolizer} symbolizer A GeoStylerStyle-LineSymbolizer
-     * @return {any} A Mapbox Layer Layout object
+     * @param symbolizer A GeoStylerStyle-LineSymbolizer
+     * @return A Mapbox Layer Layout object
      */
   getLayoutFromLineSymbolizer(symbolizer: LineSymbolizer): any {
     const {
@@ -1099,8 +1118,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Paint object from a GeoStylerStyle-IconSymbolizer
      *
-     * @param {IconSymbolizer} symbolizer A GeoStylerStyle-IconSymbolizer
-     * @return {any} A Mapbox Layer Paint object
+     * @param symbolizer A GeoStylerStyle-IconSymbolizer
+     * @return A Mapbox Layer Paint object
      */
   getPaintFromIconSymbolizer(symbolizer: IconSymbolizer): any {
     const {
@@ -1124,8 +1143,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Layout object from a GeoStylerStyle-IconSymbolizer
      *
-     * @param {IconSymbolizer} symbolizer A GeoStylerStyle-IconSymbolizer
-     * @return {any} A Mapbox Layer Layout object
+     * @param symbolizer A GeoStylerStyle-IconSymbolizer
+     * @return A Mapbox Layer Layout object
      */
   getLayoutFromIconSymbolizer(symbolizer: IconSymbolizer): any {
     const {
@@ -1169,8 +1188,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Paint object from a GeoStylerStyle-TextSymbolizer
      *
-     * @param {TextSymbolizer} symbolizer A GeoStylerStyle TextSymbolizer
-     * @return {any} A Mapbox Layer Paint object
+     * @param symbolizer A GeoStylerStyle TextSymbolizer
+     * @return A Mapbox Layer Paint object
      */
   getPaintFromTextSymbolizer(symbolizer: TextSymbolizer): any {
     const {
@@ -1195,8 +1214,8 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox Layer Layout object from a GeoStylerStyle-TextSymbolizer
      *
-     * @param {TextSymbolizer} symbolizer A GeoStylerStyle TextSymbolizer
-     * @return {any} A Mapbox Layer Layout object
+     * @param symbolizer A GeoStylerStyle TextSymbolizer
+     * @return A Mapbox Layer Layout object
      */
   getLayoutFromTextSymbolizer(symbolizer: TextSymbolizer): any {
     const {
@@ -1251,11 +1270,14 @@ export class MapboxStyleParser implements StyleParser {
   /**
      * Creates a Mapbox text Format from a GeoStylerStyle-TextSymbolizer Label
      *
-     * @param {string} template A GeoStylerStyle-TextSymbolizer Label
-     * @return {string|any[]} The static text as string if no template was used, or
-     *                        a Mapbox text Format array
+     * @param template A GeoStylerStyle-TextSymbolizer Label
+     * @return The static text as string if no template was used, or a Mapbox text Format array
      */
-  getTextFieldFromLabel(template: string): (string | any[]) {
+  getTextFieldFromLabel(template: string | GeoStylerStringFunction): (string | any[]) {
+    if (isGeoStylerFunction(template)) {
+      return '';
+    }
+
     // prefix indicating that a template is being used
     const prefix: string = '\\{\\{';
     // suffix indicating that a template is being used
@@ -1274,8 +1296,8 @@ export class MapboxStyleParser implements StyleParser {
      * because mapbox has a dedicated layer type for circles. Other shapes are covered
      * in layer type 'symbol' using fonts.
      *
-     * @param {MarkSymbolizer} symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
-     * @return {any} A Mapbox Layer Paint object
+     * @param symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
+     * @return A Mapbox Layer Paint object
      */
   getPaintFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
     const {
@@ -1314,8 +1336,8 @@ export class MapboxStyleParser implements StyleParser {
      * because mapbox has a dedicated layer type for circles. Other shapes are covered
      * in layer type 'symbol' using fonts.
      *
-     * @param {MarkSymbolizer} symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
-     * @return {any} A Mapbox Layer Layout object
+     * @param symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
+     * @return A Mapbox Layer Layout object
      */
   getLayoutFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
     const {

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import MapboxStyleParser from './MapboxStyleParser';
 
 import line_simpleline from '../data/styles/line_simpleline';

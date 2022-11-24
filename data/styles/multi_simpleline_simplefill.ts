@@ -18,7 +18,7 @@ const multiSimpleLineSimpleFill: Style = {
       kind: 'Fill',
       color: '#000000',
       opacity: 1
-      }]
+    }]
   }]
 };
 
