@@ -755,7 +755,7 @@ export class MapboxStyleParser implements StyleParser {
    */
   writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
     return new Promise<WriteStyleResult<string>>(resolve => {
-      const unsupportedProperties = this.checkForUnsupportedProperites(geoStylerStyle);
+      const unsupportedProperties = this.checkForUnsupportedProperties(geoStylerStyle);
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
         const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
@@ -1392,7 +1392,7 @@ export class MapboxStyleParser implements StyleParser {
     return layout;
   }
 
-  checkForUnsupportedProperites(geoStylerStyle: Style): UnsupportedProperties | undefined {
+  checkForUnsupportedProperties(geoStylerStyle: Style): UnsupportedProperties | undefined {
     const capitalizeFirstLetter = (a: string) => a[0].toUpperCase() + a.slice(1);
     const unsupportedProperties: UnsupportedProperties = {};
     geoStylerStyle.rules.forEach(rule => {
