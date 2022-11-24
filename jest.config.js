@@ -1,16 +1,18 @@
 const testRegex = 'src/.*\\.spec.ts$';
 
 module.exports = {
-  "testURL": "http://localhost/",
-  "moduleFileExtensions": [
+  testEnvironmentOptions: {
+    url: "http://localhost/",
+  },
+  moduleFileExtensions: [
     "ts",
     "js"
   ],
-  "transform": {
+  transform: {
     "\\.(ts)$": "ts-jest"
   },
-  "testRegex": testRegex,
-  'collectCoverageFrom': [
+  testRegex: testRegex,
+  collectCoverageFrom: [
     'src/*.ts',
     '!' + testRegex
   ]

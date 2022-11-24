@@ -1,3 +1,4 @@
+/* eslint-disable id-blacklist */
 import {
   PointSymbolizer,
   Rule,
@@ -383,8 +384,8 @@ export class MapboxStyleParser implements StyleParser {
      */
   getFilterFromMapboxFilter(filter: any[]): Filter {
     const operatorMapping = {
-      'all': true,
-      'any': true,
+      all: true,
+      any: true,
       '!': true
     };
 
@@ -981,7 +982,7 @@ export class MapboxStyleParser implements StyleParser {
     } = symbolizer;
 
     const layout: any = {
-      'visibility': this.getVisibility(visibility)
+      visibility: this.getVisibility(visibility)
     };
     return layout;
   }
@@ -1110,7 +1111,7 @@ export class MapboxStyleParser implements StyleParser {
       'line-join': join,
       'line-miter-limit': miterLimit,
       'line-round-limit': roundLimit,
-      'visibility': this.getVisibility(visibility)
+      visibility: this.getVisibility(visibility)
     };
     return layout;
   }
@@ -1180,7 +1181,7 @@ export class MapboxStyleParser implements StyleParser {
       'icon-offset': offset,
       'icon-anchor': anchor,
       'icon-pitch-alignment': pitchAlignment,
-      'visibility': this.getVisibility(visibility)
+      visibility: this.getVisibility(visibility)
     };
     return layout;
   }
@@ -1261,7 +1262,7 @@ export class MapboxStyleParser implements StyleParser {
       'text-offset': offset,
       'text-allow-overlap': allowOverlap,
       'text-optional': optional,
-      'visibility': this.getVisibility(visibility)
+      visibility: this.getVisibility(visibility)
     };
 
     return paint;
@@ -1345,7 +1346,7 @@ export class MapboxStyleParser implements StyleParser {
     } = symbolizer;
 
     const layout = {
-      'visibility': visibility
+      visibility: visibility
     };
     return layout;
   }
