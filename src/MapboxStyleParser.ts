@@ -755,6 +755,7 @@ export class MapboxStyleParser implements StyleParser {
    */
   writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
     return new Promise<WriteStyleResult<string>>(resolve => {
+      const unsupportedProperties = this.checkForUnsupportedProperites(geoStylerStyle);
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
         const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
@@ -762,7 +763,9 @@ export class MapboxStyleParser implements StyleParser {
           ? JSON.stringify(mapboxStyle, null, 2)
           : JSON.stringify(mapboxStyle);
         resolve({
-          output
+          output,
+          unsupportedProperties,
+          warnings: unsupportedProperties && ['Your style contains unsupportedProperties!']
         });
       } catch (e) {
         resolve({
