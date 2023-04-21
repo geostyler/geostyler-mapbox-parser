@@ -107,8 +107,8 @@ class MapboxStyleUtil {
    */
   public static symbolizerAllUndefined(symbolizer: Symbolizer): boolean {
     return !Object.keys(symbolizer)
-      .filter((val: string) => val !== 'kind')
-      .some((val: string) => typeof symbolizer[val] !== 'undefined');
+      .filter((key: keyof Symbolizer) => key !== 'kind')
+      .some((key: keyof Symbolizer) => typeof symbolizer[key] !== 'undefined');
   }
 
   /**

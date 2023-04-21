@@ -19,7 +19,8 @@ import {
   isGeoStylerFunction,
   GeoStylerBooleanFunction,
   GeoStylerStringFunction,
-  WriteStyleResult
+  WriteStyleResult,
+  isComparisonFilter
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -425,18 +426,7 @@ export class MapboxStyleParser implements StyleParser {
    * @return A GeoStylerStyle-Filter
    */
   getFilterFromMapboxFilter(filter: any[]): Filter {
-    const operatorMapping = {
-      all: true,
-      any: true,
-      '!': true
-    };
-
-    const operator: Operator = filter[0];
-    let isNestedFilter: boolean = false;
-    if (operatorMapping[operator]) {
-      isNestedFilter = true;
-    }
-    if (isNestedFilter) {
+    if (!isComparisonFilter(filter)) {
       switch (filter[0]) {
         case 'all':
           filter[0] = '&&';
@@ -549,19 +539,23 @@ export class MapboxStyleParser implements StyleParser {
    * @param tmpSymbolizer A possibly invalid GeoStyler-Style Symbolizer
    * @return Array of valid Symbolizers and optional mapbox filters
    */
-  mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: Symbolizer): {filter?: Filter; symbolizers: Symbolizer[]}[] {
-    const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[] }[] = [];
+  mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: any): {filter?: Filter; symbolizers: Symbolizer[]}[] {
+    const pseudoRules: {
+      filter?: Filter;
+      symbolizers: Symbolizer[];
+    }[] = [];
+
     const props = Object.keys(tmpSymbolizer);
     const filterProps: string[] = [];
     const filters: any[] = [];
-    props.forEach((prop: string) => {
+    props.forEach(prop => {
       if (typeof prop === 'undefined') {
         return;
       }
       if (!Array.isArray(tmpSymbolizer[prop])) {
         return;
       }
-      if (typeof tmpSymbolizer[prop][0] !== 'string') {
+      if (typeof tmpSymbolizer[prop]?.[0] !== 'string') {
         return;
       }
       if (prop === 'font' && !(tmpSymbolizer[prop].some((x: any) => typeof x !== 'string'))) {
@@ -605,7 +599,7 @@ export class MapboxStyleParser implements StyleParser {
         });
         // set the value of the corresponding symbolizer property to value of current filter expression
         values.forEach((val: any, i: number) => {
-          const p = filterProps[i];
+          const p = filterProps[i] as keyof Symbolizer;
           symbolizer[p] = val;
         });
         // push the created symbolizers and the corresponding filter expression.
@@ -1406,12 +1400,14 @@ export class MapboxStyleParser implements StyleParser {
       // ScaleDenominator and Filters are completely supported so we just check for symbolizers
       rule.symbolizers.forEach(symbolizer => {
         const key = capitalizeFirstLetter(`${symbolizer.kind}Symbolizer`);
+        // @ts-ignore
         const value = this.unsupportedProperties?.Symbolizer?.[key];
         if (value) {
           if (typeof value === 'string' || value instanceof String) {
             if (!unsupportedProperties.Symbolizer) {
               unsupportedProperties.Symbolizer = {};
             }
+            // @ts-ignore
             unsupportedProperties.Symbolizer[key] = value;
           } else {
             Object.keys(symbolizer).forEach(property => {
@@ -1419,9 +1415,12 @@ export class MapboxStyleParser implements StyleParser {
                 if (!unsupportedProperties.Symbolizer) {
                   unsupportedProperties.Symbolizer = {};
                 }
+                // @ts-ignore
                 if (!unsupportedProperties.Symbolizer[key]) {
+                  // @ts-ignore
                   unsupportedProperties.Symbolizer[key] = {};
                 }
+                // @ts-ignore
                 unsupportedProperties.Symbolizer[key][property] = value[property];
               }
             });
