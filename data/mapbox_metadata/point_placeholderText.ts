@@ -5,7 +5,7 @@ const pointPlaceholderText: Omit<MbStyle, 'sources'> = {
   name: 'Placeholder Text',
   layers: [
     {
-      id: 'Placeholder Text',
+      id: 'r0_sy0_st0',
       type: 'symbol',
       layout: {
         'text-field': ['format',
@@ -19,7 +19,19 @@ const pointPlaceholderText: Omit<MbStyle, 'sources'> = {
         'text-opacity': 1
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Placeholder Text',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default pointPlaceholderText;

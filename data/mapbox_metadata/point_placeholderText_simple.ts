@@ -5,21 +5,29 @@ const pointPlaceholderText: Omit<MbStyle, 'sources'> = {
   name: 'Placeholder Text',
   layers: [
     {
-      id: 'Placeholder Text',
+      id: 'r0_sy0_st0',
       type: 'symbol',
       layout: {
-        'text-field': ['format',
-          'Area: ', {},
-          ['get', 'area'], {},
-          'km2', {}
-        ]
+        'text-field': '{River}'
       },
       paint: {
         'text-color': '#000000',
         'text-opacity': 1
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Placeholder Text',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default pointPlaceholderText;

@@ -5,7 +5,7 @@ const lineSimpleLine: Omit<MbStyle, 'sources'> = {
   name: 'Simple Line',
   layers: [
     {
-      id: 'Simple Line',
+      id: 'r0_sy0_st0',
       type: 'line',
       paint: {
         'line-color': '#000000',
@@ -17,7 +17,19 @@ const lineSimpleLine: Omit<MbStyle, 'sources'> = {
         'line-join': 'miter'
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Simple Line',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default lineSimpleLine;
