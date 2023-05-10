@@ -795,14 +795,24 @@ export class MapboxStyleParser implements StyleParser {
     // Mapbox Style version
     const version = 8;
     const name = geoStylerStyle.name;
-    const layers = this.getMapboxLayersFromRules(geoStylerStyle.rules);
+    const {layers, splitIds} = this.getMapboxLayersFromRules(geoStylerStyle.rules);
     const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this._spriteBaseUrl);
-    return {
+
+    let mapboxObject: any = {
       version,
       name,
       layers,
-      sprite
+      sprite,
     };
+
+    if (splitIds.length > 0){
+      mapboxObject = {
+        ...mapboxObject,
+        metadata: { splitIds }
+      };
+    }
+
+    return mapboxObject;
   }
 
   /**
@@ -811,17 +821,20 @@ export class MapboxStyleParser implements StyleParser {
    * @param rules An array of GeoStylerStyle-Rules
    * @return An array of Mapbox Layers
    */
-  getMapboxLayersFromRules(rules: Rule[]): any[] {
+  getMapboxLayersFromRules(rules: Rule[]): any {
     // one layer corresponds to a single symbolizer within a rule
     // so filters and scaleDenominators have to be set for each symbolizer explicitly
     const layers: any[] = [];
+    const splitIds: string[] = [];
+
     rules.forEach((rule: Rule, i: number) => {
       // create new layer object
       let layer: any = {};
       // just setting the temporary id here
       // after iterating over each symbolizer, we will add the index of each symbolizer
       // as a suffix to the layerId;
-      const layerId: string = rule.name; // + '-gs-r' + i;
+      const layerId: string = rule.name === '' ? `rule_${i}` : rule.name; // + '-gs-r' + i;
+
       // set filters and scaleDenominator
       if (rule.filter && rule.filter.length !== 0) {
         const filterClone = _cloneDeep(rule.filter);
@@ -854,6 +867,10 @@ export class MapboxStyleParser implements StyleParser {
         // get symbolizer type and paint
 
         const styles = this.getStyleFromSymbolizer(symbolizer);
+        if (styles.length > 1){
+          splitIds.push(lyr.id);
+        }
+
         styles.forEach((style: any) => {
           const {
             layerType, paint, layout
@@ -868,7 +885,7 @@ export class MapboxStyleParser implements StyleParser {
         });
       });
     });
-    return layers;
+    return {layers, splitIds};
   }
 
   /**
