@@ -5,8 +5,8 @@ import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
 import fill_simplefill from '../data/styles/fill_simplefill';
 import mb_fill_simplefill from '../data/mapbox/fill_simplefill';
-import fill_simplefill_outline from '../data/styles/fill_simple_outline'
-import mb_fill_simplefill_outline from '../data/mapbox/fill_simple_outline'
+import fill_simplefill_outline from '../data/styles/fill_simple_outline';
+import mb_fill_simplefill_outline from '../data/mapbox/fill_simple_outline';
 import point_simpletext from '../data/styles/point_simpletext';
 import mb_point_simpletext from '../data/mapbox/point_simpletext';
 import point_placeholdertext from '../data/styles/point_placeholderText';

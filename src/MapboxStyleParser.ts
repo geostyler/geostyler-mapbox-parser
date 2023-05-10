@@ -46,6 +46,14 @@ export class MapboxStyleParser implements StyleParser {
   // the title here
   public static title = 'Mapbox';
 
+  private static readonly fillSymbolizerStrokeProperties: string[] = [
+    'outlineOpacity',
+    'outlineWidth',
+    'outlineCap',
+    'outlineJoin',
+    'outlineDasharray'
+  ];
+
   public title = 'Mapbox';
 
   /**
@@ -54,15 +62,10 @@ export class MapboxStyleParser implements StyleParser {
   unsupportedProperties: UnsupportedProperties = {
     Symbolizer: {
       FillSymbolizer: {
-        outlineWidth: 'none',
-        outlineDasharray: 'none',
         fillOpacity: {
           support: 'none',
           info: 'Use opacity instead.'
         },
-        outlineCap: 'none',
-        outlineJoin: 'none',
-        outlineOpacity: 'none',
         outlineWidthUnit: 'none'
       },
       LineSymbolizer: {
@@ -943,64 +946,32 @@ export class MapboxStyleParser implements StyleParser {
    * Creates a Mapbox Layer Paint object and the layerType from a GeoStylerStyle-Symbolizer
    *
    * @param symbolizer A GeoStylerStyle-Symbolizer
-   * @return {layertype, paint} An object consisting of the MapboxLayerType and the Mapbox Layer Paint
+   * @return [{layerType, paint, layout}] A list of objects consisting of the MapboxLayerType,
+   *    the Mapbox Layer Paint and Layout
    */
-  getStyleFromSymbolizer(symbolizer: Symbolizer): any {
+  getStyleFromSymbolizer(symbolizer: Symbolizer): { layerType: MapboxLayerType; paint: any; layout: any }[]  {
     const symbolizerClone = _cloneDeep(symbolizer);
     let layerType: MapboxLayerType;
     let paint: any;
     let layout: any;
 
+    let fillSplitStyles = [];
+
     switch (symbolizer.kind) {
       case 'Fill':
         layerType = 'fill';
 
-        const strokePropertyNames = ['outlineOpacity', 'outlineWidth', 'outlineCap',
-          'outlineJoin', 'outlineWidthUnit', 'outlineDasharray'];
+        const intersection = MapboxStyleParser.fillSymbolizerStrokeProperties
+          .filter(prop => Object.keys(symbolizer).includes(prop));
 
-        let needSplit = false;
-        for (const prop of strokePropertyNames) {
-          if (prop in symbolizer){
-            needSplit = true;
-            break;
-          }
-        }
-
+        // fill symbolizer contains stroke properties, so the symbolizer will be split into 2 symbolizers fill and line
+        let needSplit = intersection.length > 0;
         if (needSplit) {
-          delete symbolizerClone['outlineColor'];
-          const fillPaint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
-
-          const fillStyle = {
-            layerType: 'fill',
-            paint : fillPaint,
-            layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
-          };
-
-          const fillSymboClone: FillSymbolizer = _cloneDeep(symbolizer as FillSymbolizer);
-          const lineSymbolizer: LineSymbolizer = {
-            kind: 'Line',
-            color: fillSymboClone?.outlineColor,
-            opacity: fillSymboClone?.outlineOpacity,
-            width: fillSymboClone?.outlineWidth,
-            join: fillSymboClone?.outlineJoin,
-            cap: fillSymboClone?.outlineCap,
-          };
-
-          const outlineStyle = {
-            layerType: 'line',
-            paint: this.getPaintFromLineSymbolizer(lineSymbolizer),
-            layout: this.getLayoutFromLineSymbolizer(lineSymbolizer)
-          };
-
-          return [fillStyle, outlineStyle];
+          fillSplitStyles = this.getSplitStyleFromFillSymbolizer(symbolizer as FillSymbolizer);
         } else {
-          return [{
-            layerType: 'fill',
-            paint : this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer),
-            layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
-          }];
+          paint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+          layout = this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer);
         }
-
         break;
       case 'Line':
         layerType = 'line';
@@ -1037,11 +1008,52 @@ export class MapboxStyleParser implements StyleParser {
           layerType = 'symbol';
         }
     }
+
+    if (fillSplitStyles.length > 0) {
+      return fillSplitStyles;
+    }
+
     return [{
       layerType,
       paint,
       layout
     }];
+  }
+
+  /**
+   * Splits a fill symbolizer having outline properties into a fill and line styles
+   *
+   * @param symbolizer
+   * @returns
+   */
+  getSplitStyleFromFillSymbolizer(symbolizer: FillSymbolizer): any[] {
+    let symbolizerClone: FillSymbolizer = _cloneDeep(symbolizer);
+    delete symbolizerClone?.outlineColor;
+
+    const fillPaint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+    const fillStyle = {
+      layerType: 'fill',
+      paint : fillPaint,
+      layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
+    };
+
+    symbolizerClone = _cloneDeep(symbolizer as FillSymbolizer);
+    const lineSymbolizer: LineSymbolizer = {
+      kind: 'Line',
+      color: symbolizerClone?.outlineColor,
+      opacity: symbolizerClone?.outlineOpacity,
+      width: symbolizerClone?.outlineWidth,
+      join: symbolizerClone?.outlineJoin,
+      cap: symbolizerClone?.outlineCap,
+    };
+
+    const outlineStyle = {
+      layerType: 'line',
+      paint: this.getPaintFromLineSymbolizer(lineSymbolizer),
+      layout: this.getLayoutFromLineSymbolizer(lineSymbolizer)
+    };
+
+    return [fillStyle, outlineStyle];
   }
 
   /**
