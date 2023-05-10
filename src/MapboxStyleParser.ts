@@ -995,6 +995,7 @@ export class MapboxStyleParser implements StyleParser {
           return [fillStyle, outlineStyle];
         } else {
           return [{
+            layerType: 'fill',
             paint : this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer),
             layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
           }];

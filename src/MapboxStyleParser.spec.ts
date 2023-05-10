@@ -5,6 +5,8 @@ import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
 import fill_simplefill from '../data/styles/fill_simplefill';
 import mb_fill_simplefill from '../data/mapbox/fill_simplefill';
+import fill_simplefill_outline from '../data/styles/fill_simple_outline'
+import mb_fill_simplefill_outline from '../data/mapbox/fill_simple_outline'
 import point_simpletext from '../data/styles/point_simpletext';
 import mb_point_simpletext from '../data/mapbox/point_simpletext';
 import point_placeholdertext from '../data/styles/point_placeholderText';
@@ -188,6 +190,13 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: mbStyle } = await styleParser.writeStyle(fill_patternfill);
       expect(mbStyle).toBeDefined();
       expect(JSON.parse(mbStyle!)).toEqual(mb_fill_patternfill);
+    });
+
+    it('can write a mapbox Fill style with outline', async () => {
+      expect.assertions(2);
+      const { output: mbStyle } = await styleParser.writeStyle(fill_simplefill_outline);
+      expect(mbStyle).toBeDefined();
+      expect(JSON.parse(mbStyle!)).toEqual(mb_fill_simplefill_outline);
     });
 
     it('can write a mapbox Text style', async () => {
