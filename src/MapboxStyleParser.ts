@@ -241,17 +241,17 @@ export class MapboxStyleParser implements StyleParser {
   getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer | undefined  {
     const symbolizer: MarkSymbolizer = {
       kind: 'Mark',
-      blur: paint['circle-blur'],
-      color: paint['circle-color'],
-      offset: paint['circle-translate'],
-      offsetAnchor: paint['circle-translate-anchor'],
-      fillOpacity: paint['circle-opacity'],
-      pitchAlignment: paint['circle-pitch-alignment'],
-      pitchScale: paint['circle-pitch-scale'],
-      radius: paint['circle-radius'],
-      strokeColor: paint['circle-stroke-color'],
-      strokeOpacity: paint['circle-stroke-opacity'],
-      strokeWidth: paint['circle-stroke-width'],
+      blur: paint?.['circle-blur'],
+      color: paint?.['circle-color'],
+      offset: paint?.['circle-translate'],
+      offsetAnchor: paint?.['circle-translate-anchor'],
+      fillOpacity: paint?.['circle-opacity'],
+      pitchAlignment: paint?.['circle-pitch-alignment'],
+      pitchScale: paint?.['circle-pitch-scale'],
+      radius: paint?.['circle-radius'],
+      strokeColor: paint?.['circle-stroke-color'],
+      strokeOpacity: paint?.['circle-stroke-opacity'],
+      strokeWidth: paint?.['circle-stroke-width'],
       visibility: layout?.visibility,
       wellKnownName: 'circle'
     };
@@ -359,11 +359,11 @@ export class MapboxStyleParser implements StyleParser {
     return {
       kind: 'Fill',
       visibility: layout?.visibility,
-      antialias: paint['fill-antialias'],
-      opacity: paint['fill-opacity'],
-      color: paint['fill-color'],
-      outlineColor: paint['fill-outline-color'],
-      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['fill-pattern'])
+      antialias: paint?.['fill-antialias'],
+      opacity: paint?.['fill-opacity'],
+      color: paint?.['fill-color'],
+      outlineColor: paint?.['fill-outline-color'],
+      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['fill-pattern'])
     };
   }
 
@@ -392,15 +392,15 @@ export class MapboxStyleParser implements StyleParser {
       join: layout?.['line-join'],
       miterLimit: layout?.['line-miter-limit'],
       roundLimit: layout?.['line-round-limit'],
-      opacity: paint['line-opacity'],
-      color: paint['line-color'],
-      width: paint['line-width'],
-      gapWidth: paint['line-gap-width'],
-      perpendicularOffset: paint['line-offset'],
-      blur: paint['line-blur'],
-      dasharray: paint['line-dasharray'],
-      gradient: paint['line-gradient'],
-      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['line-pattern'])
+      opacity: paint?.['line-opacity'],
+      color: paint?.['line-color'],
+      width: paint?.['line-width'],
+      gapWidth: paint?.['line-gap-width'],
+      perpendicularOffset: paint?.['line-offset'],
+      blur: paint?.['line-blur'],
+      dasharray: paint?.['line-dasharray'],
+      gradient: paint?.['line-gradient'],
+      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['line-pattern'])
     };
   }
 
