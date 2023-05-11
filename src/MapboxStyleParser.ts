@@ -29,6 +29,8 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
 import { get, set } from 'lodash';
 
+type SymbolizerSelector =`rules[${number}].symbolizers[${number}]`;
+
 type MapboxLayerType = 'fill' | 'line' | 'symbol' | 'circle' | 'heatmap' |
     'fill-extrusion' | 'raster' | 'hillshade' | 'background';
 
@@ -230,8 +232,8 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-MarkSymbolizer
    */
-  getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
-    return {
+  getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer | undefined  {
+    const symbolizer: MarkSymbolizer = {
       kind: 'Mark',
       blur: paint['circle-blur'],
       color: paint['circle-color'],
@@ -244,9 +246,15 @@ export class MapboxStyleParser implements StyleParser {
       strokeColor: paint['circle-stroke-color'],
       strokeOpacity: paint['circle-stroke-opacity'],
       strokeWidth: paint['circle-stroke-width'],
-      visibility: layout.visibility,
+      visibility: layout?.visibility,
       wellKnownName: 'circle'
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return symbolizer;
   }
 
   /**
@@ -256,31 +264,37 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-IconSymbolizer
    */
-  getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer {
-    return {
+  getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer | undefined {
+    const symbolizer: IconSymbolizer = {
       kind: 'Icon',
-      allowOverlap: layout['icon-allow-overlap'],
-      anchor: layout['icon-anchor'],
-      avoidEdges: layout['symbol-avoid-edges'],
-      color: paint['icon-color'],
-      haloBlur: paint['icon-halo-blur'],
-      haloColor: paint['icon-halo-color'],
-      haloWidth: paint['icon-halo-width'],
-      image: this.getIconImage(layout['icon-image']),
-      keepUpright: layout['icon-keep-upright'],
-      offset: layout['icon-offset'],
-      offsetAnchor: paint['icon-translate-anchor'],
-      opacity: paint['icon-opacity'],
-      optional: layout['icon-optional'],
-      padding: layout['icon-padding'],
-      pitchAlignment: layout['icon-pitch-alignment'],
-      rotate: layout['icon-rotate'],
-      rotationAlignment: layout['icon-rotation-alignment'],
-      size: layout['icon-size'],
-      textFit: layout['icon-text-fit'],
-      textFitPadding: layout['icon-text-fit-padding'],
-      visibility: layout.visibility
+      allowOverlap: layout?.['icon-allow-overlap'],
+      anchor: layout?.['icon-anchor'],
+      avoidEdges: layout?.['symbol-avoid-edges'],
+      color: paint?.['icon-color'],
+      haloBlur: paint?.['icon-halo-blur'],
+      haloColor: paint?.['icon-halo-color'],
+      haloWidth: paint?.['icon-halo-width'],
+      image: this.getIconImage(layout?.['icon-image']),
+      keepUpright: layout?.['icon-keep-upright'],
+      offset: layout?.['icon-offset'],
+      offsetAnchor: paint?.['icon-translate-anchor'],
+      opacity: paint?.['icon-opacity'],
+      optional: layout?.['icon-optional'],
+      padding: layout?.['icon-padding'],
+      pitchAlignment: layout?.['icon-pitch-alignment'],
+      rotate: layout?.['icon-rotate'],
+      rotationAlignment: layout?.['icon-rotation-alignment'],
+      size: layout?.['icon-size'],
+      textFit: layout?.['icon-text-fit'],
+      textFitPadding: layout?.['icon-text-fit-padding'],
+      visibility: layout?.visibility
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return symbolizer;
   }
 
   /**
@@ -290,36 +304,42 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-TextSymbolizer
    */
-  getTextSymbolizerFromMapboxLayer(paint: any, layout: any): TextSymbolizer {
-    return {
+  getTextSymbolizerFromMapboxLayer(paint: any, layout: any): TextSymbolizer | undefined {
+    const symbolizer: TextSymbolizer = {
       kind: 'Text',
-      allowOverlap: layout['text-allow-overlap'],
-      anchor: layout['text-anchor'],
-      avoidEdges: layout['symbol-avoid-edges'],
-      color: paint['text-color'],
-      font: layout['text-font'],
-      haloBlur: paint['text-halo-blur'],
-      haloColor: paint['text-halo-color'],
-      haloWidth: paint['text-halo-width'],
-      justify: layout['text-justify'],
-      keepUpright: layout['text-keep-upright'],
-      label: this.getLabelFromTextField(layout['text-field']),
-      letterSpacing: layout['text-letter-spacing'],
-      lineHeight: layout['text-line-height'],
-      maxAngle: layout['text-max-angle'],
-      maxWidth: layout['text-max-width'],
-      offset: layout['text-offset'],
-      offsetAnchor: paint['text-translate-anchor'],
-      opacity: paint['text-opacity'],
-      optional: layout['text-optional'],
-      padding: layout['text-padding'],
-      pitchAlignment: layout['text-pitch-alignment'],
-      rotate: layout['text-rotate'],
-      rotationAlignment: layout['text-rotation-alignment'],
-      size: layout['text-size'],
-      transform: layout['text-transform'],
-      visibility: layout.visibility,
+      allowOverlap: layout?.['text-allow-overlap'],
+      anchor: layout?.['text-anchor'],
+      avoidEdges: layout?.['symbol-avoid-edges'],
+      color: paint?.['text-color'],
+      font: layout?.['text-font'],
+      haloBlur: paint?.['text-halo-blur'],
+      haloColor: paint?.['text-halo-color'],
+      haloWidth: paint?.['text-halo-width'],
+      justify: layout?.['text-justify'],
+      keepUpright: layout?.['text-keep-upright'],
+      label: this.getLabelFromTextField(layout?.['text-field']),
+      letterSpacing: layout?.['text-letter-spacing'],
+      lineHeight: layout?.['text-line-height'],
+      maxAngle: layout?.['text-max-angle'],
+      maxWidth: layout?.['text-max-width'],
+      offset: layout?.['text-offset'],
+      offsetAnchor: paint?.['text-translate-anchor'],
+      opacity: paint?.['text-opacity'],
+      optional: layout?.['text-optional'],
+      padding: layout?.['text-padding'],
+      pitchAlignment: layout?.['text-pitch-alignment'],
+      rotate: layout?.['text-rotate'],
+      rotationAlignment: layout?.['text-rotation-alignment'],
+      size: layout?.['text-size'],
+      transform: layout?.['text-transform'],
+      visibility: layout?.visibility,
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return symbolizer;
   }
 
   /**
@@ -361,11 +381,11 @@ export class MapboxStyleParser implements StyleParser {
   getLineSymbolizerFromMapboxLayer(paint: any, layout: any): LineSymbolizer {
     return {
       kind: 'Line',
-      visibility: layout.visibility,
-      cap: layout['line-cap'],
-      join: layout['line-join'],
-      miterLimit: layout['line-miter-limit'],
-      roundLimit: layout['line-round-limit'],
+      visibility: layout?.visibility,
+      cap: layout?.['line-cap'],
+      join: layout?.['line-join'],
+      miterLimit: layout?.['line-miter-limit'],
+      roundLimit: layout?.['line-round-limit'],
       opacity: paint['line-opacity'],
       color: paint['line-color'],
       width: paint['line-width'],
@@ -385,11 +405,13 @@ export class MapboxStyleParser implements StyleParser {
    * @param paint A Mapbox paint
    * @param layout A Mapbox layout
    */
-  getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): SymbolType {
-    return {
-      textSymbolizer: this.getTextSymbolizerFromMapboxLayer(paint, layout),
-      iconSymbolizer: this.getIconSymbolizerFromMapboxLayer(paint, layout)
-    };
+  getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): Symbolizer[] {
+    const symbolizers = [
+      this.getTextSymbolizerFromMapboxLayer(paint, layout),
+      this.getIconSymbolizerFromMapboxLayer(paint, layout)
+    ];
+
+    return symbolizers.filter(symbolizer => !!symbolizer) as Symbolizer[];
   }
 
   /**
@@ -400,9 +422,9 @@ export class MapboxStyleParser implements StyleParser {
    * @param type A Mapbox LayerType
    * @return A GeoStylerStyle-Symbolizer
    */
-  getSymbolizerFromMapboxLayer({paint, layout, type}: any): Symbolizer | undefined {
+  getSymbolizersFromMapboxLayer({paint, layout, type}: any): Symbolizer[] {
     let symbolizer: Symbolizer = {} as Symbolizer;
-    const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayerType(type);
+    const kind: SymbolizerKind | 'Symbol' | 'Circle' = this.getSymbolizerKindFromMapboxLayerType(type);
 
     switch (kind) {
       case 'Fill':
@@ -411,20 +433,21 @@ export class MapboxStyleParser implements StyleParser {
       case 'Line':
         symbolizer = this.getLineSymbolizerFromMapboxLayer(paint, layout);
         break;
-      // case 'Symbol':
-        // return this.getIconTextSymbolizersFromMapboxLayer(paint, layout);
+      case 'Symbol':
+        return this.getIconTextSymbolizersFromMapboxLayer(paint, layout);
       case 'Circle':
-        return this.getCircleSymbolizerFromMapboxLayer(paint, layout);
+        const sym = this.getCircleSymbolizerFromMapboxLayer(paint, layout);
+        return sym ? [sym]: [];
       case 'Mark':
         symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
         break;
       default:
         if (this.ignoreConversionErrors) {
-          return;
+          return [];
         }
         throw new Error('Cannot parse mapbox style. Unsupported Symbolizer kind.');
     }
-    return symbolizer;
+    return [symbolizer];
   }
 
   /**
@@ -708,6 +731,8 @@ export class MapboxStyleParser implements StyleParser {
         merged.outlineCap = lineSymbolizer.cap;
         merged.outlineJoin = lineSymbolizer.join;
         merged.outlineWidth = lineSymbolizer.width;
+      } else {
+        throw new Error(`Trying to merge to symbolizers of differnt kinds: ${s1.kind}, ${s2.kind}`);
       }
     }
     return merged;
@@ -725,10 +750,14 @@ export class MapboxStyleParser implements StyleParser {
       rules: []
     };
 
+    const ruleLevel = (key: string) => key.split('.')[0];
+    const symbolizersLevel = (key: string) => key.split('symbolizers')[0] + 'symbolizers';
+    const index = (key: string) => key.split('[')[1].split(']')[0];
+
     // returns array of rules where one rule contains one symbolizer
     layers.forEach((layer: any) => {
-      const symbolizer = this.getSymbolizerFromMapboxLayer(layer);
-      if (!symbolizer) {
+      const symbolizers = this.getSymbolizersFromMapboxLayer(layer);
+      if (symbolizers.length < 1) {
         return;
       }
 
@@ -737,19 +766,20 @@ export class MapboxStyleParser implements StyleParser {
         for (const [key, value] of Object.entries(geoStylerRef)) {
           if (key !== 'ruleNames') {
             if ((value as string[]).includes(layer.id)) {
-              const matchingRule = get(tempStyle, key.split('.')[0]);
+              const matchingRule = get(tempStyle, ruleLevel(key));
               if (matchingRule) {
                 const matchingSymbolizer = get(tempStyle, key);
                 if (matchingSymbolizer) {
-                  const mergedSymbolizer = this.mergeSymbolizers(matchingSymbolizer, symbolizer);
+                  const mergedSymbolizer = symbolizers.reduce((prev, current) => {
+                    return this.mergeSymbolizers(prev, current);
+                  }, matchingSymbolizer);
                   set(tempStyle, key, mergedSymbolizer);
                 } else {
-                  set(tempStyle, key, symbolizer);
+                  set(tempStyle, symbolizersLevel(key), symbolizers);
                 }
               } else {
-                const index = Number(key.split('[')[1].split(']')[0]);
                 const filter = this.getFilterFromMapboxFilter(layer.filter);
-                const name = geoStylerRef?.ruleNames?.[index];
+                const name = geoStylerRef?.ruleNames?.[index(key)];
                 const scaleDenominator = this.getScaleDenominatorFromMapboxZoom(
                   layer.minzoom,
                   layer.maxzoom,
@@ -759,8 +789,8 @@ export class MapboxStyleParser implements StyleParser {
                   name,
                   scaleDenominator
                 };
-                set(tempStyle, key.split('.')[0], newRule);
-                set(tempStyle, key, symbolizer);
+                set(tempStyle, ruleLevel(key), newRule);
+                set(tempStyle, symbolizersLevel(key), symbolizers);
               }
             }
           }
@@ -775,7 +805,7 @@ export class MapboxStyleParser implements StyleParser {
           filter,
           name: layer.id,
           scaleDenominator,
-          symbolizers: [symbolizer]
+          symbolizers
         };
         tempStyle.rules?.push(rule);
       }
@@ -933,7 +963,7 @@ export class MapboxStyleParser implements StyleParser {
       }
 
       rule.symbolizers.forEach((symbolizer: Symbolizer, symbolizerIndex: number) => {
-        const geoStylerSelector = `rules[${ruleIndex}].symbolizers[${symbolizerIndex}]`;
+        const symbolizerSelector: SymbolizerSelector = `rules[${ruleIndex}].symbolizers[${symbolizerIndex}]`;
         geoStylerRef.ruleNames.push(rule.name);
 
         // use existing layer properties
@@ -957,10 +987,10 @@ export class MapboxStyleParser implements StyleParser {
           lyrClone.layout = !MapboxStyleUtil.allUndefined(layout) ? layout : undefined;
           layers.push(lyrClone);
           lyrClone.id = `r${ruleIndex}_sy${symbolizerIndex}_st${styleIndex}`;
-          if (!Array.isArray(geoStylerRef[geoStylerSelector])) {
-            geoStylerRef[geoStylerSelector] = [];
+          if (!Array.isArray(geoStylerRef[symbolizerSelector])) {
+            geoStylerRef[symbolizerSelector] = [];
           }
-          geoStylerRef[geoStylerSelector].push(lyrClone.id);
+          geoStylerRef[symbolizerSelector].push(lyrClone.id);
         });
       });
     });
