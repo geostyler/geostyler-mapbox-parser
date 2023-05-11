@@ -60,6 +60,13 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect(geoStylerStyle).toEqual(line_patternline);
     });
 
+    it('can read a mapbox Fill style with outline', async () => {
+      expect.assertions(2);
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_fill_simplefill_outline);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(fill_simplefill_outline);
+    });
+
     it('can read a mapbox Fill style', async () => {
       expect.assertions(2);
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_fill_simplefill);

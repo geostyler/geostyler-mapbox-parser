@@ -2,14 +2,14 @@ const fillSimpleFillOutline: any = {
   version: 8,
   name: 'Simple Fill With outline',
   layers: [{
-    id: 'rule_0',
+    id: 'r0_sy0_st0',
     type: 'fill',
     paint: {
       'fill-color': '#ff0000'
     }
   },
   {
-    id: 'rule_0',
+    id: 'r0_sy0_st1',
     type: 'line',
     paint: {
       'line-opacity': 0.5,
@@ -22,7 +22,13 @@ const fillSimpleFillOutline: any = {
     }
   }],
   metadata: {
-    splitIds: ['rule_0']
+    geoStylerRef: {
+      ruleNames: ['The name of my rule'],
+      'rules[0].symbolizers[0]': [
+        'r0_sy0_st0',
+        'r0_sy0_st1'
+      ]
+    }
   }
 };
 

@@ -3,7 +3,7 @@ import { Style } from 'geostyler-style';
 const fillSimpleFillOutline: Style = {
   name: 'Simple Fill With outline',
   rules: [{
-    name: 'rule_0',
+    name: 'The name of my rule',
     symbolizers: [{
       kind: 'Fill',
       color: '#ff0000',
