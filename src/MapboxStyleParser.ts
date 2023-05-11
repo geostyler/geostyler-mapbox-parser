@@ -29,7 +29,13 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
 import { get, set } from 'lodash';
 
-type SymbolizerSelector =`rules[${number}].symbolizers[${number}]`;
+type SymbolizerPath =`rules[${number}].symbolizers[${number}]`;
+type LayerId = string;
+
+type GeoStylerRef = {
+  [path: SymbolizerPath]: LayerId[];
+  ruleNames?: string[];
+};
 
 type MapboxLayerType = 'fill' | 'line' | 'symbol' | 'circle' | 'heatmap' |
     'fill-extrusion' | 'raster' | 'hillshade' | 'background';
@@ -745,11 +751,13 @@ export class MapboxStyleParser implements StyleParser {
    * @return A GeoStyler-Style Rule Array
    */
   mapboxLayersToGeoStylerRules(layers: any[]): Rule[] {
-    const geoStylerRef = this.mbMetadata?.geoStylerRef;
+    const geoStylerRef: GeoStylerRef = this.mbMetadata?.geoStylerRef;
     const tempStyle: Partial<Style> = {
       rules: []
     };
 
+    // convenience functions to get the corresponding
+    // path for the lodash get function
     const ruleLevel = (key: string) => key.split('.')[0];
     const symbolizersLevel = (key: string) => key.split('symbolizers')[0] + 'symbolizers';
     const index = (key: string) => key.split('[')[1].split(']')[0];
@@ -761,22 +769,30 @@ export class MapboxStyleParser implements StyleParser {
         return;
       }
 
-      // TODO: add code documentation
+      // if the mapboxstyle has a metadata object with geoStylerRef we have to
+      // follow it to construct the rules and symbolizers
       if (geoStylerRef) {
+        // iterate over the symbolizerPathes
         for (const [key, value] of Object.entries(geoStylerRef)) {
           if (key !== 'ruleNames') {
+            // …if the id of the layer is associated to this symbolizer
             if ((value as string[]).includes(layer.id)) {
               const matchingRule = get(tempStyle, ruleLevel(key));
+              // …if there exists a rule in the temporaryStyle
               if (matchingRule) {
                 const matchingSymbolizer = get(tempStyle, key);
+                // …if there is an existing symbolizer with this id we have to merge them
                 if (matchingSymbolizer) {
                   const mergedSymbolizer = symbolizers.reduce((prev, current) => {
                     return this.mergeSymbolizers(prev, current);
                   }, matchingSymbolizer);
                   set(tempStyle, key, mergedSymbolizer);
                 } else {
+                  // …we can just set symbolizers on this rule
                   set(tempStyle, symbolizersLevel(key), symbolizers);
                 }
+              // … if there is no matching rule in the temporaryStyle we have to create
+              // a new one
               } else {
                 const filter = this.getFilterFromMapboxFilter(layer.filter);
                 const name = geoStylerRef?.ruleNames?.[index(key)];
@@ -795,6 +811,8 @@ export class MapboxStyleParser implements StyleParser {
             }
           }
         }
+      // if there is no metadat.geoStylerRef object in the mapbox style we create
+      // a new rule for every layer
       } else {
         const filter = this.getFilterFromMapboxFilter(layer.filter);
         const scaleDenominator = this.getScaleDenominatorFromMapboxZoom(
@@ -963,7 +981,7 @@ export class MapboxStyleParser implements StyleParser {
       }
 
       rule.symbolizers.forEach((symbolizer: Symbolizer, symbolizerIndex: number) => {
-        const symbolizerSelector: SymbolizerSelector = `rules[${ruleIndex}].symbolizers[${symbolizerIndex}]`;
+        const symbolizerPath: SymbolizerPath = `rules[${ruleIndex}].symbolizers[${symbolizerIndex}]`;
         geoStylerRef.ruleNames.push(rule.name);
 
         // use existing layer properties
@@ -987,10 +1005,10 @@ export class MapboxStyleParser implements StyleParser {
           lyrClone.layout = !MapboxStyleUtil.allUndefined(layout) ? layout : undefined;
           layers.push(lyrClone);
           lyrClone.id = `r${ruleIndex}_sy${symbolizerIndex}_st${styleIndex}`;
-          if (!Array.isArray(geoStylerRef[symbolizerSelector])) {
-            geoStylerRef[symbolizerSelector] = [];
+          if (!Array.isArray(geoStylerRef[symbolizerPath])) {
+            geoStylerRef[symbolizerPath] = [];
           }
-          geoStylerRef[symbolizerSelector].push(lyrClone.id);
+          geoStylerRef[symbolizerPath].push(lyrClone.id);
         });
       });
     });
