@@ -15,11 +15,15 @@ const lineSimpleLine: any = {
     }
   }],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['Small populated New Yorks'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'Small populated New Yorks',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
     }
   }
 };

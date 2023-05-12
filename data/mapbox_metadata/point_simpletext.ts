@@ -15,11 +15,15 @@ const pointSimpleText: any = {
     }
   ],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['Simple Text'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'Simple Text',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
     }
   }
 };

@@ -24,14 +24,22 @@ const multiRuleLineFill: any = {
     }
   ],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['Line Rule', 'Fill Rule'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0'
-      ],
-      'rules[1].symbolizers[0]': [
-        'r1_sy0_st0'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'Line Rule',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      },{
+        name: 'Fill Rule',
+        symbolizers: [
+          [
+            'r1_sy0_st0'
+          ]
+        ]
+      }]
     }
   }
 };
