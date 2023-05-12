@@ -1,8 +1,8 @@
 const lineSimpleLine: any = {
   version: 8,
-  name: 'Simple Line Filter',
+  name: 'Small populated New Yorks',
   layers: [{
-    id: 'Small populated New Yorks',
+    id: 'r0_sy0_st0',
     type: 'line',
     filter: ['all',
       ['==', 'NAME', 'New York'],
@@ -18,14 +18,21 @@ const lineSimpleLine: any = {
     ],
     paint: {
       'line-color': '#FF0000',
-      'line-width': ['case',
-        ['==', 'DENSITY', 20],
-        3,
-        ['!=', 'DENSITY', 20],
-        5
-      ]
+      'line-width': 3
     }
-  }]
+  }],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Small populated New Yorks',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default lineSimpleLine;
