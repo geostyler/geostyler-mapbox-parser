@@ -20,16 +20,7 @@ const fillSimpleFillOutline: any = {
       'line-cap': 'butt',
       'line-join': 'round'
     }
-  }],
-  metadata: {
-    geoStylerRef: {
-      ruleNames: ['The name of my rule'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0',
-        'r0_sy0_st1'
-      ]
-    }
-  }
+  }]
 };
 
 export default fillSimpleFillOutline;

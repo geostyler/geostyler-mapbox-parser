@@ -24,14 +24,22 @@ const multiSimpleLineSimpleFill: any = {
     }
   ],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['Simple Line Simple Fill', 'Simple Line Simple Fill'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0'
-      ],
-      'rules[1].symbolizers[0]': [
-        'r1_sy0_st0'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'Simple Line Simple Fill',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      },{
+        name: 'Simple Line Simple Fill',
+        symbolizers: [
+          [
+            'r1_sy0_st0'
+          ]
+        ]
+      }]
     }
   }
 };

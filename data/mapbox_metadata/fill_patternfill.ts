@@ -14,11 +14,15 @@ const fillSimpleFill: any = {
     }
   ],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['Pattern Fill'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'Pattern Fill',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
     }
   }
 };

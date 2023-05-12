@@ -8,7 +8,6 @@ import fill_simplefill from '../data/styles/fill_simplefill';
 import mb_fill_simplefill from '../data/mapbox/fill_simplefill';
 import mb_fill_simplefill_metadata from '../data/mapbox_metadata/fill_simplefill';
 import fill_simplefill_outline from '../data/styles/fill_simple_outline';
-import mb_fill_simplefill_outline from '../data/mapbox/fill_simple_outline';
 import mb_fill_simplefill_outline_metadata from '../data/mapbox_metadata/fill_simple_outline';
 import point_simpletext from '../data/styles/point_simpletext';
 import mb_point_simpletext from '../data/mapbox/point_simpletext';
@@ -78,7 +77,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
 
     it('can read a mapbox Fill style with outline', async () => {
       expect.assertions(2);
-      const { output: geoStylerStyle } = await styleParser.readStyle(mb_fill_simplefill_outline);
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_fill_simplefill_outline_metadata);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(fill_simplefill_outline);
     });

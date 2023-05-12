@@ -22,12 +22,16 @@ const fillSimpleFillOutline: any = {
     }
   }],
   metadata: {
-    geoStylerRef: {
-      ruleNames: ['The name of my rule'],
-      'rules[0].symbolizers[0]': [
-        'r0_sy0_st0',
-        'r0_sy0_st1'
-      ]
+    'geostyler:ref': {
+      rules: [{
+        name: 'The name of my rule',
+        symbolizers: [
+          [
+            'r0_sy0_st0',
+            'r0_sy0_st1'
+          ]
+        ]
+      }]
     }
   }
 };
