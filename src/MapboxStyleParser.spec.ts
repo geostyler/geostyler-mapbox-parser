@@ -126,7 +126,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
     it('can write and read a mapbox style with min and max zoom', async () => {
       expect.assertions(3);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
-      const { output: geoStylerStyle } = await styleParser.readStyle(mbStyle);
+      const { output: geoStylerStyle } = await styleParser.readStyle(JSON.parse(mbStyle!));
       expect(geoStylerStyle).toBeDefined();
       const min = geoStylerStyle?.rules[0].scaleDenominator?.min;
       const max = geoStylerStyle?.rules[0].scaleDenominator?.max;
@@ -191,7 +191,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_line_simpleline_metadata);
+      expect(JSON.parse(mbStyle as string)).toEqual(mb_line_simpleline_metadata);
     });
 
     it('can write a mapbox Line style with fill pattern', async () => {
