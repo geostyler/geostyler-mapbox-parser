@@ -872,7 +872,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param mapboxStyle The Mapbox Style object
    * @return A GeoStylerStyle-Style
    */
-  mapboxStyleToGeoStylerStyle(mapboxStyle: Omit<MbStyle, 'sources'>): Style {
+  mapboxStyleToGeoStylerStyle(mapboxStyle: MbStyle): Style {
     if (!(mapboxStyle instanceof Object)) {
       mapboxStyle = JSON.parse(mapboxStyle);
     }
@@ -902,7 +902,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param mapboxStyle The Mapbox Style object
    * @return The Promise resolving with a GeoStylerStyle-ReadStyleResult
    */
-  readStyle(mapboxStyle: Omit<MbStyle, 'sources'>): Promise<ReadStyleResult> {
+  readStyle(mapboxStyle: MbStyle): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
       try {
         const mbStyle = _cloneDeep(mapboxStyle);
