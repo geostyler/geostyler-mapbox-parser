@@ -48,6 +48,8 @@ import mb_line_patternline_metadata from '../data/mapbox_metadata/line_patternli
 import point_placeholdertext_simple from '../data/styles/point_placeholderText_simple';
 import mb_point_placeholdertext_simple from '../data/mapbox/point_placeholderText_simple';
 import mb_point_placeholdertext_simple_metadata from '../data/mapbox_metadata/point_placeholderText_simple';
+import { CustomLayerInterface } from 'mapbox-gl';
+import { AnyLayer } from 'mapbox-gl';
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
@@ -126,7 +128,7 @@ describe('MapboxStyleParser implements StyleParser', () => {
     it('can write and read a mapbox style with min and max zoom', async () => {
       expect.assertions(3);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
-      const { output: geoStylerStyle } = await styleParser.readStyle(JSON.parse(mbStyle!));
+      const { output: geoStylerStyle } = await styleParser.readStyle(mbStyle!);
       expect(geoStylerStyle).toBeDefined();
       const min = geoStylerStyle?.rules[0].scaleDenominator?.min;
       const max = geoStylerStyle?.rules[0].scaleDenominator?.max;
@@ -191,100 +193,100 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle as string)).toEqual(mb_line_simpleline_metadata);
+      expect(mbStyle).toEqual(mb_line_simpleline_metadata);
     });
 
     it('can write a mapbox Line style with fill pattern', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(line_patternline);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_line_patternline_metadata);
+      expect(mbStyle).toEqual(mb_line_patternline_metadata);
     });
 
     it('can write a mapbox Fill style', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(fill_simplefill);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_fill_simplefill_metadata);
+      expect(mbStyle).toEqual(mb_fill_simplefill_metadata);
     });
 
     it('can write a mapbox Fill style with fill pattern', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(fill_patternfill);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_fill_patternfill_metadata);
+      expect(mbStyle).toEqual(mb_fill_patternfill_metadata);
     });
 
     it('can write a mapbox Fill style with outline', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(fill_simplefill_outline);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_fill_simplefill_outline_metadata);
+      expect(mbStyle).toEqual(mb_fill_simplefill_outline_metadata);
     });
 
     it('can write a mapbox Text style', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(point_simpletext);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_point_simpletext_metadata);
+      expect(mbStyle).toEqual(mb_point_simpletext_metadata);
     });
 
     it('can write a mapbox Text style with a placeholder Text', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(point_placeholdertext_simple);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_point_placeholdertext_simple_metadata);
+      expect(mbStyle).toEqual(mb_point_placeholdertext_simple_metadata);
     });
 
     it('can write a mapbox Circle style', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(circle_simplecircle);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_circle_simplecircle_metadata);
+      expect(mbStyle).toEqual(mb_circle_simplecircle_metadata);
     });
 
     it('can write a mapbox style with multiple symbolizers', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(multi_simpleline_simplefill);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_multi_simpleline_simplefill_metadata);
+      expect(mbStyle).toEqual(mb_multi_simpleline_simplefill_metadata);
     });
 
     it('can write a mapbox style with multiple rules', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(multi_rule_line_fill);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_multi_rule_line_fill_metadata);
+      expect(mbStyle).toEqual(mb_multi_rule_line_fill_metadata);
     });
 
     it('can write a mapbox style with a complex filter', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_basefilter);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_line_simpleline_basefilter_metadata);
+      expect(mbStyle).toEqual(mb_line_simpleline_basefilter_metadata);
     });
 
     it('can write a mapbox style with min and max zoom', async () => {
       expect.assertions(3);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
       expect(mbStyle).toBeDefined();
-      const parsedMbStyle = JSON.parse(mbStyle!);
-      expect(parsedMbStyle.layers[0].minzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].minzoom, 0);
-      expect(parsedMbStyle.layers[0].maxzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].maxzoom, 0);
+      const layer = mbStyle?.layers?.[0] as Exclude<AnyLayer, CustomLayerInterface>;
+      expect(layer.minzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].minzoom, 0);
+      expect(layer.maxzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].maxzoom, 0);
     });
 
     it('can write a mapbox style with an icon', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(icon_simpleicon);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_icon_simpleicon_metadata);
+      expect(mbStyle).toEqual(mb_icon_simpleicon_metadata);
     });
 
     it('can write a mapbox style with an icon and resolves mapbox api', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(icon_simpleicon_mapboxapi);
       expect(mbStyle).toBeDefined();
-      expect(JSON.parse(mbStyle!)).toEqual(mb_icon_simpleicon_mapboxapi_metadata);
+      expect(mbStyle).toEqual(mb_icon_simpleicon_mapboxapi_metadata);
     });
   });
 });
