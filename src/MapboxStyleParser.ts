@@ -75,7 +75,7 @@ type OptionsType = {
     pretty?: boolean;
 };
 
-export class MapboxStyleParser implements StyleParser {
+export class MapboxStyleParser implements StyleParser<MbStyle> {
 
   // looks like there's no way to access static properties from an instance
   // without a reference to the constructor function, so we have to duplicate
@@ -918,15 +918,12 @@ export class MapboxStyleParser implements StyleParser {
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return The Promise resolving with a GeoStylerStyle-WriteStyleResult
    */
-  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
-    return new Promise<WriteStyleResult<string>>(resolve => {
+  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<MbStyle>> {
+    return new Promise<WriteStyleResult<MbStyle>>(resolve => {
       const unsupportedProperties = this.checkForUnsupportedProperties(geoStylerStyle);
       try {
         const gsStyle = _cloneDeep(geoStylerStyle);
-        const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
-        const output = this.pretty
-          ? JSON.stringify(mapboxStyle, null, 2)
-          : JSON.stringify(mapboxStyle);
+        const output: any = this.geoStylerStyleToMapboxObject(gsStyle);
         resolve({
           output,
           unsupportedProperties,
