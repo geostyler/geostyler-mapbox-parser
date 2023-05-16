@@ -1,4 +1,6 @@
-const lineSimpleLine: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const lineSimpleLine: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Simple Line',
   layers: [

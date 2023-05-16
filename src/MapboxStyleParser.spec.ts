@@ -271,8 +271,9 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
       expect(mbStyle).toBeDefined();
       const layer = mbStyle?.layers?.[0] as Exclude<AnyLayer, CustomLayerInterface>;
-      expect(layer.minzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].minzoom, 0);
-      expect(layer.maxzoom).toBeCloseTo(mb_line_simpleline_zoom_metadata.layers[0].maxzoom, 0);
+      const mbLayers = mb_line_simpleline_zoom_metadata.layers as (Exclude<AnyLayer, CustomLayerInterface>)[];
+      expect(layer.minzoom).toBeCloseTo(mbLayers[0].minzoom!, 0);
+      expect(layer.maxzoom).toBeCloseTo(mbLayers[0].maxzoom!, 0);
     });
 
     it('can write a mapbox style with an icon', async () => {

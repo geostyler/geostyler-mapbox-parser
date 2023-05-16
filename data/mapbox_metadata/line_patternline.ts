@@ -1,4 +1,6 @@
-const linePatternLine: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const linePatternLine: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Pattern Line',
   sprite: 'https://testurl.com',

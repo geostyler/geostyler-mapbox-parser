@@ -1,4 +1,6 @@
-const pointPlaceholderText: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const pointPlaceholderText: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Placeholder Text',
   layers: [

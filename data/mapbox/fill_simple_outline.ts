@@ -1,4 +1,6 @@
-const fillSimpleFillOutline: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const fillSimpleFillOutline: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Simple Fill With outline',
   layers: [{

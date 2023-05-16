@@ -1,4 +1,6 @@
-const pointSimpleText: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const pointSimpleText: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Simple Text',
   layers: [

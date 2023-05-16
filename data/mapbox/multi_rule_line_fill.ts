@@ -1,4 +1,6 @@
-const multiRuleLineFill: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const multiRuleLineFill: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Rule Line Fill',
   layers: [
