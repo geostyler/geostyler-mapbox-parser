@@ -1,4 +1,6 @@
-const circleSimpleCircle: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const circleSimpleCircle: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Simple Circle',
   layers: [

@@ -1,4 +1,6 @@
-const multiSimpleLineSimpleFill: any = {
+import { MbStyle } from '../../src/MapboxStyleParser';
+
+const multiSimpleLineSimpleFill: Omit<MbStyle, 'sources'> = {
   version: 8,
   name: 'Simple Line Simple Fill',
   layers: [

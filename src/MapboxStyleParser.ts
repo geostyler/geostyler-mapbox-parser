@@ -44,8 +44,15 @@ import {
   LinePaint,
   SymbolLayout,
   SymbolPaint,
-  Style as MbStyle
+  Style as MapboxStyle,
+  Sources
 } from 'mapbox-gl';
+
+/**
+ * The style representation of mapbox-gl but with optional sources, as these are
+ * not required for reading the style and get stripped when writing.
+ */
+export type MbStyle = Omit<MapboxStyle, 'sources'> & { sources?: Sources };
 
 type NoneCustomLayer = Exclude<AnyLayer, CustomLayerInterface>;
 
@@ -865,7 +872,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param mapboxStyle The Mapbox Style object
    * @return A GeoStylerStyle-Style
    */
-  mapboxStyleToGeoStylerStyle(mapboxStyle: MbStyle): Style {
+  mapboxStyleToGeoStylerStyle(mapboxStyle: Omit<MbStyle, 'sources'>): Style {
     if (!(mapboxStyle instanceof Object)) {
       mapboxStyle = JSON.parse(mapboxStyle);
     }
@@ -895,7 +902,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param mapboxStyle The Mapbox Style object
    * @return The Promise resolving with a GeoStylerStyle-ReadStyleResult
    */
-  readStyle(mapboxStyle: MbStyle): Promise<ReadStyleResult> {
+  readStyle(mapboxStyle: Omit<MbStyle, 'sources'>): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
       try {
         const mbStyle = _cloneDeep(mapboxStyle);
