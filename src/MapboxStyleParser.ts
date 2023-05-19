@@ -23,11 +23,13 @@ import {
   isFillSymbolizer,
   isLineSymbolizer,
   CapType,
-  JoinType
+  JoinType,
+  isFilter,
+  isScaleDenominator,
+  isGeoStylerBooleanFunction
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
-import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
 import {
   AnyLayer,
@@ -45,9 +47,11 @@ import {
   SymbolLayout,
   SymbolPaint,
   Style as MapboxStyle,
-  Sources
+  Sources,
+  Expression
 } from 'mapbox-gl';
 import { gs2mbExpression, mb2gsExpression } from './Expressions';
+import { isBoolean } from 'lodash';
 
 /**
  * The style representation of mapbox-gl but with optional sources, as these are
@@ -549,7 +553,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           break;
       }
       let restFilter = filter.slice(1);
-      restFilter.forEach((f: Filter) => {
+      restFilter.forEach((f: any[]) => {
         this.getFilterFromMapboxFilter(f);
       });
     }
@@ -577,36 +581,36 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     return scaleDenominator;
   }
 
-  /**
-   * Merges the baseFilter and the attribute filter to a single filter.
-   * If both filters are defined, they will be merged via '&&' operator.
-   * If only one of the filters is defined, the defined filter will be returned.
-   *
-   * @param baseFilter The value of the mapbox layer's filter property
-   * @param filter The value of the mapbox paint attribute filter
-   */
-  mergeFilters(baseFilter: Filter|undefined, filter: Filter|undefined): Filter|undefined {
-    let gsBaseFilter: Filter|undefined = undefined;
-    let gsFilter: Filter|undefined = undefined;
-    if (baseFilter && filter) {
-      gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter) as Filter;
-      gsFilter = this.getFilterFromMapboxFilter(filter) as Filter;
-      return [
-        '&&',
-        gsBaseFilter,
-        gsFilter
-      ];
-    }
-    if (filter) {
-      gsFilter = this.getFilterFromMapboxFilter(filter);
-      return gsFilter;
-    }
-    if (baseFilter) {
-      gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
-      return gsBaseFilter;
-    }
-    return undefined;
-  }
+  // /**
+  //  * Merges the baseFilter and the attribute filter to a single filter.
+  //  * If both filters are defined, they will be merged via '&&' operator.
+  //  * If only one of the filters is defined, the defined filter will be returned.
+  //  *
+  //  * @param baseFilter The value of the mapbox layer's filter property
+  //  * @param filter The value of the mapbox paint attribute filter
+  //  */
+  // mergeFilters(baseFilter: Filter|undefined, filter: Filter|undefined): Filter|undefined {
+  //   let gsBaseFilter: Filter|undefined = undefined;
+  //   let gsFilter: Filter|undefined = undefined;
+  //   if (baseFilter && filter) {
+  //     gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter) as Filter;
+  //     gsFilter = this.getFilterFromMapboxFilter(filter) as Filter;
+  //     return [
+  //       '&&',
+  //       gsBaseFilter,
+  //       gsFilter
+  //     ];
+  //   }
+  //   if (filter) {
+  //     gsFilter = this.getFilterFromMapboxFilter(filter);
+  //     return gsFilter;
+  //   }
+  //   if (baseFilter) {
+  //     gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
+  //     return gsBaseFilter;
+  //   }
+  //   return undefined;
+  // }
 
   /**
    * Compares an arbitrary number of filters for equality
@@ -698,7 +702,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   //         return;
   //       }
   //       // make a deep clone to avoid call-by-reference issues
-  //       let symbolizer: Symbolizer = _cloneDeep(tmpSymbolizer);
+  //       let symbolizer: Symbolizer = structuredClone(tmpSymbolizer);
   //       let values: any[] = [];
   //       // iterate over each filter and push the corresponding value of the current filter expression
   //       filters.forEach((f: any) => {
@@ -889,9 +893,6 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @return A GeoStylerStyle-Style
    */
   mapboxStyleToGeoStylerStyle(mapboxStyle: MbStyle): Style {
-    if (!(mapboxStyle instanceof Object)) {
-      mapboxStyle = JSON.parse(mapboxStyle);
-    }
     let style: Style = {} as Style;
     style.name = mapboxStyle.name || '';
     style.rules = [];
@@ -921,7 +922,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   readStyle(mapboxStyle: MbStyle): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
       try {
-        const mbStyle = _cloneDeep(mapboxStyle);
+        const mbStyle = structuredClone(mapboxStyle);
         const geoStylerStyle: Style = this.mapboxStyleToGeoStylerStyle(mbStyle);
         resolve({
           output: geoStylerStyle
@@ -945,7 +946,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     return new Promise<WriteStyleResult<Omit<MbStyle, 'sources'>>>(resolve => {
       const unsupportedProperties = this.checkForUnsupportedProperties(geoStylerStyle);
       try {
-        const gsStyle = _cloneDeep(geoStylerStyle);
+        const gsStyle = structuredClone(geoStylerStyle);
         const output: Omit<MbStyle, 'sources'> = this.geoStylerStyleToMapboxObject(gsStyle);
         resolve({
           output,
@@ -1012,12 +1013,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       let layer: Partial<NoneCustomLayer> = {};
 
       // set filters and scaleDenominator
-      if (rule.filter && rule.filter.length !== 0) {
-        const filterClone = _cloneDeep(rule.filter);
+      if (isFilter(rule.filter)) {
+        const filterClone = structuredClone(rule.filter);
         layer.filter = this.getMapboxFilterFromFilter(filterClone);
       }
 
-      if (rule.scaleDenominator) {
+      if (isScaleDenominator(rule.scaleDenominator)) {
         // calculate zoomLevel from scaleDenominator
         if (typeof rule.scaleDenominator.min !== 'undefined') {
           if (!isGeoStylerFunction(rule.scaleDenominator.min)) {
@@ -1050,7 +1051,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
             type, paint, layout
           } = style;
 
-          let lyrClone = _cloneDeep(lyr);
+          let lyrClone = structuredClone(lyr);
 
           lyrClone.type = type;
           lyrClone.paint = !MapboxStyleUtil.allUndefined(paint) ? paint : undefined;
@@ -1110,7 +1111,13 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param filter A GeoStylerStyle-Filter
    * @return A Mapbox filter array
    */
-  getMapboxFilterFromFilter(filter: Filter): any[] {
+  // TODO: Move to Expression evaluation as mapbox Filter are deprecated
+  // (replaced by Expressions)
+  getMapboxFilterFromFilter(filter: Filter): Expression {
+    if (isGeoStylerBooleanFunction(filter) || isBoolean(filter)) {
+      return gs2mbExpression<any>(filter);
+    }
+
     let mbFilter = [...filter];
     const nestingOperators = ['&&', '||', '!'];
     const operator: Operator = mbFilter[0] as Operator;
@@ -1137,7 +1144,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       });
     }
 
-    return mbFilter;
+    return mbFilter as Expression;
   }
 
   /**
@@ -1150,7 +1157,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   getStyleFromSymbolizer(symbolizer: Symbolizer):
     { type: NoneCustomLayer['type']; paint?: AnyPaint; layout?: AnyLayout }[]
   {
-    const symbolizerClone = _cloneDeep(symbolizer);
+    const symbolizerClone = structuredClone(symbolizer);
     let type: NoneCustomLayer['type'];
     let paint: AnyPaint | undefined = undefined;
     let layout: AnyLayout | undefined = undefined;
@@ -1229,7 +1236,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   getSplitStyleFromFillSymbolizer(symbolizer: FillSymbolizer):
     [Omit<FillLayer, 'id'>, Omit<LineLayer, 'id'>]
   {
-    let symbolizerClone: FillSymbolizer = _cloneDeep(symbolizer);
+    let symbolizerClone: FillSymbolizer = structuredClone(symbolizer);
     delete symbolizerClone?.outlineColor;
 
     const fillPaint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
@@ -1239,7 +1246,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
     };
 
-    symbolizerClone = _cloneDeep(symbolizer as FillSymbolizer);
+    symbolizerClone = structuredClone(symbolizer as FillSymbolizer);
     const lineSymbolizer: LineSymbolizer = {
       kind: 'Line',
       color: symbolizerClone?.outlineColor,
@@ -1422,8 +1429,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     } = symbolizer;
 
     const layout: LineLayout = {
-      'line-cap': cap,
-      'line-join': join,
+      'line-cap': gs2mbExpression<LineLayout['line-cap']>(cap),
+      'line-join': gs2mbExpression<LineLayout['line-join']>(join),
       'line-miter-limit': gs2mbExpression<number>(miterLimit),
       'line-round-limit': gs2mbExpression<number>(roundLimit),
       visibility: this.getVisibility(visibility)
@@ -1485,11 +1492,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
       'icon-allow-overlap': gs2mbExpression<boolean>(allowOverlap),
       'icon-optional': optional as SymbolLayout['icon-optional'],
-      // TODO: handle enum values
-      'icon-rotation-alignment': rotationAlignment,
+      'icon-rotation-alignment': gs2mbExpression<SymbolLayout['icon-rotation-alignment']>
+      (rotationAlignment) as SymbolLayout['icon-rotation-alignment'],
       'icon-size': gs2mbExpression<number>(size),
-      // TODO: handle enum values
-      'icon-text-fit': textFit,
+      'icon-text-fit': gs2mbExpression<SymbolLayout['icon-text-fit']>(textFit) as SymbolLayout['icon-text-fit'],
       // TODO: handle array values
       'icon-text-fit-padding': textFitPadding as SymbolLayout['icon-text-fit-padding'],
       // TODO: check sprite handling
@@ -1499,10 +1505,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'icon-keep-upright': keepUpright as SymbolLayout['icon-keep-upright'],
       // TODO: handle array values
       'icon-offset': offset as SymbolLayout['icon-offset'],
-      // TODO: handle enum values
-      'icon-anchor': anchor,
-      // TODO: handle enum values
-      'icon-pitch-alignment': pitchAlignment,
+      'icon-anchor': gs2mbExpression<SymbolLayout['icon-anchor']>(anchor),
+      'icon-pitch-alignment': gs2mbExpression<SymbolLayout['icon-pitch-alignment']>
+      (pitchAlignment) as SymbolLayout['icon-pitch-alignment'],
       visibility: this.getVisibility(visibility)
     };
     return layout;
@@ -1566,10 +1571,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
     const paint: SymbolLayout = {
       'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
-      // TODO: handle enum values
-      'text-pitch-alignment': pitchAlignment,
-      // TODO: handle enum values
-      'text-rotation-alignment': rotationAlignment,
+      'text-pitch-alignment': gs2mbExpression<SymbolLayout['text-pitch-alignment']>
+      (pitchAlignment) as SymbolLayout['text-pitch-alignment'],
+      'text-rotation-alignment': gs2mbExpression<SymbolLayout['text-rotation-alignment']>
+      (rotationAlignment) as SymbolLayout['text-rotation-alignment'],
       // TODO:
       'text-field': (label ? this.getTextFieldFromLabel(label) : undefined) as SymbolLayout['text-field'],
       // TODO: handle array values
@@ -1578,16 +1583,13 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'text-max-width': gs2mbExpression<number>(maxWidth),
       'text-line-height': gs2mbExpression<number>(lineHeight),
       'text-letter-spacing': gs2mbExpression<number>(letterSpacing),
-      // TODO: handle enum values
-      'text-justify': justify,
-      // TODO: handle enum values
-      'text-anchor': anchor,
+      'text-justify': gs2mbExpression<SymbolLayout['text-justify']>(justify),
+      'text-anchor': gs2mbExpression<SymbolLayout['text-anchor']>(anchor),
       'text-max-angle': gs2mbExpression<number>(maxAngle),
       'text-rotate': gs2mbExpression<number>(rotate),
       'text-padding': gs2mbExpression<number>(padding),
       'text-keep-upright': keepUpright as SymbolLayout['text-keep-upright'],
-      // TODO: handle enum values
-      'text-transform': transform,
+      'text-transform': gs2mbExpression<SymbolLayout['text-transform']>(transform),
       // TODO: handle array values
       'text-offset': offset as SymbolLayout['text-offset'],
       'text-allow-overlap': allowOverlap as SymbolLayout['text-allow-overlap'],
@@ -1652,12 +1654,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'circle-opacity': gs2mbExpression<number>(fillOpacity),
       // TODO: handle array values
       'circle-translate': offset as CirclePaint['circle-translate'],
-      // TODO: handle enum values
-      'circle-translate-anchor': offsetAnchor,
-      // TODO: handle enum values
-      'circle-pitch-scale': pitchScale,
-      // TODO: handle enum values
-      'circle-pitch-alignment': pitchAlignment,
+      'circle-translate-anchor': gs2mbExpression<CirclePaint['circle-translate-anchor']>
+      (offsetAnchor) as CirclePaint['circle-translate-anchor'],
+      'circle-pitch-scale': gs2mbExpression<CirclePaint['circle-pitch-scale']>
+      (pitchScale) as CirclePaint['circle-pitch-scale'],
+      'circle-pitch-alignment': gs2mbExpression<CirclePaint['circle-pitch-alignment']>
+      (pitchAlignment) as CirclePaint['circle-pitch-alignment'],
       'circle-stroke-width': gs2mbExpression<number>(strokeWidth),
       'circle-stroke-color': gs2mbExpression<string>(strokeColor),
       'circle-stroke-opacity': gs2mbExpression<number>(strokeOpacity)

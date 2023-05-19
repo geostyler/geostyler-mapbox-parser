@@ -1,6 +1,7 @@
 import {
   Expression as GeoStylerExpression,
   GeoStylerFunction,
+  PropertyType,
   isGeoStylerFunction
 } from 'geostyler-style';
 import { invert } from 'lodash';
@@ -10,34 +11,33 @@ import {
   StyleFunction
 } from 'mapbox-gl';
 
-type DataType = number | string | boolean;
-
-const functionNameMap: Partial<Record<GeoStylerFunction['name'], ExpressionName>> = {
+const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> = {
   // ---- string ----
   numberFormat: 'number-format',
-  // strAbbreviate: -,
-  // strCapitalize: -,
+  strAbbreviate: null,
+  strCapitalize: null,
   strConcat: 'concat',
-  // strDefaultIfBlank: -
-  // strEndsWith: -
-  // strEqualsIgnoreCase: -
-  // strIndexOf: -
-  // strLastIndexOf: -
+  strDefaultIfBlank: null,
+  strEndsWith: null,
+  strEqualsIgnoreCase: null,
+  strIndexOf: null,
+  strLastIndexOf: null,
   strLength: 'length',
-  // strMatches: -
-  // strReplace: -
-  // strStartsWith: -
-  // strStripAccents: -
-  // strSubstringStart: -
-  // strTrim: -
+  strMatches: null,
+  strReplace: null,
+  strStartsWith: null,
+  strStripAccents: null,
+  strSubstring: 'slice',
+  strSubstringStart: null,
   strToLowerCase: 'downcase',
   strToUpperCase: 'upcase',
+  strTrim: null,
   // ---- number ----
   abs: 'abs',
-  // atan2: -
   acos: 'acos',
   asin: 'asin',
   atan: 'atan',
+  atan2: null,
   ceil: 'ceil',
   cos: 'cos',
   exp: 'e',
@@ -47,42 +47,56 @@ const functionNameMap: Partial<Record<GeoStylerFunction['name'], ExpressionName>
   // – : 'log10'
   // – : 'log2'
   max: 'max',
-  // modulo: -
   min: 'min',
+  modulo: '%',
   pi: 'pi',
+  // - : 'e',
+  pow: '^',
+  random: null,
+  rint: null,
   round: 'round',
   sin: 'sin',
   sqrt: 'sqrt',
   tan: 'tan',
+  toDegrees: null,
+  toRadians: null,
   // ---- boolean ----
+  between: 'within',
+  double2bool: null,
   in: 'in',
-  // between: 'within'
-  // parseBoolean: -
+  parseBoolean: 'to-boolean',
+  // ---- unknown ----
+  property: 'get'
 };
 
 const invertedFunctionNameMap: Partial<Record<ExpressionName, GeoStylerFunction['name']>> =
   invert(functionNameMap);
 
-export function gs2mbExpression<T extends DataType>(gsExpression?: GeoStylerExpression<T>):
+export function gs2mbExpression<T extends PropertyType>(gsExpression?: GeoStylerExpression<T>):
   MapboxExpression | T | undefined {
   if (!isGeoStylerFunction(gsExpression)) {
     return gsExpression as T;
   }
-  const mapboxFunctionName = functionNameMap[gsExpression.name];
-  if (!mapboxFunctionName) {
-    throw new Error('Could not translate GeoStyler Expression: ' + gs2mbExpression);
+
+  const args = 'args' in gsExpression ? gsExpression.args : [];
+
+  // special handling
+  switch (gsExpression.name) {
+    case 'pi':
+      return ['pi'];
+    default:
+      const mapboxFunctionName = functionNameMap[gsExpression.name];
+      if (!mapboxFunctionName) {
+        throw new Error('Could not translate GeoStyler Expression: ' + gs2mbExpression);
+      }
+      return [mapboxFunctionName, ...args] as MapboxExpression;
   }
-  const hasArguments = !(gsExpression.name === 'pi' || gsExpression.name === 'random');
-  let args = hasArguments ? gsExpression.args : [];
 
-  // TODO: add special handling of none matching arguments
-
-  return [mapboxFunctionName, ...args] as MapboxExpression;
 }
 
-type MbInput = MapboxExpression | DataType | StyleFunction;
+type MbInput = MapboxExpression | PropertyType | StyleFunction;
 
-export function mb2gsExpression<T extends DataType>(mbExpression?: MbInput):
+export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
   GeoStylerExpression<T> | undefined {
 
   // TODO: is this check valid ?
@@ -91,16 +105,23 @@ export function mb2gsExpression<T extends DataType>(mbExpression?: MbInput):
     return mbExpression as GeoStylerExpression<T> | undefined;
   }
 
-  const gsFunctionName = invertedFunctionNameMap[mbExpression[0]];
-  if (!gsFunctionName) {
-    throw new Error('Could not translate MapboxExpression: ' + mbExpression);
-  }
+  const mapBoxExpressionName = mbExpression[0];
   const args = mbExpression.slice(1);
+  let func: GeoStylerFunction;
 
-  // TODO: add special handling of none matching arguments
+  // special handling
+  switch (mapBoxExpressionName) {
+    default:
+      const gsFunctionName = invertedFunctionNameMap[mapBoxExpressionName];
+      if (!gsFunctionName) {
+        throw new Error('Could not translate MapboxExpression: ' + mbExpression);
+      }
+      func = {
+        name: gsFunctionName,
+        args
+      };
+      break;
+  }
 
-  return {
-    name: gsFunctionName,
-    args
-  } as GeoStylerExpression<T>;
+  return func as GeoStylerExpression<T>;
 }
