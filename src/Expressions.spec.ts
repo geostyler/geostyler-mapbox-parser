@@ -7,6 +7,8 @@ import gs_expression_property from '../data/styles/gs_expression_property';
 import MapboxStyleParser from './MapboxStyleParser';
 import expression_decisions_metadata from '../data/mapbox_metadata/expression_decisions';
 import gs_expression_decisions from '../data/styles/gs_expression_decisions';
+import gs_expression_math from '../data/styles/gs_expression_math';
+import expression_math_metadata from '../data/mapbox_metadata/expression_math';
 
 describe('MapboxStyleParser can parse Expressions', () => {
   let styleParser: MapboxStyleParser;
@@ -28,6 +30,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       expect(geoStylerStyle).toEqual(gs_expression_decisions);
       return;
     });
+    it('can read the "math" expressions', async () => {
+      const { output: geoStylerStyle } = await styleParser.readStyle(expression_math_metadata);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(gs_expression_math);
+      return;
+    });
     it('can read the "case" expression', async () => {
       const { output: geoStylerStyle } = await styleParser.readStyle(expression_case);
       expect(geoStylerStyle).toBeDefined();
@@ -47,6 +55,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       const { output: mbStyle } = await styleParser.writeStyle(gs_expression_decisions);
       expect(mbStyle).toBeDefined();
       expect(mbStyle).toEqual(expression_decisions_metadata);
+      return;
+    });
+    it('can write the "math" expressions', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(gs_expression_math);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(expression_math_metadata);
       return;
     });
     it('can write the "case" expression', async () => {

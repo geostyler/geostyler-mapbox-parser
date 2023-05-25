@@ -298,7 +298,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       return undefined;
     }
 
-    return symbolizer;
+    return omitBy(symbolizer, isUndefined) as MarkSymbolizer;
   }
 
   /**
@@ -393,7 +393,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       return undefined;
     }
 
-    return symbolizer;
+    return omitBy(symbolizer, isUndefined) as TextSymbolizer;
   }
 
   /**
@@ -404,7 +404,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @return A GeoStylerStyle-FillSymbolizer
    */
   getFillSymbolizerFromMapboxFillLayer(paint: FillPaint, layout: FillLayout): FillSymbolizer {
-    return {
+    const fillSymbolizer: FillSymbolizer = {
       kind: 'Fill',
       visibility: layout?.visibility && layout?.visibility !== 'none',
       antialias: mb2gsExpression<boolean>(paint?.['fill-antialias']),
@@ -413,6 +413,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       outlineColor: mb2gsExpression<string>(paint?.['fill-outline-color']),
       graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['fill-pattern'])
     };
+    return omitBy(fillSymbolizer, isUndefined) as FillSymbolizer;
   }
 
   getPatternOrGradientFromMapboxLayer(icon: any): IconSymbolizer|undefined {
@@ -433,7 +434,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @return A GeoStylerStyle-LineSymbolizer
    */
   getLineSymbolizerFromMapboxLineLayer(paint: LinePaint, layout: LineLayout): LineSymbolizer {
-    return {
+    const lineSymbolizer: LineSymbolizer = {
       kind: 'Line',
       visibility: layout?.visibility && layout?.visibility !== 'none',
       // TODO: handle enum values
@@ -454,6 +455,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       gradient: paint?.['line-gradient'],
       graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['line-pattern'])
     };
+    return omitBy(lineSymbolizer, isUndefined) as LineSymbolizer;
   }
 
   /**
@@ -853,12 +855,13 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           // TODO: care about layers not configured in the metadata
           // const noneMatchingLayes = layers.filter(layer => !layerIds.includes(layer.id));
         });
-        gsRules[ruleIndex] = {
+        const gsRule = {
           filter,
           name,
           scaleDenominator,
           symbolizers
-        };
+        } satisfies Rule;
+        gsRules[ruleIndex] = omitBy(gsRule, isUndefined) as Rule;
       });
     } else {
       // returns array of rules where one rule contains one symbolizer

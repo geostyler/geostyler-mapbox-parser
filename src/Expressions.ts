@@ -112,15 +112,22 @@ export function gs2mbExpression<T extends PropertyType>(gsExpression?: GeoStyler
         }
       });
       return ['case', ...mbArgs];
+    case 'exp':
+      if (args[0] === 1) {
+        return ['e'];
+      }
+      break;
     case 'pi':
       return ['pi'];
     default:
       const mapboxFunctionName = functionNameMap[gsExpression.name];
       if (!mapboxFunctionName) {
-        throw new Error('Could not translate GeoStyler Expression: ' + gs2mbExpression);
+        throw new Error('Could not translate GeoStyler Expression: ' + gsExpression);
       }
       return [mapboxFunctionName, ...args.map(arg => gs2mbExpression(arg))] as MapboxExpression;
   }
+
+  throw new Error('Could not translate GeoStyler Expression: ' + gsExpression);
 
 }
 
@@ -141,6 +148,12 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
 
   // special handling
   switch (mapBoxExpressionName) {
+    case 'e':
+      func = {
+        name: 'exp',
+        args: [1]
+      };
+      break;
     case 'case':
       const gsArgs: any[] = [];
       args.forEach((a, index) => {
@@ -165,6 +178,11 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
       func = {
         name: 'case',
         args: gsArgs as Fcase['args']
+      };
+      break;
+    case 'pi':
+      func = {
+        name: 'pi'
       };
       break;
     default:
