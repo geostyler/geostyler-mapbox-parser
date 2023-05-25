@@ -51,7 +51,7 @@ import {
   Expression
 } from 'mapbox-gl';
 import { gs2mbExpression, mb2gsExpression } from './Expressions';
-import { isBoolean } from 'lodash';
+import { isBoolean, isString, set } from 'lodash';
 
 /**
  * The style representation of mapbox-gl but with optional sources, as these are
@@ -106,7 +106,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   /**
    * Object of unsupported properties.
    */
-  unsupportedProperties: UnsupportedProperties = {
+  unsupportedProperties ={
     Symbolizer: {
       FillSymbolizer: {
         fillOpacity: {
@@ -149,7 +149,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         lineHeightUnit: 'none'
       }
     }
-  };
+  } satisfies UnsupportedProperties;
 
   public ignoreConversionErrors: boolean = false;
 
@@ -538,7 +538,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
     const operator: Operator = filter[0];
     let isNestedFilter: boolean = false;
-    if (operatorMapping[operator]) {
+    if (operator in operatorMapping) {
       isNestedFilter = true;
     }
     if (isNestedFilter) {
@@ -1688,31 +1688,24 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   }
 
   checkForUnsupportedProperties(geoStylerStyle: Style): UnsupportedProperties | undefined {
-    const capitalizeFirstLetter = (a: string) => a[0].toUpperCase() + a.slice(1);
     const unsupportedProperties: UnsupportedProperties = {};
+
     geoStylerStyle.rules.forEach(rule => {
       // ScaleDenominator and Filters are completely supported so we just check for symbolizers
       rule.symbolizers.forEach(symbolizer => {
-        const key = capitalizeFirstLetter(`${symbolizer.kind}Symbolizer`);
-        const value = this.unsupportedProperties?.Symbolizer?.[key];
-        if (value) {
-          if (typeof value === 'string' || value instanceof String) {
-            if (!unsupportedProperties.Symbolizer) {
-              unsupportedProperties.Symbolizer = {};
+        const key: `${SymbolizerKind}Symbolizer` = `${symbolizer.kind}Symbolizer`;
+        if (key in this.unsupportedProperties.Symbolizer) {
+          const value = this.unsupportedProperties.Symbolizer[key];
+          if (value) {
+            if (isString(value)) {
+              set(unsupportedProperties, `Symbolizer.${key}`, value);
+            } else {
+              Object.keys(symbolizer).forEach((property: keyof UnsupportedProperties['Symbolizer']) => {
+                if (value[property]) {
+                  set(unsupportedProperties, `Symbolizer.${key}.${property}`, value);
+                }
+              });
             }
-            unsupportedProperties.Symbolizer[key] = value;
-          } else {
-            Object.keys(symbolizer).forEach(property => {
-              if (value[property]) {
-                if (!unsupportedProperties.Symbolizer) {
-                  unsupportedProperties.Symbolizer = {};
-                }
-                if (!unsupportedProperties.Symbolizer[key]) {
-                  unsupportedProperties.Symbolizer[key] = {};
-                }
-                unsupportedProperties.Symbolizer[key][property] = value[property];
-              }
-            });
           }
         }
       });
