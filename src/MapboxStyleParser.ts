@@ -162,6 +162,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       strStartsWith: 'none',
       strStripAccents: 'none',
       strSubstringStart: 'none',
+      strSubstring: {
+        support: 'partial',
+        info: 'end index is mandatory'
+      },
       strTrim: 'none',
       exp: {
         support: 'partial',
@@ -230,15 +234,15 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param label A Mapbox Layer Paint Symbol text-field
    * @return A GeoStylerStyle-TextSymbolizer label
    */
-  getLabelFromTextField(label: string | any[]): (string|undefined) {
+  getLabelFromTextField(label: string | Expression): (string | GeoStylerStringFunction | undefined) {
     if (typeof label === 'undefined') {
       return;
     }
     if (typeof label === 'string') {
       return MapboxStyleUtil.resolveMbTextPlaceholder(label);
     }
-    if (label[0] !== 'format' && !this.ignoreConversionErrors) {
-      throw new Error('Cannot parse mapbox style. Unsupported text format.');
+    if (label[0] !== 'format') {
+      return mb2gsExpression(label);
     }
     let gsLabel = '';
     // ignore all even indexes since we cannot handle them

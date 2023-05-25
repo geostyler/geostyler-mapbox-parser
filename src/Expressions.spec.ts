@@ -11,6 +11,8 @@ import gs_expression_math from '../data/styles/gs_expression_math';
 import expression_math_metadata from '../data/mapbox_metadata/expression_math';
 import gs_expression_string from '../data/styles/gs_expression_string';
 import expression_string_metadata from '../data/mapbox_metadata/expression_string';
+import expression_lookup_metadata from '../data/mapbox_metadata/expression_lookup';
+import gs_expression_lookup from '../data/styles/gs_expression_lookup';
 
 describe('MapboxStyleParser can parse Expressions', () => {
   let styleParser: MapboxStyleParser;
@@ -38,6 +40,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       expect(geoStylerStyle).toEqual(gs_expression_property);
       return;
     });
+    it('can read the "lookup" expressions', async () => {
+      const { output: geoStylerStyle } = await styleParser.readStyle(expression_lookup_metadata);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(gs_expression_lookup);
+      return;
+    });
     it('can read the "math" expressions', async () => {
       const { output: geoStylerStyle } = await styleParser.readStyle(expression_math_metadata);
       expect(geoStylerStyle).toBeDefined();
@@ -63,6 +71,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       const { output: mbStyle } = await styleParser.writeStyle(gs_expression_decisions);
       expect(mbStyle).toBeDefined();
       expect(mbStyle).toEqual(expression_decisions_metadata);
+      return;
+    });
+    it('can write the "lookup" expressions', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(gs_expression_lookup);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(expression_lookup_metadata);
       return;
     });
     it('can write the "math" expressions', async () => {
