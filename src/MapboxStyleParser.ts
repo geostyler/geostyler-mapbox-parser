@@ -150,6 +150,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       }
     },
     Function: {
+      numberFormat: 'none',
       strAbbreviate: 'none',
       strCapitalize: 'none',
       strDefaultIfBlank: 'none',

@@ -15,7 +15,8 @@ import {
 
 const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> = {
   // ---- string ----
-  numberFormat: 'number-format',
+  numberFormat: null,
+  // numberFormat: 'number-format', // TODO: this could be done in theory but gs and mb use different format approaches
   strAbbreviate: null,
   strCapitalize: null,
   strConcat: 'concat',
