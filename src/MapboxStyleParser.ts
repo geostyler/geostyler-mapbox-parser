@@ -148,6 +148,31 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         letterSpacingUnit: 'none',
         lineHeightUnit: 'none'
       }
+    },
+    Function: {
+      strAbbreviate: 'none',
+      strCapitalize: 'none',
+      strDefaultIfBlank: 'none',
+      strEndsWith: 'none',
+      strEqualsIgnoreCase: 'none',
+      strIndexOf: 'none',
+      strLastIndexOf: 'none',
+      strMatches: 'none',
+      strReplace: 'none',
+      strStartsWith: 'none',
+      strStripAccents: 'none',
+      strSubstringStart: 'none',
+      strTrim: 'none',
+      exp: {
+        support: 'partial',
+        info: 'only for x = 1'
+      },
+      atan2: 'none',
+      random: 'none',
+      rint: 'none',
+      toDegrees: 'none',
+      toRadians: 'none',
+      double2bool: 'none',
     }
   } satisfies UnsupportedProperties;
 
@@ -170,7 +195,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     }
   }
 
-  isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
+  public isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
     return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
   }
 
@@ -228,21 +253,6 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       }
     }
     return gsLabel;
-  }
-
-  /**
-   * Creates a GeoStylerStyle-MarkSymbolizer from a Mapbox Style Layer
-   *
-   * @param paint A Mapbox paint
-   * @param layout A Mapbox layout
-   * @return A GeoStylerStyle-MarkSymbolizer
-   */
-  getMarkSymbolizerFromMapboxMarkLayer(paint: AnyPaint, layout: AnyLayout): MarkSymbolizer {
-    // TODO: parse MarkSymbolizer
-    return {
-      kind: 'Mark',
-      wellKnownName: 'circle'
-    };
   }
 
   /**
@@ -582,204 +592,6 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     }
     return scaleDenominator;
   }
-
-  // /**
-  //  * Merges the baseFilter and the attribute filter to a single filter.
-  //  * If both filters are defined, they will be merged via '&&' operator.
-  //  * If only one of the filters is defined, the defined filter will be returned.
-  //  *
-  //  * @param baseFilter The value of the mapbox layer's filter property
-  //  * @param filter The value of the mapbox paint attribute filter
-  //  */
-  // mergeFilters(baseFilter: Filter|undefined, filter: Filter|undefined): Filter|undefined {
-  //   let gsBaseFilter: Filter|undefined = undefined;
-  //   let gsFilter: Filter|undefined = undefined;
-  //   if (baseFilter && filter) {
-  //     gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter) as Filter;
-  //     gsFilter = this.getFilterFromMapboxFilter(filter) as Filter;
-  //     return [
-  //       '&&',
-  //       gsBaseFilter,
-  //       gsFilter
-  //     ];
-  //   }
-  //   if (filter) {
-  //     gsFilter = this.getFilterFromMapboxFilter(filter);
-  //     return gsFilter;
-  //   }
-  //   if (baseFilter) {
-  //     gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
-  //     return gsBaseFilter;
-  //   }
-  //   return undefined;
-  // }
-
-  /**
-   * Compares an arbitrary number of filters for equality
-   *
-   * @param filters Array of mapbox filters
-   */
-  equalMapboxAttributeFilters(filters: any[]): boolean {
-    // convert filters to strings
-    const filterStrings: string[][] = [];
-    let equal: boolean = true;
-    for (let i = 0; i < filters.length; i++) {
-      const filterString: string[] = [];
-      filters[i].forEach((exp: any, index: number, f: any) => {
-        if (index % 2 === 1 && index !== f.length - 1) {
-          filterString.push(JSON.stringify(exp));
-        }
-      });
-      filterStrings.forEach((filter: any) => {
-        if (!_isEqual(filterString, filter)) {
-          equal = false;
-        }
-      });
-      if (equal) {
-        filterStrings.push(filterString);
-      } else {
-        break;
-      }
-    }
-    return equal;
-  }
-
-  // /**
-  //  * Creates valid GeoStyler-Style Symbolizers from possibly invalid Symbolizers.
-  //  * Symbolizers are invalid if at least one of their attributes' values is a mapbox filter expression.
-  //  * This function detects such expressions and creates a symbolizer for each possible outcome.
-  //  * Related property values will be set accordingly. Thus, creating valid Symbolizers.
-  //  *
-  //  * IMPORTANT: Currently only the 'case' filter expression is supported. Furthermore, handling of multiple properties
-  //  * with filter expressions is only supported if all filter expressions are equal. Otherwise errors will be thrown.
-  //  *
-  //  * @param tmpSymbolizer A possibly invalid GeoStyler-Style Symbolizer
-  //  * @return Array of valid Symbolizers and optional mapbox filters
-  //  */
-  // mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: Symbolizer): {filter?: Filter; symbolizers: Symbolizer[]}[] {
-  //   const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[] }[] = [];
-  //   const props = Object.keys(tmpSymbolizer);
-  //   const filterProps: string[] = [];
-  //   const filters: any[] = [];
-  //   props.forEach((prop: string) => {
-  //     if (typeof prop === 'undefined') {
-  //       return;
-  //     }
-  //     if (!Array.isArray(tmpSymbolizer[prop])) {
-  //       return;
-  //     }
-  //     if (typeof tmpSymbolizer[prop][0] !== 'string') {
-  //       return;
-  //     }
-  //     if (prop === 'font' && !(tmpSymbolizer[prop].some((x: any) => typeof x !== 'string'))) {
-  //       return;
-  //     }
-  //     // is expression
-  //     // switch (tmpSymbolizer[prop][0]) {
-  //     //     case 'case':
-  //     //         break;
-  //     //     case 'match':
-  //     //         break;
-  //     //     default:
-  //     //         throw new Error(`Unsupported expression.
-  //     // Only expressions of type 'case' and 'match' are allowed.`);
-  //     // }
-  //     if (tmpSymbolizer[prop][0] !== 'case' && !this.ignoreConversionErrors) {
-  //       throw new Error('Unsupported expression. Only expressions of type \'case\' are allowed.');
-  //     }
-  //     filterProps.push(prop);
-  //     filters.push(tmpSymbolizer[prop]);
-  //   });
-
-  //   if (filters.length > 0) {
-  //     const equalFilters: boolean = this.equalMapboxAttributeFilters(filters);
-  //     if (!equalFilters && !this.ignoreConversionErrors) {
-  //       throw new Error('Cannot parse attributes. Filters do not match');
-  //     }
-  //     // iterate over each value in a single filter
-  //     // we can use filters[0] as we checked beforehand if all filters are equal.
-  //     filters[0].forEach((filter: any, index: number) => {
-  //       // ignore all even indexes as we are not interested in the values at this point
-  //       if (index % 2 !== 1) {
-  //         return;
-  //       }
-  //       // make a deep clone to avoid call-by-reference issues
-  //       let symbolizer: Symbolizer = structuredClone(tmpSymbolizer);
-  //       let values: any[] = [];
-  //       // iterate over each filter and push the corresponding value of the current filter expression
-  //       filters.forEach((f: any) => {
-  //         values.push(f[index + 1]);
-  //       });
-  //       // set the value of the corresponding symbolizer property to value of current filter expression
-  //       values.forEach((val: any, i: number) => {
-  //         const p = filterProps[i];
-  //         symbolizer[p] = val;
-  //       });
-  //       // push the created symbolizers and the corresponding filter expression.
-  //       // Results in an object containing a single Filter expression (in mapbox expression format)
-  //       // and the corresponding symbolizers only containing values.
-  //       // Number of symbolizers corresponds to the number of outcomes of a filter expression.
-  //       pseudoRules.push({
-  //         symbolizers: [symbolizer],
-  //         filter: filter
-  //       });
-  //     });
-  //   } else {
-  //     pseudoRules.push({
-  //       symbolizers: [tmpSymbolizer]
-  //     });
-  //   }
-  //   return pseudoRules;
-  // }
-
-  // /**
-  //  * Creates GeoStyler-Style Rules from a mapbox paint object.
-  //  *
-  //  * @param paint A mapbox layer paint object
-  //  * @param type The type of the mapbox layer
-  //  * @return Array of GeoStyler-Style Rules
-  //  */
-  // mapboxPaintToGeoStylerRules(paint: any, layout: any, type: string): Rule[] {
-  //   const rules: Omit<Rule, 'name'>[] = [];
-  //   const tmpSymbolizer: Symbolizer|SymbolType|undefined = this.getSymbolizerFromMapboxLayer(paint, layout, type);
-  //   if (tmpSymbolizer === undefined) {
-  //     return rules;
-  //   }
-  //   const pseudoRules: any[] = [];
-  //   if (this.isSymbolType(tmpSymbolizer)) {
-  //     // Concatenates all pseudorules.
-  //     if (tmpSymbolizer.hasOwnProperty('iconSymbolizer')) {
-  //       // check if all properties except 'kind' are undefined. If so, skip
-  //       if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.iconSymbolizer as Symbolizer)) {
-  //         pseudoRules.push(
-  //           ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer)
-  //         );
-  //       }
-  //     }
-  //     if (tmpSymbolizer.hasOwnProperty('textSymbolizer')) {
-  //       // check if all properties except 'kind' are undefined. If so, skip
-  //       if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.textSymbolizer as Symbolizer)) {
-  //         pseudoRules.push(
-  //           ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer)
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer));
-  //   }
-  //   pseudoRules.forEach((rule: any) => {
-  //     const {
-  //       filter,
-  //       symbolizers
-  //     } = rule;
-  //     rules.push({
-  //       filter,
-  //       symbolizers
-  //     });
-  //   });
-
-  //   return rules;
-  // };
 
   /**
    * This merges all the passed symbolizers into one if possbile.
