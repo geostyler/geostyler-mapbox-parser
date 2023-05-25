@@ -1583,8 +1583,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       (pitchAlignment) as SymbolLayout['text-pitch-alignment'],
       'text-rotation-alignment': gs2mbExpression<SymbolLayout['text-rotation-alignment']>
       (rotationAlignment) as SymbolLayout['text-rotation-alignment'],
-      // TODO:
-      'text-field': (label ? this.getTextFieldFromLabel(label) : undefined) as SymbolLayout['text-field'],
+      'text-field': this.getTextFieldFromLabel(label),
       // TODO: handle array values
       'text-font': font as SymbolLayout['text-font'],
       'text-size': gs2mbExpression<number>(size),
@@ -1614,9 +1613,13 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param template A GeoStylerStyle-TextSymbolizer Label
    * @return The static text as string if no template was used, or a Mapbox text Format array
    */
-  getTextFieldFromLabel(template: string | GeoStylerStringFunction): (string | any[]) {
+  getTextFieldFromLabel(template?: string | GeoStylerStringFunction): (string | Expression | undefined) {
+    if (!template) {
+      return;
+    }
+
     if (isGeoStylerFunction(template)) {
-      return '';
+      return gs2mbExpression<string>(template);
     }
 
     // prefix indicating that a template is being used
