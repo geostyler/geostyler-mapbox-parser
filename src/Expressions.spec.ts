@@ -1,10 +1,12 @@
 import expression_case from '../data/mapbox/expression_case';
-import expression_metadata from '../data/mapbox_metadata/expression_case';
+import expression_case_metadata from '../data/mapbox_metadata/expression_case';
 import expression_get from '../data/mapbox/expression_get';
 import expression_get_metadata from '../data/mapbox_metadata/expression_get';
 import gs_expression_case from '../data/styles/gs_expression_case';
 import gs_expression_property from '../data/styles/gs_expression_property';
 import MapboxStyleParser from './MapboxStyleParser';
+import expression_decisions_metadata from '../data/mapbox_metadata/expression_decisions';
+import gs_expression_decisions from '../data/styles/gs_expression_decisions';
 
 describe('MapboxStyleParser can parse Expressions', () => {
   let styleParser: MapboxStyleParser;
@@ -18,6 +20,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       const { output: geoStylerStyle } = await styleParser.readStyle(expression_get);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(gs_expression_property);
+      return;
+    });
+    it('can read the "decision" expressions', async () => {
+      const { output: geoStylerStyle } = await styleParser.readStyle(expression_decisions_metadata);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(gs_expression_decisions);
       return;
     });
     it('can read the "case" expression', async () => {
@@ -35,10 +43,16 @@ describe('MapboxStyleParser can parse Expressions', () => {
       expect(mbStyle).toEqual(expression_get_metadata);
       return;
     });
+    it('can write the "decision" expressions', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(gs_expression_decisions);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(expression_decisions_metadata);
+      return;
+    });
     it('can write the "case" expression', async () => {
       const { output: mbStyle } = await styleParser.writeStyle(gs_expression_case);
       expect(mbStyle).toBeDefined();
-      expect(mbStyle).toEqual(expression_metadata);
+      expect(mbStyle).toEqual(expression_case_metadata);
       return;
     });
   });
