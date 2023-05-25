@@ -51,7 +51,7 @@ import {
   Expression
 } from 'mapbox-gl';
 import { gs2mbExpression, mb2gsExpression } from './Expressions';
-import { isBoolean, isString, set } from 'lodash';
+import { isBoolean, isString, isUndefined, omitBy, set } from 'lodash';
 
 /**
  * The style representation of mapbox-gl but with optional sources, as these are
@@ -516,7 +516,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         }
         throw new Error('Cannot parse mapbox style. Unsupported Symbolizer kind.');
     }
-    return [symbolizer];
+    return [omitBy(symbolizer, isUndefined) as Symbolizer];
   }
 
   /**
@@ -974,12 +974,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules);
     const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this.spriteBaseUrl);
 
-    let mapboxObject: Omit<MbStyle, 'sources'> = {
+    let mapboxObject = omitBy({
       version,
       name,
       layers,
       sprite,
-    };
+    }, isUndefined) as Omit<MbStyle, 'sources'>;
 
     if (geoStylerRef){
       mapboxObject = {
@@ -1054,10 +1054,15 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           let lyrClone = structuredClone(lyr);
 
           lyrClone.type = type;
-          lyrClone.paint = !MapboxStyleUtil.allUndefined(paint) ? paint : undefined;
-          lyrClone.layout = !MapboxStyleUtil.allUndefined(layout) ? layout : undefined;
-          layers.push(lyrClone);
+          if (!MapboxStyleUtil.allUndefined(paint)) {
+            lyrClone.paint = paint;
+          }
+          if (!MapboxStyleUtil.allUndefined(layout)) {
+            lyrClone.layout = layout;
+          }
           lyrClone.id = `r${ruleIndex}_sy${symbolizerIndex}_st${styleIndex}`;
+
+          layers.push(omitBy(lyrClone, isUndefined) as NoneCustomLayer);
 
           if (!Array.isArray(geoStylerRef?.rules?.[ruleIndex]?.symbolizers)) {
             geoStylerRef.rules[ruleIndex].symbolizers = [[]];
@@ -1102,7 +1107,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       zoom = pre + percentage;
     }
 
-    return zoom!;
+    return zoom;
   }
 
   /**
@@ -1287,7 +1292,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'fill-outline-color': gs2mbExpression<string>(outlineColor),
       'fill-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1304,7 +1309,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const layout: FillLayout = {
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1410,7 +1415,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle array values
       'line-gradient': gradient as LinePaint['line-gradient']
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1435,7 +1440,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'line-round-limit': gs2mbExpression<number>(roundLimit),
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1460,7 +1465,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'icon-halo-width': gs2mbExpression<number>(haloWidth),
       'icon-halo-blur': gs2mbExpression<number>(haloBlur)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1510,7 +1515,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       (pitchAlignment) as SymbolLayout['icon-pitch-alignment'],
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1536,7 +1541,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'text-halo-blur': gs2mbExpression<number>(haloBlur)
     };
 
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1597,7 +1602,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       visibility: this.getVisibility(visibility)
     };
 
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1664,7 +1669,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'circle-stroke-color': gs2mbExpression<string>(strokeColor),
       'circle-stroke-opacity': gs2mbExpression<number>(strokeOpacity)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1684,7 +1689,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const layout: CircleLayout = {
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   checkForUnsupportedProperties(geoStylerStyle: Style): UnsupportedProperties | undefined {
