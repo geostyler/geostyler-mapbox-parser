@@ -106,7 +106,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   /**
    * Object of unsupported properties.
    */
-  unsupportedProperties ={
+  unsupportedProperties = {
     Symbolizer: {
       FillSymbolizer: {
         fillOpacity: {

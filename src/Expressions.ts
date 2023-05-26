@@ -225,12 +225,12 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
     return mbExpression as GeoStylerExpression<T> | undefined;
   }
 
-  const mapBoxExpressionName: ExpressionName = mbExpression[0];
+  const mapboxExpressionName: ExpressionName = mbExpression[0];
   const args: Expression<PropertyType>[] = mbExpression.slice(1);
   let func: GeoStylerFunction;
 
   // special handling
-  switch (mapBoxExpressionName) {
+  switch (mapboxExpressionName) {
     case 'e':
       func = {
         name: 'exp',
@@ -269,9 +269,9 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
       };
       break;
     default:
-      const gsFunctionName = invertedFunctionNameMap[mapBoxExpressionName];
+      const gsFunctionName = invertedFunctionNameMap[mapboxExpressionName];
       if (!gsFunctionName) {
-        throw new Error('Could not translate MapboxExpression: ' + mbExpression);
+        throw new Error('Could not translate Mapbox Expression: ' + mbExpression);
       }
       func = {
         name: gsFunctionName,
