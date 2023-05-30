@@ -1,4 +1,4 @@
-import { Symbolizer } from 'geostyler-style';
+import { Symbolizer, TextSymbolizer } from 'geostyler-style';
 
 class MapboxStyleUtil {
 
@@ -105,10 +105,11 @@ class MapboxStyleUtil {
    *
    * @param symbolizer A GeoStylerStyle Symbolizer
    */
-  public static symbolizerAllUndefined(symbolizer: Symbolizer): boolean {
+  // TODO: TextSymbolizer can be removed once it is fixed in the geostyler-style
+  public static symbolizerAllUndefined(symbolizer: Symbolizer | TextSymbolizer): boolean {
     return !Object.keys(symbolizer)
-      .filter((val: string) => val !== 'kind')
-      .some((val: string) => typeof symbolizer[val] !== 'undefined');
+      .filter(val => val !== 'kind')
+      .some((val: keyof Symbolizer) => typeof symbolizer[val] !== 'undefined');
   }
 
   /**

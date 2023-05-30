@@ -6,7 +6,7 @@ const linePatternLine: Omit<MbStyle, 'sources'> = {
   sprite: 'https://testurl.com',
   layers: [
     {
-      id: 'Pattern Line',
+      id: 'r0_sy0_st0',
       type: 'line',
       paint: {
         'line-color': '#000000',
@@ -19,7 +19,19 @@ const linePatternLine: Omit<MbStyle, 'sources'> = {
         'line-join': 'miter'
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Pattern Line',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default linePatternLine;

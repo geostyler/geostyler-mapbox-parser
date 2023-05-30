@@ -6,11 +6,14 @@ const lineSimpleLine: Omit<MbStyle, 'sources'> = {
   layers: [{
     id: 'Small populated New Yorks',
     type: 'line',
-    minzoom: 5.5,
-    maxzoom: 10,
     paint: {
       'line-color': '#FF0000',
-      'line-width': 5
+      'line-width': ['case',
+        ['==', 'DENSITY', 20],
+        3,
+        ['!=', 'DENSITY', 20],
+        5
+      ]
     }
   }]
 };

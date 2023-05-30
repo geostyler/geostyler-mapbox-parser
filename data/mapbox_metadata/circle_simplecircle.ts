@@ -5,7 +5,7 @@ const circleSimpleCircle: Omit<MbStyle, 'sources'> = {
   name: 'Simple Circle',
   layers: [
     {
-      id: 'Simple Circle',
+      id: 'r0_sy0_st0',
       type: 'circle',
       paint: {
         'circle-color': '#000000',
@@ -16,7 +16,19 @@ const circleSimpleCircle: Omit<MbStyle, 'sources'> = {
         'circle-stroke-opacity': 0.5
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Simple Circle',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default circleSimpleCircle;

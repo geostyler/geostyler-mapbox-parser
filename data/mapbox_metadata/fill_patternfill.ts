@@ -6,7 +6,7 @@ const fillSimpleFill: Omit<MbStyle, 'sources'> = {
   sprite: 'https://testurl.com',
   layers: [
     {
-      id: 'Pattern Fill',
+      id: 'r0_sy0_st0',
       type: 'fill',
       paint: {
         'fill-color': '#000000',
@@ -14,7 +14,19 @@ const fillSimpleFill: Omit<MbStyle, 'sources'> = {
         'fill-pattern': 'poi'
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Pattern Fill',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default fillSimpleFill;

@@ -5,7 +5,7 @@ const pointSimpleText: Omit<MbStyle, 'sources'> = {
   name: 'Simple Text',
   layers: [
     {
-      id: 'Simple Text',
+      id: 'r0_sy0_st0',
       type: 'symbol',
       layout: {
         'text-field': 'River'
@@ -15,7 +15,19 @@ const pointSimpleText: Omit<MbStyle, 'sources'> = {
         'text-opacity': 1
       }
     }
-  ]
+  ],
+  metadata: {
+    'geostyler:ref': {
+      rules: [{
+        name: 'Simple Text',
+        symbolizers: [
+          [
+            'r0_sy0_st0'
+          ]
+        ]
+      }]
+    }
+  }
 };
 
 export default pointSimpleText;

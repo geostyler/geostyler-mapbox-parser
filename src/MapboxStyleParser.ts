@@ -19,15 +19,63 @@ import {
   isGeoStylerFunction,
   GeoStylerBooleanFunction,
   GeoStylerStringFunction,
-  WriteStyleResult
+  WriteStyleResult,
+  isFillSymbolizer,
+  isLineSymbolizer,
+  CapType,
+  JoinType,
+  isFilter,
+  isScaleDenominator,
+  isGeoStylerBooleanFunction
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
-import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
+import {
+  AnyLayer,
+  AnyLayout,
+  AnyPaint,
+  CircleLayout,
+  CirclePaint,
+  CustomLayerInterface,
+  FillLayer,
+  FillLayout,
+  FillPaint,
+  LineLayer,
+  LineLayout,
+  LinePaint,
+  SymbolLayout,
+  SymbolPaint,
+  Style as MapboxStyle,
+  Sources,
+  Expression
+} from 'mapbox-gl';
+import { gs2mbExpression, mb2gsExpression } from './Expressions';
+import { isBoolean, isString, isUndefined, omitBy, set } from 'lodash';
 
-type MapboxLayerType = 'fill' | 'line' | 'symbol' | 'circle' | 'heatmap' |
-    'fill-extrusion' | 'raster' | 'hillshade' | 'background';
+/**
+ * The style representation of mapbox-gl but with optional sources, as these are
+ * not required for reading the style and get stripped when writing.
+ */
+export type MbStyle = Omit<MapboxStyle, 'sources'> & { sources?: Sources };
+
+type NoneCustomLayer = Exclude<AnyLayer, CustomLayerInterface>;
+
+/**
+ * Generated ids contain information about the position of a layer inside the
+ * geostyler-style:
+ * r* -> rule index
+ * sy* -> symbolizer index
+ * st* -> mapboxlayer index
+ */
+type LayerId = AnyLayer['id'];
+
+type GeoStylerRef = {
+  rules: {
+    name?: string;
+    symbolizers?: LayerId[][];
+  }[];
+};
 
 type SymbolType = {
     textSymbolizer?: TextSymbolizer;
@@ -39,30 +87,32 @@ type OptionsType = {
     pretty?: boolean;
 };
 
-export class MapboxStyleParser implements StyleParser {
+export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> {
 
   // looks like there's no way to access static properties from an instance
   // without a reference to the constructor function, so we have to duplicate
   // the title here
   public static title = 'Mapbox';
 
-  public title = 'Mapbox';
+  private static readonly fillSymbolizerStrokeProperties: (keyof FillSymbolizer)[] = [
+    'outlineOpacity',
+    'outlineWidth',
+    'outlineCap',
+    'outlineJoin',
+    'outlineDasharray'
+  ];
 
+  public title = 'Mapbox';
   /**
    * Object of unsupported properties.
    */
-  unsupportedProperties: UnsupportedProperties = {
+  unsupportedProperties = {
     Symbolizer: {
       FillSymbolizer: {
-        outlineWidth: 'none',
-        outlineDasharray: 'none',
         fillOpacity: {
           support: 'none',
           info: 'Use opacity instead.'
         },
-        outlineCap: 'none',
-        outlineJoin: 'none',
-        outlineOpacity: 'none',
         outlineWidthUnit: 'none'
       },
       LineSymbolizer: {
@@ -98,14 +148,48 @@ export class MapboxStyleParser implements StyleParser {
         letterSpacingUnit: 'none',
         lineHeightUnit: 'none'
       }
+    },
+    Function: {
+      numberFormat: 'none',
+      strAbbreviate: 'none',
+      strCapitalize: 'none',
+      strDefaultIfBlank: 'none',
+      strEndsWith: 'none',
+      strEqualsIgnoreCase: 'none',
+      strIndexOf: 'none',
+      strLastIndexOf: 'none',
+      strMatches: 'none',
+      strReplace: 'none',
+      strStartsWith: 'none',
+      strStripAccents: 'none',
+      strSubstringStart: 'none',
+      strSubstring: {
+        support: 'partial',
+        info: 'end index is mandatory'
+      },
+      strTrim: 'none',
+      exp: {
+        support: 'partial',
+        info: 'only for x = 1'
+      },
+      atan2: 'none',
+      random: 'none',
+      rint: 'none',
+      toDegrees: 'none',
+      toRadians: 'none',
+      double2bool: 'none',
     }
-  };
+  } satisfies UnsupportedProperties;
 
   public ignoreConversionErrors: boolean = false;
 
   public pretty: boolean = false;
 
-  _spriteBaseUrl: string;
+  private mbMetadata: {
+    'geostyler:ref': GeoStylerRef;
+  };
+
+  private spriteBaseUrl: string;
 
   constructor(options?: OptionsType) {
     if (options && options.ignoreConversionErrors) {
@@ -116,7 +200,7 @@ export class MapboxStyleParser implements StyleParser {
     }
   }
 
-  isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
+  public isSymbolType(s: Symbolizer|SymbolType): s is SymbolType {
     return (<SymbolType> s).iconSymbolizer ? true : (<SymbolType> s).textSymbolizer ? true : false;
   }
 
@@ -124,9 +208,9 @@ export class MapboxStyleParser implements StyleParser {
    * Parses the GeoStylerStyle-SymbolizerKind from a Mapbox Style Layer
    *
    * @param type A Mapbox Style Layer
-   * @return A GeoStylerStyle-SymbolizerKind
+   * @return A GeoStylerStyle SymbolizerKind 'Symbol' or 'Circle'
    */
-  getSymbolizerKindFromMapboxLayerType(type: string): SymbolizerKind|'Symbol'|'Circle' {
+  getSymbolizerKindFromMapboxLayerType(type: AnyLayer['type']): SymbolizerKind | 'Symbol' | 'Circle' {
     switch (type) {
       case 'fill':
         return 'Fill';
@@ -151,15 +235,15 @@ export class MapboxStyleParser implements StyleParser {
    * @param label A Mapbox Layer Paint Symbol text-field
    * @return A GeoStylerStyle-TextSymbolizer label
    */
-  getLabelFromTextField(label: string | any[]): (string|undefined) {
+  getLabelFromTextField(label: string | Expression): (string | GeoStylerStringFunction | undefined) {
     if (typeof label === 'undefined') {
       return;
     }
     if (typeof label === 'string') {
       return MapboxStyleUtil.resolveMbTextPlaceholder(label);
     }
-    if (label[0] !== 'format' && !this.ignoreConversionErrors) {
-      throw new Error('Cannot parse mapbox style. Unsupported text format.');
+    if (label[0] !== 'format') {
+      return mb2gsExpression(label);
     }
     let gsLabel = '';
     // ignore all even indexes since we cannot handle them
@@ -177,21 +261,6 @@ export class MapboxStyleParser implements StyleParser {
   }
 
   /**
-   * Creates a GeoStylerStyle-MarkSymbolizer from a Mapbox Style Layer
-   *
-   * @param paint A Mapbox paint
-   * @param layout A Mapbox layout
-   * @return A GeoStylerStyle-MarkSymbolizer
-   */
-  getMarkSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
-    // TODO: parse MarkSymbolizer
-    return {
-      kind: 'Mark',
-      wellKnownName: 'circle'
-    };
-  }
-
-  /**
    * Creates an image url based on the sprite baseurl and the sprite name.
    *
    * @param spriteName Name of the sprite
@@ -201,13 +270,13 @@ export class MapboxStyleParser implements StyleParser {
     if (!spriteName) {
       return;
     }
-    if (!this._spriteBaseUrl) {
+    if (!this.spriteBaseUrl) {
       return;
     }
     // TODO update endpoint as soon as api specification was made
     let url: string = '/sprites/?';
     url += 'name=' + spriteName;
-    url += '&baseurl=' + encodeURIComponent(this._spriteBaseUrl);
+    url += '&baseurl=' + encodeURIComponent(this.spriteBaseUrl);
     return url;
   }
 
@@ -221,23 +290,30 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-MarkSymbolizer
    */
-  getCircleSymbolizerFromMapboxLayer(paint: any, layout: any): MarkSymbolizer {
-    return {
+  getMarkSymbolizerFromMapboxCircleLayer(paint: CirclePaint, layout: CircleLayout): MarkSymbolizer | undefined  {
+    const symbolizer: MarkSymbolizer = {
       kind: 'Mark',
-      blur: paint['circle-blur'],
-      color: paint['circle-color'],
-      offset: paint['circle-translate'],
-      offsetAnchor: paint['circle-translate-anchor'],
-      fillOpacity: paint['circle-opacity'],
-      pitchAlignment: paint['circle-pitch-alignment'],
-      pitchScale: paint['circle-pitch-scale'],
-      radius: paint['circle-radius'],
-      strokeColor: paint['circle-stroke-color'],
-      strokeOpacity: paint['circle-stroke-opacity'],
-      strokeWidth: paint['circle-stroke-width'],
-      visibility: layout.visibility,
+      blur: mb2gsExpression<number>(paint?.['circle-blur']),
+      color: mb2gsExpression<string>(paint?.['circle-color']),
+      // TODO: handle array values
+      offset: paint?.['circle-translate'] as MarkSymbolizer['offset'],
+      offsetAnchor: paint?.['circle-translate-anchor'],
+      fillOpacity: mb2gsExpression<number>(paint?.['circle-opacity']),
+      pitchAlignment: paint?.['circle-pitch-alignment'],
+      pitchScale: paint?.['circle-pitch-scale'],
+      radius: mb2gsExpression<number>(paint?.['circle-radius']),
+      strokeColor: mb2gsExpression<string>(paint?.['circle-stroke-color']),
+      strokeOpacity: mb2gsExpression<number>(paint?.['circle-stroke-opacity']),
+      strokeWidth: mb2gsExpression<number>(paint?.['circle-stroke-width']),
+      visibility: layout?.visibility && layout?.visibility !== 'none',
       wellKnownName: 'circle'
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return omitBy(symbolizer, isUndefined) as MarkSymbolizer;
   }
 
   /**
@@ -247,31 +323,39 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-IconSymbolizer
    */
-  getIconSymbolizerFromMapboxLayer(paint: any, layout: any): IconSymbolizer {
-    return {
+  getIconSymbolizerFromMapboxSymbolLayer(paint: SymbolPaint, layout: SymbolLayout): IconSymbolizer | undefined {
+    const symbolizer: IconSymbolizer = {
       kind: 'Icon',
-      allowOverlap: layout['icon-allow-overlap'],
-      anchor: layout['icon-anchor'],
-      avoidEdges: layout['symbol-avoid-edges'],
-      color: paint['icon-color'],
-      haloBlur: paint['icon-halo-blur'],
-      haloColor: paint['icon-halo-color'],
-      haloWidth: paint['icon-halo-width'],
-      image: this.getIconImage(layout['icon-image']),
-      keepUpright: layout['icon-keep-upright'],
-      offset: layout['icon-offset'],
-      offsetAnchor: paint['icon-translate-anchor'],
-      opacity: paint['icon-opacity'],
-      optional: layout['icon-optional'],
-      padding: layout['icon-padding'],
-      pitchAlignment: layout['icon-pitch-alignment'],
-      rotate: layout['icon-rotate'],
-      rotationAlignment: layout['icon-rotation-alignment'],
-      size: layout['icon-size'],
-      textFit: layout['icon-text-fit'],
-      textFitPadding: layout['icon-text-fit-padding'],
-      visibility: layout.visibility
+      allowOverlap: mb2gsExpression<boolean>(layout?.['icon-allow-overlap']),
+      anchor: layout?.['icon-anchor'] as IconSymbolizer['anchor'],
+      avoidEdges: layout?.['symbol-avoid-edges'],
+      color: mb2gsExpression<string>(paint?.['icon-color']),
+      haloBlur: mb2gsExpression<number>(paint?.['icon-halo-blur']),
+      haloColor: mb2gsExpression<string>(paint?.['icon-halo-color']),
+      haloWidth: mb2gsExpression<number>(paint?.['icon-halo-width']),
+      image: this.getIconImage(layout?.['icon-image'] as string),
+      keepUpright: mb2gsExpression<boolean>(layout?.['icon-keep-upright']),
+      // TODO: handle array values
+      offset: layout?.['icon-offset'] as IconSymbolizer['offset'],
+      offsetAnchor: paint?.['icon-translate-anchor'],
+      opacity: mb2gsExpression<number>(paint?.['icon-opacity']),
+      optional: mb2gsExpression<boolean>(layout?.['icon-optional']),
+      padding: mb2gsExpression<number>(layout?.['icon-padding']),
+      pitchAlignment: layout?.['icon-pitch-alignment'],
+      rotate: mb2gsExpression<number>(layout?.['icon-rotate']),
+      rotationAlignment: layout?.['icon-rotation-alignment'],
+      size: mb2gsExpression<number>(layout?.['icon-size']),
+      textFit: layout?.['icon-text-fit'], // TODO: handle enum values
+      // TODO: handle array values
+      textFitPadding: layout?.['icon-text-fit-padding'] as IconSymbolizer['textFitPadding'],
+      visibility: layout?.visibility && layout?.visibility !== 'none'
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return symbolizer;
   }
 
   /**
@@ -281,36 +365,50 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-TextSymbolizer
    */
-  getTextSymbolizerFromMapboxLayer(paint: any, layout: any): TextSymbolizer {
-    return {
+  getTextSymbolizerFromMapboxLayer(paint: SymbolPaint, layout: SymbolLayout): TextSymbolizer | undefined {
+    const symbolizer: TextSymbolizer = {
       kind: 'Text',
-      allowOverlap: layout['text-allow-overlap'],
-      anchor: layout['text-anchor'],
-      avoidEdges: layout['symbol-avoid-edges'],
-      color: paint['text-color'],
-      font: layout['text-font'],
-      haloBlur: paint['text-halo-blur'],
-      haloColor: paint['text-halo-color'],
-      haloWidth: paint['text-halo-width'],
-      justify: layout['text-justify'],
-      keepUpright: layout['text-keep-upright'],
-      label: this.getLabelFromTextField(layout['text-field']),
-      letterSpacing: layout['text-letter-spacing'],
-      lineHeight: layout['text-line-height'],
-      maxAngle: layout['text-max-angle'],
-      maxWidth: layout['text-max-width'],
-      offset: layout['text-offset'],
-      offsetAnchor: paint['text-translate-anchor'],
-      opacity: paint['text-opacity'],
-      optional: layout['text-optional'],
-      padding: layout['text-padding'],
-      pitchAlignment: layout['text-pitch-alignment'],
-      rotate: layout['text-rotate'],
-      rotationAlignment: layout['text-rotation-alignment'],
-      size: layout['text-size'],
-      transform: layout['text-transform'],
-      visibility: layout.visibility,
+      allowOverlap: mb2gsExpression<boolean>(layout?.['text-allow-overlap']),
+      // TODO: handle enum values
+      anchor: layout?.['text-anchor'] as TextSymbolizer['anchor'],
+      avoidEdges: mb2gsExpression<boolean>(layout?.['symbol-avoid-edges']),
+      color: mb2gsExpression<string>(paint?.['text-color']),
+      // TODO: handle array values
+      font: layout?.['text-font'],
+      haloBlur: mb2gsExpression<number>(paint?.['text-halo-blur']),
+      haloColor: mb2gsExpression<string>(paint?.['text-halo-color']),
+      haloWidth: mb2gsExpression<number>(paint?.['text-halo-width']),
+      // TODO: handle enum values
+      justify: layout?.['text-justify'] as TextSymbolizer['justify'],
+      keepUpright: mb2gsExpression<boolean>(layout?.['text-keep-upright']),
+      label: this.getLabelFromTextField(layout?.['text-field'] as string),
+      letterSpacing: mb2gsExpression<number>(layout?.['text-letter-spacing']),
+      lineHeight: mb2gsExpression<number>(layout?.['text-line-height']),
+      maxAngle: mb2gsExpression<number>(layout?.['text-max-angle']),
+      maxWidth: mb2gsExpression<number>(layout?.['text-max-width']),
+      // TODO: handle array values
+      offset: layout?.['text-offset'] as TextSymbolizer['offset'],
+      // TODO: handle enum values
+      offsetAnchor: paint?.['text-translate-anchor'],
+      opacity: mb2gsExpression<number>(paint?.['text-opacity']),
+      optional: mb2gsExpression<boolean>(layout?.['text-optional']),
+      padding: mb2gsExpression<number>(layout?.['text-padding']),
+      // TODO: handle enum values
+      pitchAlignment: layout?.['text-pitch-alignment'],
+      rotate: mb2gsExpression<number>(layout?.['text-rotate']),
+      // TODO: handle enum values
+      rotationAlignment: layout?.['text-rotation-alignment'],
+      size: mb2gsExpression<number>(layout?.['text-size']),
+      // TODO: handle enum values
+      transform: layout?.['text-transform'] as TextSymbolizer['transform'],
+      visibility: layout?.visibility && layout?.visibility !== 'none'
     };
+
+    if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
+      return undefined;
+    }
+
+    return omitBy(symbolizer, isUndefined) as TextSymbolizer;
   }
 
   /**
@@ -320,16 +418,17 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-FillSymbolizer
    */
-  getFillSymbolizerFromMapboxLayer(paint: any, layout: any): FillSymbolizer {
-    return {
+  getFillSymbolizerFromMapboxFillLayer(paint: FillPaint, layout: FillLayout): FillSymbolizer {
+    const fillSymbolizer: FillSymbolizer = {
       kind: 'Fill',
-      visibility: layout.visibility,
-      antialias: paint['fill-antialias'],
-      opacity: paint['fill-opacity'],
-      color: paint['fill-color'],
-      outlineColor: paint['fill-outline-color'],
-      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['fill-pattern'])
+      visibility: layout?.visibility && layout?.visibility !== 'none',
+      antialias: mb2gsExpression<boolean>(paint?.['fill-antialias']),
+      opacity: mb2gsExpression<number>(paint?.['fill-opacity']),
+      color: mb2gsExpression<string>(paint?.['fill-color']),
+      outlineColor: mb2gsExpression<string>(paint?.['fill-outline-color']),
+      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['fill-pattern'])
     };
+    return omitBy(fillSymbolizer, isUndefined) as FillSymbolizer;
   }
 
   getPatternOrGradientFromMapboxLayer(icon: any): IconSymbolizer|undefined {
@@ -339,7 +438,7 @@ export class MapboxStyleParser implements StyleParser {
     if (!icon) {
       return;
     }
-    return this.getIconSymbolizerFromMapboxLayer({}, {'icon-image': icon});
+    return this.getIconSymbolizerFromMapboxSymbolLayer({}, {'icon-image': icon});
   }
 
   /**
@@ -349,24 +448,29 @@ export class MapboxStyleParser implements StyleParser {
    * @param layout A Mapbox layout
    * @return A GeoStylerStyle-LineSymbolizer
    */
-  getLineSymbolizerFromMapboxLayer(paint: any, layout: any): LineSymbolizer {
-    return {
+  getLineSymbolizerFromMapboxLineLayer(paint: LinePaint, layout: LineLayout): LineSymbolizer {
+    const lineSymbolizer: LineSymbolizer = {
       kind: 'Line',
-      visibility: layout.visibility,
-      cap: layout['line-cap'],
-      join: layout['line-join'],
-      miterLimit: layout['line-miter-limit'],
-      roundLimit: layout['line-round-limit'],
-      opacity: paint['line-opacity'],
-      color: paint['line-color'],
-      width: paint['line-width'],
-      gapWidth: paint['line-gap-width'],
-      perpendicularOffset: paint['line-offset'],
-      blur: paint['line-blur'],
-      dasharray: paint['line-dasharray'],
-      gradient: paint['line-gradient'],
-      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint['line-pattern'])
+      visibility: layout?.visibility && layout?.visibility !== 'none',
+      // TODO: handle enum values
+      cap: layout?.['line-cap'] as CapType,
+      // TODO: handle enum values
+      join: layout?.['line-join'] as JoinType,
+      miterLimit: mb2gsExpression<number>(layout?.['line-miter-limit']),
+      roundLimit: mb2gsExpression<number>(layout?.['line-round-limit']),
+      opacity: mb2gsExpression<number>(paint?.['line-opacity']),
+      color: mb2gsExpression<string>(paint?.['line-color']),
+      width: mb2gsExpression<number>(paint?.['line-width']),
+      gapWidth: mb2gsExpression<number>(paint?.['line-gap-width']),
+      perpendicularOffset: mb2gsExpression<number>(paint?.['line-offset']),
+      blur: mb2gsExpression<number>(paint?.['line-blur']),
+      // TODO: handle array values
+      dasharray: paint?.['line-dasharray'],
+      // TODO: handle enum values
+      gradient: paint?.['line-gradient'],
+      graphicFill: this.getPatternOrGradientFromMapboxLayer(paint?.['line-pattern'])
     };
+    return omitBy(lineSymbolizer, isUndefined) as LineSymbolizer;
   }
 
   /**
@@ -376,11 +480,13 @@ export class MapboxStyleParser implements StyleParser {
    * @param paint A Mapbox paint
    * @param layout A Mapbox layout
    */
-  getIconTextSymbolizersFromMapboxLayer(paint: any, layout: any): SymbolType {
-    return {
-      textSymbolizer: this.getTextSymbolizerFromMapboxLayer(paint, layout),
-      iconSymbolizer: this.getIconSymbolizerFromMapboxLayer(paint, layout)
-    };
+  getIconTextSymbolizersFromMapboxSymbolLayer(paint: SymbolPaint, layout: SymbolLayout): Symbolizer[] {
+    const symbolizers = [
+      this.getTextSymbolizerFromMapboxLayer(paint, layout),
+      this.getIconSymbolizerFromMapboxSymbolLayer(paint, layout)
+    ];
+
+    return symbolizers.filter(symbolizer => !!symbolizer) as Symbolizer[];
   }
 
   /**
@@ -391,31 +497,43 @@ export class MapboxStyleParser implements StyleParser {
    * @param type A Mapbox LayerType
    * @return A GeoStylerStyle-Symbolizer
    */
-  getSymbolizerFromMapboxLayer(paint: any, layout: any, type: string): Symbolizer|SymbolType|undefined {
+  getSymbolizersFromMapboxLayer(
+    {paint, layout, type}: {paint?: AnyPaint; layout?: AnyLayout; type: AnyLayer['type']}
+  ): Symbolizer[] {
     let symbolizer: Symbolizer = {} as Symbolizer;
-    const kind: SymbolizerKind|'Symbol'|'Circle' = this.getSymbolizerKindFromMapboxLayerType(type);
+    const kind: SymbolizerKind | 'Symbol' | 'Circle' = this.getSymbolizerKindFromMapboxLayerType(type);
 
     switch (kind) {
       case 'Fill':
-        symbolizer = this.getFillSymbolizerFromMapboxLayer(paint, layout);
+        symbolizer = this.getFillSymbolizerFromMapboxFillLayer(
+          paint as FillPaint,
+          layout as FillLayout
+        );
         break;
       case 'Line':
-        symbolizer = this.getLineSymbolizerFromMapboxLayer(paint, layout);
+        symbolizer = this.getLineSymbolizerFromMapboxLineLayer(
+          paint as LinePaint,
+          layout as LineLayout
+        );
         break;
       case 'Symbol':
-        return this.getIconTextSymbolizersFromMapboxLayer(paint, layout);
+        return this.getIconTextSymbolizersFromMapboxSymbolLayer(
+          paint as SymbolPaint,
+          layout as SymbolLayout
+        );
       case 'Circle':
-        return this.getCircleSymbolizerFromMapboxLayer(paint, layout);
-      case 'Mark':
-        symbolizer = this.getMarkSymbolizerFromMapboxLayer(paint, layout);
-        break;
+        const sym = this.getMarkSymbolizerFromMapboxCircleLayer(
+          paint as CirclePaint,
+          layout as CircleLayout
+        );
+        return sym ? [sym]: [];
       default:
         if (this.ignoreConversionErrors) {
-          return;
+          return [];
         }
         throw new Error('Cannot parse mapbox style. Unsupported Symbolizer kind.');
     }
-    return symbolizer;
+    return [omitBy(symbolizer, isUndefined) as Symbolizer];
   }
 
   /**
@@ -424,7 +542,11 @@ export class MapboxStyleParser implements StyleParser {
    * @param filter A Mapbox Style Layer Filter
    * @return A GeoStylerStyle-Filter
    */
-  getFilterFromMapboxFilter(filter: any[]): Filter {
+  getFilterFromMapboxFilter(filter?: any[]): Filter | undefined {
+    if (!filter) {
+      return;
+    }
+
     const operatorMapping = {
       all: true,
       any: true,
@@ -433,7 +555,7 @@ export class MapboxStyleParser implements StyleParser {
 
     const operator: Operator = filter[0];
     let isNestedFilter: boolean = false;
-    if (operatorMapping[operator]) {
+    if (operator in operatorMapping) {
       isNestedFilter = true;
     }
     if (isNestedFilter) {
@@ -448,7 +570,7 @@ export class MapboxStyleParser implements StyleParser {
           break;
       }
       let restFilter = filter.slice(1);
-      restFilter.forEach((f: Filter) => {
+      restFilter.forEach((f: any[]) => {
         this.getFilterFromMapboxFilter(f);
       });
     }
@@ -477,203 +599,41 @@ export class MapboxStyleParser implements StyleParser {
   }
 
   /**
-   * Merges the baseFilter and the attribute filter to a single filter.
-   * If both filters are defined, they will be merged via '&&' operator.
-   * If only one of the filters is defined, the defined filter will be returned.
+   * This merges all the passed symbolizers into one if possbile.
    *
-   * @param baseFilter The value of the mapbox layer's filter property
-   * @param filter The value of the mapbox paint attribute filter
+   * @param symbolizers The array of geostyler-style Symbolizers
+   * @returns
    */
-  mergeFilters(baseFilter: Filter|undefined, filter: Filter|undefined): Filter|undefined {
-    let gsBaseFilter: Filter|undefined = undefined;
-    let gsFilter: Filter|undefined = undefined;
-    if (baseFilter && filter) {
-      gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
-      gsFilter = this.getFilterFromMapboxFilter(filter);
-      return [
-        '&&',
-        gsBaseFilter,
-        gsFilter
-      ];
+  mergeSymbolizers(symbolizers: Symbolizer[]): Symbolizer {
+    if (symbolizers.length === 1) {
+      return symbolizers[0];
     }
-    if (filter) {
-      gsFilter = this.getFilterFromMapboxFilter(filter);
-      return gsFilter;
-    }
-    if (baseFilter) {
-      gsBaseFilter = this.getFilterFromMapboxFilter(baseFilter);
-      return gsBaseFilter;
-    }
-    return undefined;
-  }
 
-  /**
-   * Compares an arbitrary number of filters for equality
-   *
-   * @param filters Array of mapbox filters
-   */
-  equalMapboxAttributeFilters(filters: any[]): boolean {
-    // convert filters to strings
-    const filterStrings: string[][] = [];
-    let equal: boolean = true;
-    for (let i = 0; i < filters.length; i++) {
-      const filterString: string[] = [];
-      filters[i].forEach((exp: any, index: number, f: any) => {
-        if (index % 2 === 1 && index !== f.length - 1) {
-          filterString.push(JSON.stringify(exp));
-        }
-      });
-      filterStrings.forEach((filter: any) => {
-        if (!_isEqual(filterString, filter)) {
-          equal = false;
-        }
-      });
-      if (equal) {
-        filterStrings.push(filterString);
-      } else {
-        break;
+    return symbolizers.reduce((s1, s2, index) => {
+      if (index === 0) {
+        return s1;
       }
-    }
-    return equal;
-  }
-
-  /**
-   * Creates valid GeoStyler-Style Symbolizers from possibly invalid Symbolizers.
-   * Symbolizers are invalid if at least one of their attributes' values is a mapbox filter expression.
-   * This function detects such expressions and creates a symbolizer for each possible outcome.
-   * Related property values will be set accordingly. Thus, creating valid Symbolizers.
-   *
-   * IMPORTANT: Currently only the 'case' filter expression is supported. Furthermore, handling of multiple properties
-   * with filter expressions is only supported if all filter expressions are equal. Otherwise errors will be thrown.
-   *
-   * @param tmpSymbolizer A possibly invalid GeoStyler-Style Symbolizer
-   * @return Array of valid Symbolizers and optional mapbox filters
-   */
-  mapboxAttributeFiltersToSymbolizer(tmpSymbolizer: Symbolizer): {filter?: Filter; symbolizers: Symbolizer[]}[] {
-    const pseudoRules: {filter?: Filter; symbolizers: Symbolizer[] }[] = [];
-    const props = Object.keys(tmpSymbolizer);
-    const filterProps: string[] = [];
-    const filters: any[] = [];
-    props.forEach((prop: string) => {
-      if (typeof prop === 'undefined') {
-        return;
-      }
-      if (!Array.isArray(tmpSymbolizer[prop])) {
-        return;
-      }
-      if (typeof tmpSymbolizer[prop][0] !== 'string') {
-        return;
-      }
-      if (prop === 'font' && !(tmpSymbolizer[prop].some((x: any) => typeof x !== 'string'))) {
-        return;
-      }
-      // is expression
-      // switch (tmpSymbolizer[prop][0]) {
-      //     case 'case':
-      //         break;
-      //     case 'match':
-      //         break;
-      //     default:
-      //         throw new Error(`Unsupported expression.
-      // Only expressions of type 'case' and 'match' are allowed.`);
-      // }
-      if (tmpSymbolizer[prop][0] !== 'case' && !this.ignoreConversionErrors) {
-        throw new Error('Unsupported expression. Only expressions of type \'case\' are allowed.');
-      }
-      filterProps.push(prop);
-      filters.push(tmpSymbolizer[prop]);
-    });
-
-    if (filters.length > 0) {
-      const equalFilters: boolean = this.equalMapboxAttributeFilters(filters);
-      if (!equalFilters && !this.ignoreConversionErrors) {
-        throw new Error('Cannot parse attributes. Filters do not match');
-      }
-      // iterate over each value in a single filter
-      // we can use filters[0] as we checked beforehand if all filters are equal.
-      filters[0].forEach((filter: any, index: number) => {
-        // ignore all even indexes as we are not interested in the values at this point
-        if (index % 2 !== 1) {
-          return;
-        }
-        // make a deep clone to avoid call-by-reference issues
-        let symbolizer: Symbolizer = _cloneDeep(tmpSymbolizer);
-        let values: any[] = [];
-        // iterate over each filter and push the corresponding value of the current filter expression
-        filters.forEach((f: any) => {
-          values.push(f[index + 1]);
-        });
-        // set the value of the corresponding symbolizer property to value of current filter expression
-        values.forEach((val: any, i: number) => {
-          const p = filterProps[i];
-          symbolizer[p] = val;
-        });
-        // push the created symbolizers and the corresponding filter expression.
-        // Results in an object containing a single Filter expression (in mapbox expression format)
-        // and the corresponding symbolizers only containing values.
-        // Number of symbolizers corresponds to the number of outcomes of a filter expression.
-        pseudoRules.push({
-          symbolizers: [symbolizer],
-          filter: filter
-        });
-      });
-    } else {
-      pseudoRules.push({
-        symbolizers: [tmpSymbolizer]
-      });
-    }
-    return pseudoRules;
-  }
-
-  /**
-   * Creates GeoStyler-Style Rules from a mapbox paint object.
-   *
-   * @param paint A mapbox layer paint object
-   * @param type The type of the mapbox layer
-   * @return Array of GeoStyler-Style Rules
-   */
-  mapboxPaintToGeoStylerRules(paint: any, layout: any, type: string): Rule[] {
-    const rules: Rule[] = [];
-    const tmpSymbolizer: Symbolizer|SymbolType|undefined = this.getSymbolizerFromMapboxLayer(paint, layout, type);
-    if (tmpSymbolizer === undefined) {
-      return rules;
-    }
-    const pseudoRules: any[] = [];
-    if (this.isSymbolType(tmpSymbolizer)) {
-      // Concatenates all pseudorules.
-      if (tmpSymbolizer.hasOwnProperty('iconSymbolizer')) {
-        // check if all properties except 'kind' are undefined. If so, skip
-        if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.iconSymbolizer as Symbolizer)) {
-          pseudoRules.push(
-            ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.iconSymbolizer as Symbolizer)
-          );
+      let merged = Object.assign({}, s1,s2);
+      if (s1.kind !== s2.kind) {
+        const s1IsFill = isFillSymbolizer(s1);
+        const s2IsFill = isFillSymbolizer(s2);
+        if (s1IsFill || s2IsFill) {
+          const s1IsLine = isLineSymbolizer(s1);
+          const fillSymbolizer: FillSymbolizer = s1IsFill ? s1 : s2 as FillSymbolizer;
+          const lineSymbolizer: LineSymbolizer = s1IsLine ? s1 : s2 as LineSymbolizer;
+          merged = fillSymbolizer;
+          merged.outlineColor = lineSymbolizer.color;
+          merged.outlineOpacity = lineSymbolizer.opacity;
+          merged.outlineCap = lineSymbolizer.cap;
+          merged.outlineJoin = lineSymbolizer.join;
+          merged.outlineWidth = lineSymbolizer.width;
+        } else {
+          throw new Error(`Trying to merge to symbolizers of differnt kinds: ${s1.kind}, ${s2.kind}`);
         }
       }
-      if (tmpSymbolizer.hasOwnProperty('textSymbolizer')) {
-        // check if all properties except 'kind' are undefined. If so, skip
-        if (!MapboxStyleUtil.symbolizerAllUndefined(tmpSymbolizer.textSymbolizer as Symbolizer)) {
-          pseudoRules.push(
-            ...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer.textSymbolizer as Symbolizer)
-          );
-        }
-      }
-    } else {
-      pseudoRules.push(...this.mapboxAttributeFiltersToSymbolizer(tmpSymbolizer as Symbolizer));
-    }
-    pseudoRules.forEach((rule: any) => {
-      const {
-        filter,
-        symbolizers
-      } = rule;
-      rules.push({
-        name: '',
-        filter,
-        symbolizers
-      });
-    });
-
-    return rules;
-  }
+      return merged;
+    }, symbolizers[0]);
+  };
 
   /**
    * Creates a GeoStyler-Style Rule from a mapbox layer.
@@ -681,28 +641,69 @@ export class MapboxStyleParser implements StyleParser {
    * @param layer The mapbox Layer
    * @return A GeoStyler-Style Rule Array
    */
-  mapboxLayerToGeoStylerRules(layer: any): Rule[] {
-    let rules: Rule[] = [];
-    if (!layer.layout) {
-      layer.layout = {};
-    }
-    if (!layer.paint) {
-      layer.paint = {};
-    }
-    // returns array of rules where one rule contains one symbolizer
-    const symbolizerRules: Rule[] = this.mapboxPaintToGeoStylerRules(layer.paint, layer.layout, layer.type);
-    symbolizerRules.forEach((rule: Rule, index: number) => {
-      const filter = layer.filter ? _cloneDeep(layer.filter) : undefined;
-      const ruleFilter = _cloneDeep(rule.filter);
-      rules.push({
-        name: layer.id,
-        scaleDenominator: this.getScaleDenominatorFromMapboxZoom(layer.minzoom, layer.maxzoom),
-        // merge layer filter with attribute filters
-        filter: this.mergeFilters(filter, ruleFilter),
-        symbolizers: rule.symbolizers
+  mapboxLayersToGeoStylerRules(layers: NoneCustomLayer[]): Rule[] {
+    const geoStylerRef: GeoStylerRef = this.mbMetadata?.['geostyler:ref'];
+    const gsRules: Rule[] = [];
+
+    if (geoStylerRef) {
+      geoStylerRef.rules.forEach((rule, ruleIndex) => {
+        const name = rule?.name || '';
+        let symbolizers: Symbolizer[] = [];
+        let filter: Filter | undefined;
+        let scaleDenominator: ScaleDenominator | undefined;
+        rule.symbolizers?.forEach((layerIds, symbolizerIndex) => {
+          const matchingLayers = layers.filter(layer => layerIds.includes(layer.id));
+          const flattenedSymbolizers = matchingLayers
+            .map(layer => this.getSymbolizersFromMapboxLayer(layer))
+            .flat();
+
+          symbolizers[symbolizerIndex] = this.mergeSymbolizers(flattenedSymbolizers);
+
+          // TODO: check if there are multiple layers with different filters
+          // and scaledenomintors and throw a warning that we only use the first
+          // one
+          if (matchingLayers?.[0]) {
+            filter = this.getFilterFromMapboxFilter(matchingLayers[0].filter);
+            scaleDenominator = this.getScaleDenominatorFromMapboxZoom(
+              matchingLayers[0].minzoom,
+              matchingLayers[0].maxzoom,
+            );
+          }
+          // TODO: care about layers not configured in the metadata
+          // const noneMatchingLayes = layers.filter(layer => !layerIds.includes(layer.id));
+        });
+        const gsRule = {
+          filter,
+          name,
+          scaleDenominator,
+          symbolizers
+        } satisfies Rule;
+        gsRules[ruleIndex] = omitBy(gsRule, isUndefined) as Rule;
       });
-    });
-    return rules;
+    } else {
+      // returns array of rules where one rule contains one symbolizer
+      layers.forEach(layer => {
+        const symbolizers = this.getSymbolizersFromMapboxLayer(layer);
+        if (symbolizers.length < 1) {
+          return;
+        }
+
+        const filter = this.getFilterFromMapboxFilter(layer.filter);
+        const scaleDenominator = this.getScaleDenominatorFromMapboxZoom(
+          layer.minzoom,
+          layer.maxzoom,
+        );
+        const rule = {
+          filter,
+          name: layer.id,
+          scaleDenominator,
+          symbolizers
+        };
+        gsRules?.push(rule);
+      });
+    }
+
+    return gsRules || [];
   }
 
   /**
@@ -711,21 +712,22 @@ export class MapboxStyleParser implements StyleParser {
    * @param mapboxStyle The Mapbox Style object
    * @return A GeoStylerStyle-Style
    */
-  mapboxLayerToGeoStylerStyle(mapboxStyle: any): Style {
-    if (!(mapboxStyle instanceof Object)) {
-      mapboxStyle = JSON.parse(mapboxStyle);
-    }
+  mapboxStyleToGeoStylerStyle(mapboxStyle: MbStyle): Style {
     let style: Style = {} as Style;
-    style.name = mapboxStyle.name;
+    style.name = mapboxStyle.name || '';
     style.rules = [];
+    this.mbMetadata = mapboxStyle.metadata;
     if (mapboxStyle.sprite) {
-      this._spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
+      this.spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
     }
+
     if (mapboxStyle.layers) {
-      mapboxStyle.layers.forEach((layer: any) => {
-        const rules = this.mapboxLayerToGeoStylerRules(layer);
-        style.rules = style.rules.concat(rules);
-      });
+      const layers = mapboxStyle.layers.filter(
+        layer => !(layer.type === 'custom')
+      ) as NoneCustomLayer[];
+      const rules = this.mapboxLayersToGeoStylerRules(layers);
+      style.rules = style.rules.concat(rules);
+
     }
     return style;
   }
@@ -737,11 +739,11 @@ export class MapboxStyleParser implements StyleParser {
    * @param mapboxStyle The Mapbox Style object
    * @return The Promise resolving with a GeoStylerStyle-ReadStyleResult
    */
-  readStyle(mapboxStyle: any): Promise<ReadStyleResult> {
+  readStyle(mapboxStyle: MbStyle): Promise<ReadStyleResult> {
     return new Promise<ReadStyleResult>(resolve => {
       try {
-        const mbStyle = _cloneDeep(mapboxStyle);
-        const geoStylerStyle: Style = this.mapboxLayerToGeoStylerStyle(mbStyle);
+        const mbStyle = structuredClone(mapboxStyle);
+        const geoStylerStyle: Style = this.mapboxStyleToGeoStylerStyle(mbStyle);
         resolve({
           output: geoStylerStyle
         });
@@ -760,15 +762,12 @@ export class MapboxStyleParser implements StyleParser {
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return The Promise resolving with a GeoStylerStyle-WriteStyleResult
    */
-  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<string>> {
-    return new Promise<WriteStyleResult<string>>(resolve => {
+  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<Omit<MbStyle, 'sources'>>> {
+    return new Promise<WriteStyleResult<Omit<MbStyle, 'sources'>>>(resolve => {
       const unsupportedProperties = this.checkForUnsupportedProperties(geoStylerStyle);
       try {
-        const gsStyle = _cloneDeep(geoStylerStyle);
-        const mapboxStyle: any = this.geoStylerStyleToMapboxObject(gsStyle);
-        const output = this.pretty
-          ? JSON.stringify(mapboxStyle, null, 2)
-          : JSON.stringify(mapboxStyle);
+        const gsStyle = structuredClone(geoStylerStyle);
+        const output: Omit<MbStyle, 'sources'> = this.geoStylerStyleToMapboxObject(gsStyle);
         resolve({
           output,
           unsupportedProperties,
@@ -788,18 +787,30 @@ export class MapboxStyleParser implements StyleParser {
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return A Mapbox Style object
    */
-  geoStylerStyleToMapboxObject(geoStylerStyle: Style): any {
+  geoStylerStyleToMapboxObject(geoStylerStyle: Style): Omit<MbStyle, 'sources'> {
     // Mapbox Style version
     const version = 8;
     const name = geoStylerStyle.name;
-    const layers = this.getMapboxLayersFromRules(geoStylerStyle.rules);
-    const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this._spriteBaseUrl);
-    return {
+    const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules);
+    const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this.spriteBaseUrl);
+
+    let mapboxObject = omitBy({
       version,
       name,
       layers,
-      sprite
-    };
+      sprite,
+    }, isUndefined) as Omit<MbStyle, 'sources'>;
+
+    if (geoStylerRef){
+      mapboxObject = {
+        ...mapboxObject,
+        metadata: {
+          'geostyler:ref': geoStylerRef
+        }
+      };
+    }
+
+    return mapboxObject;
   }
 
   /**
@@ -808,24 +819,26 @@ export class MapboxStyleParser implements StyleParser {
    * @param rules An array of GeoStylerStyle-Rules
    * @return An array of Mapbox Layers
    */
-  getMapboxLayersFromRules(rules: Rule[]): any[] {
+  getMapboxLayersFromRules(rules: Rule[]): {layers: NoneCustomLayer[]; geoStylerRef: GeoStylerRef}
+  {
     // one layer corresponds to a single symbolizer within a rule
     // so filters and scaleDenominators have to be set for each symbolizer explicitly
-    const layers: any[] = [];
-    rules.forEach((rule: Rule, i: number) => {
+    const layers: NoneCustomLayer[] = [];
+    const geoStylerRef: GeoStylerRef = {
+      rules: []
+    };
+
+    rules.forEach((rule: Rule, ruleIndex: number) => {
       // create new layer object
-      let layer: any = {};
-      // just setting the temporary id here
-      // after iterating over each symbolizer, we will add the index of each symbolizer
-      // as a suffix to the layerId;
-      const layerId: string = rule.name; // + '-gs-r' + i;
+      let layer: Partial<NoneCustomLayer> = {};
+
       // set filters and scaleDenominator
-      if (rule.filter && rule.filter.length !== 0) {
-        const filterClone = _cloneDeep(rule.filter);
+      if (isFilter(rule.filter)) {
+        const filterClone = structuredClone(rule.filter);
         layer.filter = this.getMapboxFilterFromFilter(filterClone);
       }
 
-      if (rule.scaleDenominator) {
+      if (isScaleDenominator(rule.scaleDenominator)) {
         // calculate zoomLevel from scaleDenominator
         if (typeof rule.scaleDenominator.min !== 'undefined') {
           if (!isGeoStylerFunction(rule.scaleDenominator.min)) {
@@ -839,28 +852,47 @@ export class MapboxStyleParser implements StyleParser {
         }
       }
 
-      rule.symbolizers.forEach((symbolizer: Symbolizer, index: number) => {
+      rule.symbolizers.forEach((symbolizer: Symbolizer, symbolizerIndex: number) => {
+        geoStylerRef.rules[ruleIndex] = {
+          name: rule.name
+        };
+
         // use existing layer properties
         let lyr: any = {};
         lyr.filter = layer.filter;
         lyr.minzoom = layer.minzoom;
         lyr.maxzoom = layer.maxzoom;
-        // set name
-        // lyr.id = layerId + '-s' + index;
-        lyr.id = layerId;
         // get symbolizer type and paint
-        const {
-          layerType,
-          paint,
-          layout
-        } = this.getStyleFromSymbolizer(symbolizer);
-        lyr.type = layerType;
-        lyr.paint = !MapboxStyleUtil.allUndefined(paint) ? paint : undefined;
-        lyr.layout = !MapboxStyleUtil.allUndefined(layout) ? layout : undefined;
-        layers.push(lyr);
+
+        const styles = this.getStyleFromSymbolizer(symbolizer);
+
+        styles.forEach((style: any, styleIndex: number) => {
+          const {
+            type, paint, layout
+          } = style;
+
+          let lyrClone = structuredClone(lyr);
+
+          lyrClone.type = type;
+          if (!MapboxStyleUtil.allUndefined(paint)) {
+            lyrClone.paint = paint;
+          }
+          if (!MapboxStyleUtil.allUndefined(layout)) {
+            lyrClone.layout = layout;
+          }
+          lyrClone.id = `r${ruleIndex}_sy${symbolizerIndex}_st${styleIndex}`;
+
+          layers.push(omitBy(lyrClone, isUndefined) as NoneCustomLayer);
+
+          if (!Array.isArray(geoStylerRef?.rules?.[ruleIndex]?.symbolizers)) {
+            geoStylerRef.rules[ruleIndex].symbolizers = [[]];
+          }
+          geoStylerRef.rules[ruleIndex]?.symbolizers?.[symbolizerIndex].push(lyrClone.id);
+        });
       });
     });
-    return layers;
+
+    return {layers, geoStylerRef};
   }
 
   /**
@@ -895,7 +927,7 @@ export class MapboxStyleParser implements StyleParser {
       zoom = pre + percentage;
     }
 
-    return zoom!;
+    return zoom;
   }
 
   /**
@@ -904,7 +936,13 @@ export class MapboxStyleParser implements StyleParser {
    * @param filter A GeoStylerStyle-Filter
    * @return A Mapbox filter array
    */
-  getMapboxFilterFromFilter(filter: Filter): any[] {
+  // TODO: Move to Expression evaluation as mapbox Filter are deprecated
+  // (replaced by Expressions)
+  getMapboxFilterFromFilter(filter: Filter): Expression {
+    if (isGeoStylerBooleanFunction(filter) || isBoolean(filter)) {
+      return gs2mbExpression<any>(filter);
+    }
+
     let mbFilter = [...filter];
     const nestingOperators = ['&&', '||', '!'];
     const operator: Operator = mbFilter[0] as Operator;
@@ -931,51 +969,67 @@ export class MapboxStyleParser implements StyleParser {
       });
     }
 
-    return mbFilter;
+    return mbFilter as Expression;
   }
 
   /**
    * Creates a Mapbox Layer Paint object and the layerType from a GeoStylerStyle-Symbolizer
    *
    * @param symbolizer A GeoStylerStyle-Symbolizer
-   * @return {layertype, paint} An object consisting of the MapboxLayerType and the Mapbox Layer Paint
+   * @return [{layerType, paint, layout}] A list of objects consisting of the MapboxLayerType,
+   *    the Mapbox Layer Paint and Layout
    */
-  getStyleFromSymbolizer(symbolizer: Symbolizer): { layerType: MapboxLayerType; paint: any; layout: any } {
-    const symbolizerClone = _cloneDeep(symbolizer);
-    let layerType: MapboxLayerType;
-    let paint: any;
-    let layout: any;
+  getStyleFromSymbolizer(symbolizer: Symbolizer):
+    { type: NoneCustomLayer['type']; paint?: AnyPaint; layout?: AnyLayout }[]
+  {
+    const symbolizerClone = structuredClone(symbolizer);
+    let type: NoneCustomLayer['type'];
+    let paint: AnyPaint | undefined = undefined;
+    let layout: AnyLayout | undefined = undefined;
+
+    let fillSplitStyles: [Omit<FillLayer, 'id'>, Omit<LineLayer, 'id'>] | [] = [];
+
     switch (symbolizer.kind) {
       case 'Fill':
-        layerType = 'fill';
-        paint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
-        layout = this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+        type = 'fill';
+
+        const intersection = MapboxStyleParser.fillSymbolizerStrokeProperties
+          .filter(prop => Object.keys(symbolizer).includes(prop));
+
+        // fill symbolizer contains stroke properties, so the symbolizer will be split into 2 symbolizers fill and line
+        let needSplit = intersection.length > 0;
+        if (needSplit) {
+          fillSplitStyles = this.getSplitStyleFromFillSymbolizer(symbolizer as FillSymbolizer);
+        } else {
+          paint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+          layout = this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+        }
         break;
       case 'Line':
-        layerType = 'line';
+        type = 'line';
         paint = this.getPaintFromLineSymbolizer(symbolizerClone as LineSymbolizer);
         layout = this.getLayoutFromLineSymbolizer(symbolizerClone as LineSymbolizer);
         break;
       case 'Icon':
-        layerType = 'symbol';
+        type = 'symbol';
         paint = this.getPaintFromIconSymbolizer(symbolizerClone as IconSymbolizer);
         layout = this.getLayoutFromIconSymbolizer(symbolizerClone as IconSymbolizer);
         break;
       case 'Text':
-        layerType = 'symbol';
+        type = 'symbol';
         paint = this.getPaintFromTextSymbolizer(symbolizerClone as TextSymbolizer);
         layout = this.getLayoutFromTextSymbolizer(symbolizerClone as TextSymbolizer);
         break;
       case 'Mark':
         if (symbolizer.wellKnownName === 'circle') {
-          layerType = 'circle';
-          paint = this.getPaintFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
-          layout = this.getLayoutFromCircleSymbolizer(symbolizerClone as MarkSymbolizer);
+          type = 'circle';
+          paint = this.getCirclePaintFromMarkSymbolizer(symbolizerClone as MarkSymbolizer);
+          layout = this.getCircleLayoutFromMarkSymbolizer(symbolizerClone as MarkSymbolizer);
           break;
         } else if (!this.ignoreConversionErrors) {
           throw new Error('Cannot get Style. Unsupported MarkSymbolizer');
         } else {
-          layerType = 'symbol';
+          type = 'symbol';
         }
         break;
         // TODO check if mapbox can generate regular shapes
@@ -983,14 +1037,57 @@ export class MapboxStyleParser implements StyleParser {
         if (!this.ignoreConversionErrors) {
           throw new Error('Cannot get Style. Unsupported kind.');
         } else {
-          layerType = 'symbol';
+          type = 'symbol';
         }
     }
-    return {
-      layerType,
+
+    if (fillSplitStyles.length === 2) {
+      return fillSplitStyles;
+    }
+
+    return [{
+      type,
       paint,
       layout
+    }];
+  }
+
+  /**
+   * Splits a fill symbolizer having outline properties into a fill and line styles
+   *
+   * @param symbolizer
+   * @returns
+   */
+  getSplitStyleFromFillSymbolizer(symbolizer: FillSymbolizer):
+    [Omit<FillLayer, 'id'>, Omit<LineLayer, 'id'>]
+  {
+    let symbolizerClone: FillSymbolizer = structuredClone(symbolizer);
+    delete symbolizerClone?.outlineColor;
+
+    const fillPaint = this.getPaintFromFillSymbolizer(symbolizerClone as FillSymbolizer);
+    const fillLayer: Omit<FillLayer, 'id'> = {
+      type: 'fill',
+      paint : fillPaint,
+      layout : this.getLayoutFromFillSymbolizer(symbolizerClone as FillSymbolizer)
     };
+
+    symbolizerClone = structuredClone(symbolizer as FillSymbolizer);
+    const lineSymbolizer: LineSymbolizer = {
+      kind: 'Line',
+      color: symbolizerClone?.outlineColor,
+      opacity: symbolizerClone?.outlineOpacity,
+      width: symbolizerClone?.outlineWidth,
+      join: symbolizerClone?.outlineJoin,
+      cap: symbolizerClone?.outlineCap,
+    };
+
+    const outlineLayer: Omit<LineLayer, 'id'> = {
+      type: 'line',
+      paint: this.getPaintFromLineSymbolizer(lineSymbolizer),
+      layout: this.getLayoutFromLineSymbolizer(lineSymbolizer)
+    };
+
+    return [fillLayer, outlineLayer];
   }
 
   /**
@@ -999,7 +1096,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeostylerStyle-FillSymbolizer
    * @return A Mapbox Layer Paint object
    */
-  getPaintFromFillSymbolizer(symbolizer: FillSymbolizer): any {
+  getPaintFromFillSymbolizer(symbolizer: FillSymbolizer): FillPaint {
     const {
       opacity,
       color,
@@ -1008,14 +1105,14 @@ export class MapboxStyleParser implements StyleParser {
       antialias
     } = symbolizer;
 
-    const paint: any = {
-      'fill-antialias': antialias,
-      'fill-opacity': opacity,
-      'fill-color': color,
-      'fill-outline-color': outlineColor,
+    const paint: FillPaint = {
+      'fill-antialias': gs2mbExpression<boolean>(antialias),
+      'fill-opacity': gs2mbExpression<number>(opacity),
+      'fill-color': gs2mbExpression<string>(color),
+      'fill-outline-color': gs2mbExpression<string>(outlineColor),
       'fill-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1024,15 +1121,15 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeostylerStyle-FillSymbolizer
    * @return A Mapbox Layer Layout object
    */
-  getLayoutFromFillSymbolizer(symbolizer: FillSymbolizer): any {
+  getLayoutFromFillSymbolizer(symbolizer: FillSymbolizer): FillLayout {
     const {
       visibility
     } = symbolizer;
 
-    const layout: any = {
+    const layout: FillLayout = {
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1086,7 +1183,7 @@ export class MapboxStyleParser implements StyleParser {
       }
     });
 
-    this._spriteBaseUrl = baseurl;
+    this.spriteBaseUrl = baseurl;
     return spritename;
   }
 
@@ -1096,7 +1193,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param {boolean|undefined} visibility The visibility of a layer
    * @return {'none'|'visible'|undefined} The Mapbox visibility attribute. If undefined Mapbox's default will be used
    */
-  getVisibility(visibility: boolean | GeoStylerBooleanFunction | undefined): 'none' | 'visible' | undefined {
+  getVisibility(visibility: boolean | GeoStylerBooleanFunction | undefined): AnyLayout['visibility'] {
     if (visibility === true) {
       return 'visible';
     } else if (visibility === false) {
@@ -1112,7 +1209,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle-LineSymbolizer
    * @return A Mapbox Layer Paint object
    */
-  getPaintFromLineSymbolizer(symbolizer: LineSymbolizer): any {
+  getPaintFromLineSymbolizer(symbolizer: LineSymbolizer): LinePaint {
     const {
       opacity,
       color,
@@ -1125,18 +1222,20 @@ export class MapboxStyleParser implements StyleParser {
       gradient
     } = symbolizer;
 
-    const paint: any = {
-      'line-opacity': opacity,
-      'line-color': color,
-      'line-width': width,
-      'line-gap-width': gapWidth,
-      'line-offset': perpendicularOffset,
-      'line-blur': blur,
-      'line-dasharray': dasharray,
+    const paint: LinePaint = {
+      'line-opacity': gs2mbExpression<number>(opacity),
+      'line-color': color as LinePaint['line-color'],
+      'line-width': gs2mbExpression<number>(width),
+      'line-gap-width': gs2mbExpression<number>(gapWidth),
+      'line-offset': gs2mbExpression<number>(perpendicularOffset),
+      'line-blur': gs2mbExpression<number>(blur),
+      // TODO: handle array values
+      'line-dasharray': dasharray as LinePaint['line-dasharray'],
       'line-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill),
-      'line-gradient': gradient
+      // TODO: handle array values
+      'line-gradient': gradient as LinePaint['line-gradient']
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1145,7 +1244,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle-LineSymbolizer
    * @return A Mapbox Layer Layout object
    */
-  getLayoutFromLineSymbolizer(symbolizer: LineSymbolizer): any {
+  getLayoutFromLineSymbolizer(symbolizer: LineSymbolizer): LineLayout {
     const {
       cap,
       join,
@@ -1154,14 +1253,14 @@ export class MapboxStyleParser implements StyleParser {
       visibility,
     } = symbolizer;
 
-    const layout = {
-      'line-cap': cap,
-      'line-join': join,
-      'line-miter-limit': miterLimit,
-      'line-round-limit': roundLimit,
+    const layout: LineLayout = {
+      'line-cap': gs2mbExpression<LineLayout['line-cap']>(cap),
+      'line-join': gs2mbExpression<LineLayout['line-join']>(join),
+      'line-miter-limit': gs2mbExpression<number>(miterLimit),
+      'line-round-limit': gs2mbExpression<number>(roundLimit),
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1170,7 +1269,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle-IconSymbolizer
    * @return A Mapbox Layer Paint object
    */
-  getPaintFromIconSymbolizer(symbolizer: IconSymbolizer): any {
+  getPaintFromIconSymbolizer(symbolizer: IconSymbolizer): SymbolPaint {
     const {
       haloBlur,
       haloColor,
@@ -1179,14 +1278,14 @@ export class MapboxStyleParser implements StyleParser {
       opacity,
     } = symbolizer;
 
-    const paint: any = {
-      'icon-opacity': opacity,
-      'icon-color': color,
-      'icon-halo-color': haloColor,
-      'icon-halo-width': haloWidth,
-      'icon-halo-blur': haloBlur
+    const paint: SymbolPaint = {
+      'icon-opacity': gs2mbExpression<number>(opacity),
+      'icon-color': gs2mbExpression<string>(color),
+      'icon-halo-color': gs2mbExpression<string>(haloColor),
+      'icon-halo-width': gs2mbExpression<number>(haloWidth),
+      'icon-halo-blur': gs2mbExpression<number>(haloBlur)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1195,7 +1294,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle-IconSymbolizer
    * @return A Mapbox Layer Layout object
    */
-  getLayoutFromIconSymbolizer(symbolizer: IconSymbolizer): any {
+  getLayoutFromIconSymbolizer(symbolizer: IconSymbolizer): SymbolLayout {
     const {
       avoidEdges,
       allowOverlap,
@@ -1214,24 +1313,29 @@ export class MapboxStyleParser implements StyleParser {
       visibility
     } = symbolizer;
 
-    const layout = {
-      'symbol-avoid-edges': avoidEdges,
-      'icon-allow-overlap': allowOverlap,
-      'icon-optional': optional,
-      'icon-rotation-alignment': rotationAlignment,
-      'icon-size': size,
-      'icon-text-fit': textFit,
-      'icon-text-fit-padding': textFitPadding,
+    const layout: SymbolLayout = {
+      'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
+      'icon-allow-overlap': gs2mbExpression<boolean>(allowOverlap),
+      'icon-optional': optional as SymbolLayout['icon-optional'],
+      'icon-rotation-alignment': gs2mbExpression<SymbolLayout['icon-rotation-alignment']>
+      (rotationAlignment) as SymbolLayout['icon-rotation-alignment'],
+      'icon-size': gs2mbExpression<number>(size),
+      'icon-text-fit': gs2mbExpression<SymbolLayout['icon-text-fit']>(textFit) as SymbolLayout['icon-text-fit'],
+      // TODO: handle array values
+      'icon-text-fit-padding': textFitPadding as SymbolLayout['icon-text-fit-padding'],
+      // TODO: check sprite handling
       'icon-image': image ? this.handleSprite(image) : undefined,
-      'icon-rotate': rotate,
-      'icon-padding': padding,
-      'icon-keep-upright': keepUpright,
-      'icon-offset': offset,
-      'icon-anchor': anchor,
-      'icon-pitch-alignment': pitchAlignment,
+      'icon-rotate': gs2mbExpression<number>(rotate),
+      'icon-padding': gs2mbExpression<number>(padding),
+      'icon-keep-upright': keepUpright as SymbolLayout['icon-keep-upright'],
+      // TODO: handle array values
+      'icon-offset': offset as SymbolLayout['icon-offset'],
+      'icon-anchor': gs2mbExpression<SymbolLayout['icon-anchor']>(anchor),
+      'icon-pitch-alignment': gs2mbExpression<SymbolLayout['icon-pitch-alignment']>
+      (pitchAlignment) as SymbolLayout['icon-pitch-alignment'],
       visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   /**
@@ -1240,7 +1344,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle TextSymbolizer
    * @return A Mapbox Layer Paint object
    */
-  getPaintFromTextSymbolizer(symbolizer: TextSymbolizer): any {
+  getPaintFromTextSymbolizer(symbolizer: TextSymbolizer): SymbolPaint {
     const {
       haloBlur,
       haloColor,
@@ -1249,15 +1353,15 @@ export class MapboxStyleParser implements StyleParser {
       opacity,
     } = symbolizer;
 
-    const paint: any = {
-      'text-opacity': opacity,
-      'text-color': color,
-      'text-halo-color': haloColor,
-      'text-halo-width': haloWidth,
-      'text-halo-blur': haloBlur
+    const paint: SymbolPaint = {
+      'text-opacity': gs2mbExpression<number>(opacity),
+      'text-color': gs2mbExpression<string>(color),
+      'text-halo-color': gs2mbExpression<string>(haloColor),
+      'text-halo-width': gs2mbExpression<number>(haloWidth),
+      'text-halo-blur': gs2mbExpression<number>(haloBlur)
     };
 
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1266,7 +1370,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle TextSymbolizer
    * @return A Mapbox Layer Layout object
    */
-  getLayoutFromTextSymbolizer(symbolizer: TextSymbolizer): any {
+  getLayoutFromTextSymbolizer(symbolizer: TextSymbolizer): SymbolLayout {
     const {
       allowOverlap,
       anchor,
@@ -1290,30 +1394,34 @@ export class MapboxStyleParser implements StyleParser {
       visibility
     } = symbolizer;
 
-    const paint: any = {
-      'symbol-avoid-edges': avoidEdges,
-      'text-pitch-alignment': pitchAlignment,
-      'text-rotation-alignment': rotationAlignment,
-      'text-field': label ? this.getTextFieldFromLabel(label) : undefined,
-      'text-font': font,
-      'text-size': size,
-      'text-max-width': maxWidth,
-      'text-line-height': lineHeight,
-      'text-letter-spacing': letterSpacing,
-      'text-justify': justify,
-      'text-anchor': anchor,
-      'text-max-angle': maxAngle,
-      'text-rotate': rotate,
-      'text-padding': padding,
-      'text-keep-upright': keepUpright,
-      'text-transform': transform,
-      'text-offset': offset,
-      'text-allow-overlap': allowOverlap,
-      'text-optional': optional,
+    const paint: SymbolLayout = {
+      'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
+      'text-pitch-alignment': gs2mbExpression<SymbolLayout['text-pitch-alignment']>
+      (pitchAlignment) as SymbolLayout['text-pitch-alignment'],
+      'text-rotation-alignment': gs2mbExpression<SymbolLayout['text-rotation-alignment']>
+      (rotationAlignment) as SymbolLayout['text-rotation-alignment'],
+      'text-field': this.getTextFieldFromLabel(label),
+      // TODO: handle array values
+      'text-font': font as SymbolLayout['text-font'],
+      'text-size': gs2mbExpression<number>(size),
+      'text-max-width': gs2mbExpression<number>(maxWidth),
+      'text-line-height': gs2mbExpression<number>(lineHeight),
+      'text-letter-spacing': gs2mbExpression<number>(letterSpacing),
+      'text-justify': gs2mbExpression<SymbolLayout['text-justify']>(justify),
+      'text-anchor': gs2mbExpression<SymbolLayout['text-anchor']>(anchor),
+      'text-max-angle': gs2mbExpression<number>(maxAngle),
+      'text-rotate': gs2mbExpression<number>(rotate),
+      'text-padding': gs2mbExpression<number>(padding),
+      'text-keep-upright': keepUpright as SymbolLayout['text-keep-upright'],
+      'text-transform': gs2mbExpression<SymbolLayout['text-transform']>(transform),
+      // TODO: handle array values
+      'text-offset': offset as SymbolLayout['text-offset'],
+      'text-allow-overlap': allowOverlap as SymbolLayout['text-allow-overlap'],
+      'text-optional': optional as SymbolLayout['text-optional'],
       visibility: this.getVisibility(visibility)
     };
 
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1322,9 +1430,13 @@ export class MapboxStyleParser implements StyleParser {
    * @param template A GeoStylerStyle-TextSymbolizer Label
    * @return The static text as string if no template was used, or a Mapbox text Format array
    */
-  getTextFieldFromLabel(template: string | GeoStylerStringFunction): (string | any[]) {
+  getTextFieldFromLabel(template?: string | GeoStylerStringFunction): (string | Expression | undefined) {
+    if (!template) {
+      return;
+    }
+
     if (isGeoStylerFunction(template)) {
-      return '';
+      return gs2mbExpression<string>(template);
     }
 
     // prefix indicating that a template is being used
@@ -1348,7 +1460,7 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
    * @return A Mapbox Layer Paint object
    */
-  getPaintFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
+  getCirclePaintFromMarkSymbolizer(symbolizer: MarkSymbolizer): CirclePaint {
     const {
       radius,
       color,
@@ -1363,20 +1475,24 @@ export class MapboxStyleParser implements StyleParser {
       strokeOpacity
     } = symbolizer;
 
-    const paint = {
-      'circle-radius': radius,
-      'circle-color': color,
-      'circle-blur': blur,
-      'circle-opacity': fillOpacity,
-      'circle-translate': offset,
-      'circle-translate-anchor': offsetAnchor,
-      'circle-pitch-scale': pitchScale,
-      'circle-pitch-alignment': pitchAlignment,
-      'circle-stroke-width': strokeWidth,
-      'circle-stroke-color': strokeColor,
-      'circle-stroke-opacity': strokeOpacity
+    const paint: CirclePaint = {
+      'circle-radius': gs2mbExpression<number>(radius),
+      'circle-color': gs2mbExpression<string>(color),
+      'circle-blur': gs2mbExpression<number>(blur),
+      'circle-opacity': gs2mbExpression<number>(fillOpacity),
+      // TODO: handle array values
+      'circle-translate': offset as CirclePaint['circle-translate'],
+      'circle-translate-anchor': gs2mbExpression<CirclePaint['circle-translate-anchor']>
+      (offsetAnchor) as CirclePaint['circle-translate-anchor'],
+      'circle-pitch-scale': gs2mbExpression<CirclePaint['circle-pitch-scale']>
+      (pitchScale) as CirclePaint['circle-pitch-scale'],
+      'circle-pitch-alignment': gs2mbExpression<CirclePaint['circle-pitch-alignment']>
+      (pitchAlignment) as CirclePaint['circle-pitch-alignment'],
+      'circle-stroke-width': gs2mbExpression<number>(strokeWidth),
+      'circle-stroke-color': gs2mbExpression<string>(strokeColor),
+      'circle-stroke-opacity': gs2mbExpression<number>(strokeOpacity)
     };
-    return paint;
+    return omitBy(paint, isUndefined);
   }
 
   /**
@@ -1388,43 +1504,36 @@ export class MapboxStyleParser implements StyleParser {
    * @param symbolizer A GeoStylerStyle MarkSymbolizer with wkn 'circle'
    * @return A Mapbox Layer Layout object
    */
-  getLayoutFromCircleSymbolizer(symbolizer: MarkSymbolizer): any {
+  getCircleLayoutFromMarkSymbolizer(symbolizer: MarkSymbolizer): CircleLayout {
     const {
       visibility
     } = symbolizer;
 
-    const layout = {
-      visibility: visibility
+    const layout: CircleLayout = {
+      visibility: this.getVisibility(visibility)
     };
-    return layout;
+    return omitBy(layout, isUndefined);
   }
 
   checkForUnsupportedProperties(geoStylerStyle: Style): UnsupportedProperties | undefined {
-    const capitalizeFirstLetter = (a: string) => a[0].toUpperCase() + a.slice(1);
     const unsupportedProperties: UnsupportedProperties = {};
+
     geoStylerStyle.rules.forEach(rule => {
       // ScaleDenominator and Filters are completely supported so we just check for symbolizers
       rule.symbolizers.forEach(symbolizer => {
-        const key = capitalizeFirstLetter(`${symbolizer.kind}Symbolizer`);
-        const value = this.unsupportedProperties?.Symbolizer?.[key];
-        if (value) {
-          if (typeof value === 'string' || value instanceof String) {
-            if (!unsupportedProperties.Symbolizer) {
-              unsupportedProperties.Symbolizer = {};
+        const key: `${SymbolizerKind}Symbolizer` = `${symbolizer.kind}Symbolizer`;
+        if (key in this.unsupportedProperties.Symbolizer) {
+          const value = this.unsupportedProperties.Symbolizer[key];
+          if (value) {
+            if (isString(value)) {
+              set(unsupportedProperties, `Symbolizer.${key}`, value);
+            } else {
+              Object.keys(symbolizer).forEach((property: keyof UnsupportedProperties['Symbolizer']) => {
+                if (value[property]) {
+                  set(unsupportedProperties, `Symbolizer.${key}.${property}`, value);
+                }
+              });
             }
-            unsupportedProperties.Symbolizer[key] = value;
-          } else {
-            Object.keys(symbolizer).forEach(property => {
-              if (value[property]) {
-                if (!unsupportedProperties.Symbolizer) {
-                  unsupportedProperties.Symbolizer = {};
-                }
-                if (!unsupportedProperties.Symbolizer[key]) {
-                  unsupportedProperties.Symbolizer[key] = {};
-                }
-                unsupportedProperties.Symbolizer[key][property] = value[property];
-              }
-            });
           }
         }
       });
