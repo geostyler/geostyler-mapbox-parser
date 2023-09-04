@@ -77,6 +77,13 @@ type GeoStylerRef = {
   }[];
 };
 
+type MapboxRef = {
+  splitSymbolizers?: {
+    rule: number;
+    symbolizers: number[];
+  }[];
+};
+
 type SymbolType = {
     textSymbolizer?: TextSymbolizer;
     iconSymbolizer?: IconSymbolizer;
@@ -628,7 +635,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           merged.outlineJoin = lineSymbolizer.join;
           merged.outlineWidth = lineSymbolizer.width;
         } else {
-          throw new Error(`Trying to merge to symbolizers of differnt kinds: ${s1.kind}, ${s2.kind}`);
+          throw new Error(`Trying to merge two symbolizers of different kinds: ${s1.kind}, ${s2.kind}`);
         }
       }
       return merged;
@@ -641,9 +648,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param layer The mapbox Layer
    * @return A GeoStyler-Style Rule Array
    */
-  mapboxLayersToGeoStylerRules(layers: NoneCustomLayer[]): Rule[] {
+  mapboxLayersToGeoStylerRules(layers: NoneCustomLayer[], mapboxRef: MapboxRef): Rule[] {
     const geoStylerRef: GeoStylerRef = this.mbMetadata?.['geostyler:ref'];
     const gsRules: Rule[] = [];
+    const splitSymbolizers: MapboxRef['splitSymbolizers'] = [];
 
     if (geoStylerRef) {
       geoStylerRef.rules.forEach((rule, ruleIndex) => {
@@ -654,13 +662,22 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         rule.symbolizers?.forEach((layerIds, symbolizerIndex) => {
           const matchingLayers = layers.filter(layer => layerIds.includes(layer.id));
           const flattenedSymbolizers = matchingLayers
-            .map(layer => this.getSymbolizersFromMapboxLayer(layer))
+            .map(layer => {
+              const symbs = this.getSymbolizersFromMapboxLayer(layer);
+              if (symbs.length > 1) {
+                splitSymbolizers.push({
+                  rule: ruleIndex,
+                  symbolizers: symbs.map((s, sIdx) => sIdx)
+                });
+              }
+              return symbs;
+            })
             .flat();
 
           symbolizers[symbolizerIndex] = this.mergeSymbolizers(flattenedSymbolizers);
 
           // TODO: check if there are multiple layers with different filters
-          // and scaledenomintors and throw a warning that we only use the first
+          // and scaledenominators and throw a warning that we only use the first
           // one
           if (matchingLayers?.[0]) {
             filter = this.getFilterFromMapboxFilter(matchingLayers[0].filter);
@@ -682,12 +699,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       });
     } else {
       // returns array of rules where one rule contains one symbolizer
-      layers.forEach(layer => {
+      layers.forEach((layer, layerIdx) => {
         const symbolizers = this.getSymbolizersFromMapboxLayer(layer);
         if (symbolizers.length < 1) {
           return;
         }
-
         const filter = this.getFilterFromMapboxFilter(layer.filter);
         const scaleDenominator = this.getScaleDenominatorFromMapboxZoom(
           layer.minzoom,
@@ -699,11 +715,21 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           scaleDenominator,
           symbolizers
         };
-        gsRules?.push(rule);
+        gsRules.push(rule);
+        if (symbolizers.length > 1) {
+          splitSymbolizers.push({
+            rule: gsRules.length - 1,
+            symbolizers: symbolizers.map((s, sIdx) => sIdx)
+          });
+        }
       });
     }
 
-    return gsRules || [];
+    if (splitSymbolizers.length) {
+      mapboxRef.splitSymbolizers = splitSymbolizers;
+    }
+
+    return gsRules;
   }
 
   /**
@@ -716,6 +742,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     let style: Style = {} as Style;
     style.name = mapboxStyle.name || '';
     style.rules = [];
+    const mapboxRef = {};
     this.mbMetadata = mapboxStyle.metadata;
     if (mapboxStyle.sprite) {
       this.spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
@@ -725,9 +752,14 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       const layers = mapboxStyle.layers.filter(
         layer => !(layer.type === 'custom')
       ) as NoneCustomLayer[];
-      const rules = this.mapboxLayersToGeoStylerRules(layers);
+      const rules = this.mapboxLayersToGeoStylerRules(layers, mapboxRef);
       style.rules = style.rules.concat(rules);
+    }
 
+    if (Object.keys(mapboxRef).length) {
+      style.metadata = {
+        'mapbox:ref': mapboxRef
+      };
     }
     return style;
   }
@@ -791,7 +823,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     // Mapbox Style version
     const version = 8;
     const name = geoStylerStyle.name;
-    const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules);
+    const metadata = geoStylerStyle.metadata?.['mapbox:ref'];
+    const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules, metadata);
     const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this.spriteBaseUrl);
 
     let mapboxObject = omitBy({
@@ -819,7 +852,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param rules An array of GeoStylerStyle-Rules
    * @return An array of Mapbox Layers
    */
-  getMapboxLayersFromRules(rules: Rule[]): {layers: NoneCustomLayer[]; geoStylerRef: GeoStylerRef}
+  getMapboxLayersFromRules(rules: Rule[], mapboxRef: MapboxRef): {layers: NoneCustomLayer[]; geoStylerRef: GeoStylerRef}
   {
     // one layer corresponds to a single symbolizer within a rule
     // so filters and scaleDenominators have to be set for each symbolizer explicitly
@@ -852,11 +885,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         }
       }
 
-      rule.symbolizers.forEach((symbolizer: Symbolizer, symbolizerIndex: number) => {
-        geoStylerRef.rules[ruleIndex] = {
-          name: rule.name
-        };
+      geoStylerRef.rules[ruleIndex] = {
+        name: rule.name,
+        symbolizers: []
+      };
 
+      rule.symbolizers.forEach((symbolizer: Symbolizer, symbolizerIndex: number) => {
         // use existing layer properties
         let lyr: any = {};
         lyr.filter = layer.filter;
@@ -866,12 +900,23 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
         const styles = this.getStyleFromSymbolizer(symbolizer);
 
+        const shouldMergeIntoPrev = mapboxRef?.splitSymbolizers?.some(
+          s => s.rule === ruleIndex && s.symbolizers.length > 1 && s.symbolizers.slice(1).includes(symbolizerIndex)
+        );
+
         styles.forEach((style: any, styleIndex: number) => {
           const {
             type, paint, layout
           } = style;
 
           let lyrClone = structuredClone(lyr);
+
+          if (shouldMergeIntoPrev) {
+            lyrClone = layers.at(-1);
+            lyrClone.paint = {...lyrClone.paint, ...paint};
+            lyrClone.layout = {...lyrClone.layout, ...layout};
+            return;
+          }
 
           lyrClone.type = type;
           if (!MapboxStyleUtil.allUndefined(paint)) {
@@ -884,10 +929,17 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
           layers.push(omitBy(lyrClone, isUndefined) as NoneCustomLayer);
 
-          if (!Array.isArray(geoStylerRef?.rules?.[ruleIndex]?.symbolizers)) {
-            geoStylerRef.rules[ruleIndex].symbolizers = [[]];
+          let symbs = geoStylerRef.rules[ruleIndex].symbolizers;
+          if (!symbs) {
+            symbs = [];
           }
-          geoStylerRef.rules[ruleIndex]?.symbolizers?.[symbolizerIndex].push(lyrClone.id);
+
+          if (!symbs[symbolizerIndex]) {
+            symbs[symbolizerIndex] = [];
+          }
+
+          symbs[symbolizerIndex].push(lyrClone.id);
+          geoStylerRef.rules[ruleIndex].symbolizers = symbs;
         });
       });
     });

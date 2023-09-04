@@ -108,7 +108,7 @@ class MapboxStyleUtil {
   // TODO: TextSymbolizer can be removed once it is fixed in the geostyler-style
   public static symbolizerAllUndefined(symbolizer: Symbolizer | TextSymbolizer): boolean {
     return !Object.keys(symbolizer)
-      .filter(val => val !== 'kind')
+      .filter(val => val !== 'kind' && val !== 'visibility')
       .some((val: keyof Symbolizer) => typeof symbolizer[val] !== 'undefined');
   }
 

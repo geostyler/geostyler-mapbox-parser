@@ -48,6 +48,9 @@ import mb_line_patternline_metadata from '../data/mapbox_metadata/line_patternli
 import point_placeholdertext_simple from '../data/styles/point_placeholderText_simple';
 import mb_point_placeholdertext_simple from '../data/mapbox/point_placeholderText_simple';
 import mb_point_placeholdertext_simple_metadata from '../data/mapbox_metadata/point_placeholderText_simple';
+import icontext_symbolizer_metadata from '../data/styles_metadata/icontext_symbolizer';
+import mb_icontext_symbolizer from '../data/mapbox/icontext_symbolizer';
+import mb_icontext_symbolizer_metadata from '../data/mapbox_metadata/icontext_symbolizer';
 import { CustomLayerInterface } from 'mapbox-gl';
 import { AnyLayer } from 'mapbox-gl';
 
@@ -186,6 +189,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(icon_simpleicon_mapboxapi);
     });
+
+    it('can read a mapbox style with icontext symbolizer', async () => {
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_icontext_symbolizer);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(icontext_symbolizer_metadata);
+    });
   });
 
   describe('#writeStyle', () => {
@@ -288,6 +297,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: mbStyle } = await styleParser.writeStyle(icon_simpleicon_mapboxapi);
       expect(mbStyle).toBeDefined();
       expect(mbStyle).toEqual(mb_icon_simpleicon_mapboxapi_metadata);
+    });
+
+    it('can write a mapbox style with icontext symbolizer', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(icontext_symbolizer_metadata);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_icontext_symbolizer_metadata);
     });
   });
 });
