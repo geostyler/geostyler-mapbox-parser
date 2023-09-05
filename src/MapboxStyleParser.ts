@@ -646,12 +646,14 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * Creates a GeoStyler-Style Rule from a mapbox layer.
    *
    * @param layer The mapbox Layer
-   * @return A GeoStyler-Style Rule Array
+   * @param mbRef The mapbox ref object
+   * @return A GeoStyler-Style Rule Array and the updated mapboxRef
    */
-  mapboxLayersToGeoStylerRules(layers: NoneCustomLayer[], mapboxRef: MapboxRef): Rule[] {
+  mapboxLayersToGeoStylerRules(layers: NoneCustomLayer[], mbRef: MapboxRef): {rules: Rule[]; mapboxRef: MapboxRef} {
     const geoStylerRef: GeoStylerRef = this.mbMetadata?.['geostyler:ref'];
     const gsRules: Rule[] = [];
     const splitSymbolizers: MapboxRef['splitSymbolizers'] = [];
+    const mapboxRef = structuredClone(mbRef);
 
     if (geoStylerRef) {
       geoStylerRef.rules.forEach((rule, ruleIndex) => {
@@ -699,7 +701,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       });
     } else {
       // returns array of rules where one rule contains one symbolizer
-      layers.forEach((layer, layerIdx) => {
+      layers.forEach(layer => {
         const symbolizers = this.getSymbolizersFromMapboxLayer(layer);
         if (symbolizers.length < 1) {
           return;
@@ -729,7 +731,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       mapboxRef.splitSymbolizers = splitSymbolizers;
     }
 
-    return gsRules;
+    return {
+      rules: gsRules,
+      mapboxRef
+    };
   }
 
   /**
@@ -742,7 +747,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     let style: Style = {} as Style;
     style.name = mapboxStyle.name || '';
     style.rules = [];
-    const mapboxRef = {};
+    let mapboxRef: MapboxRef = {};
     this.mbMetadata = mapboxStyle.metadata;
     if (mapboxStyle.sprite) {
       this.spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
@@ -752,7 +757,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       const layers = mapboxStyle.layers.filter(
         layer => !(layer.type === 'custom')
       ) as NoneCustomLayer[];
-      const rules = this.mapboxLayersToGeoStylerRules(layers, mapboxRef);
+      const rulesAndRef = this.mapboxLayersToGeoStylerRules(layers, mapboxRef);
+      const rules = rulesAndRef.rules;
+      mapboxRef = rulesAndRef.mapboxRef;
       style.rules = style.rules.concat(rules);
     }
 
