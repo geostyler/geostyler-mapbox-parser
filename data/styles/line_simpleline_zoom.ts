@@ -13,7 +13,22 @@ const lineSimpleLine: Style = {
       color: '#FF0000',
       width: 5
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0]
+      },
+      sourceLayerMapping: {
+        foo: [0]
+      }
+    }
+  }
 };
 
 export default lineSimpleLine;

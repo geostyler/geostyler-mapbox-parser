@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const expression_math: Omit<MbStyle, 'sources'> = {
+const expression_math: MbStyle = {
   version: 8,
   name: 'Expression Math',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'r0_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['+', 13, 3, 7]
@@ -14,6 +21,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r1_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['abs', -12]
@@ -21,6 +30,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r2_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['acos', 4]
@@ -28,6 +39,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r3_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['asin', 4]
@@ -35,6 +48,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r4_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['atan', 4]
@@ -42,6 +57,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r5_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['ceil', 3.4]
@@ -49,6 +66,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r6_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['cos', 3.4]
@@ -56,6 +75,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r7_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['/', 100, 2]
@@ -63,6 +84,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r8_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['e']
@@ -70,6 +93,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r9_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['floor', 3.5]
@@ -77,6 +102,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r10_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['ln', 4.6]
@@ -84,6 +111,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r11_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['max', 13, 37, 0, 8, 15]
@@ -91,6 +120,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r12_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['min', 13, 37, 0, 8, 15]
@@ -98,6 +129,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r13_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['%', 3, 2]
@@ -105,6 +138,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r14_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['*', 2, 2.5, 10]
@@ -112,6 +147,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r15_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['pi']
@@ -119,6 +156,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r16_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['^', 2, 4]
@@ -126,6 +165,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r17_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['round', 13.37]
@@ -133,6 +174,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r18_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['sin', 1]
@@ -140,6 +183,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r19_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['sqrt', 1]
@@ -147,6 +192,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r20_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['-', 5, 6]
@@ -154,6 +201,8 @@ const expression_math: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r21_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-radius': ['tan', 1]

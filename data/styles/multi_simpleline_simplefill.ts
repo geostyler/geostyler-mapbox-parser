@@ -19,7 +19,22 @@ const multiSimpleLineSimpleFill: Style = {
       color: '#000000',
       opacity: 1
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0, 1]
+      },
+      sourceLayerMapping: {
+        foo: [0, 1]
+      }
+    }
+  }
 };
 
 export default multiSimpleLineSimpleFill;

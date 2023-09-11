@@ -1,12 +1,19 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const multiRuleLineFill: Omit<MbStyle, 'sources'> = {
+const multiRuleLineFill: MbStyle = {
   version: 8,
   name: 'Rule Line Fill',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Line Rule',
       type: 'line',
+      source: 'testsource',
+      'source-layer': 'foo',
       paint: {
         'line-color': '#000000',
         'line-width': 3,
@@ -19,6 +26,8 @@ const multiRuleLineFill: Omit<MbStyle, 'sources'> = {
     }, {
       id: 'Fill Rule',
       type: 'fill',
+      source: 'testsource',
+      'source-layer': 'foo',
       paint: {
         'fill-color': '#000000',
         'fill-opacity': 1

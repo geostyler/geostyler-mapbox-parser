@@ -48,7 +48,8 @@ import {
   SymbolPaint,
   Style as MapboxStyle,
   Sources,
-  Expression
+  Expression,
+  Layer
 } from 'mapbox-gl';
 import { gs2mbExpression, mb2gsExpression } from './Expressions';
 import { isBoolean, isString, isUndefined, omitBy, set } from 'lodash';
@@ -57,7 +58,7 @@ import { isBoolean, isString, isUndefined, omitBy, set } from 'lodash';
  * The style representation of mapbox-gl but with optional sources, as these are
  * not required for reading the style and get stripped when writing.
  */
-export type MbStyle = Omit<MapboxStyle, 'sources'> & { sources?: Sources };
+export type MbStyle = MapboxStyle;
 
 type NoneCustomLayer = Exclude<AnyLayer, CustomLayerInterface>;
 
@@ -82,6 +83,13 @@ type MapboxRef = {
     rule: number;
     symbolizers: number[];
   }[];
+  sources: Sources;
+  sourceMapping?: {
+    [source: keyof Sources]: number[];
+  };
+  sourceLayerMapping?: {
+    [key: string]: number[];
+  };
 };
 
 type SymbolType = {
@@ -654,6 +662,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const gsRules: Rule[] = [];
     const splitSymbolizers: MapboxRef['splitSymbolizers'] = [];
     const mapboxRef = structuredClone(mbRef);
+    const sourceMapping: MapboxRef['sourceMapping'] = {};
+    const sourceLayerMapping: MapboxRef['sourceLayerMapping'] = {};
 
     if (geoStylerRef) {
       geoStylerRef.rules.forEach((rule, ruleIndex) => {
@@ -661,6 +671,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         let symbolizers: Symbolizer[] = [];
         let filter: Filter | undefined;
         let scaleDenominator: ScaleDenominator | undefined;
+        let source: Layer['source'];
+        let sourceLayer: Layer['source-layer'];
         rule.symbolizers?.forEach((layerIds, symbolizerIndex) => {
           const matchingLayers = layers.filter(layer => layerIds.includes(layer.id));
           const flattenedSymbolizers = matchingLayers
@@ -687,6 +699,21 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
               matchingLayers[0].minzoom,
               matchingLayers[0].maxzoom,
             );
+            source = matchingLayers[0].source;
+            sourceLayer = matchingLayers[0]['source-layer'];
+
+            if (source && typeof source === 'string') {
+              if (!sourceMapping[source]) {
+                sourceMapping[source] = [];
+              }
+              sourceMapping[source].push(ruleIndex);
+            }
+            if (sourceLayer) {
+              if (!sourceLayerMapping[sourceLayer]) {
+                sourceLayerMapping[sourceLayer] = [];
+              }
+              sourceLayerMapping[sourceLayer].push(ruleIndex);
+            }
           }
           // TODO: care about layers not configured in the metadata
           // const noneMatchingLayes = layers.filter(layer => !layerIds.includes(layer.id));
@@ -718,6 +745,18 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           symbolizers
         };
         gsRules.push(rule);
+        if (layer.source && typeof layer.source === 'string') {
+          if (!sourceMapping[layer.source]) {
+            sourceMapping[layer.source] = [];
+          }
+          sourceMapping[layer.source].push(gsRules.length - 1);
+        }
+        if (layer['source-layer']) {
+          if (!sourceLayerMapping[layer['source-layer']]) {
+            sourceLayerMapping[layer['source-layer']] = [];
+          }
+          sourceLayerMapping[layer['source-layer']].push(gsRules.length - 1);
+        }
         if (symbolizers.length > 1) {
           splitSymbolizers.push({
             rule: gsRules.length - 1,
@@ -729,6 +768,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
     if (splitSymbolizers.length) {
       mapboxRef.splitSymbolizers = splitSymbolizers;
+    }
+    if (Object.keys(sourceMapping).length) {
+      mapboxRef.sourceMapping = sourceMapping;
+    }
+    if (Object.keys(sourceLayerMapping).length) {
+      mapboxRef.sourceLayerMapping = sourceLayerMapping;
     }
 
     return {
@@ -747,7 +792,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     let style: Style = {} as Style;
     style.name = mapboxStyle.name || '';
     style.rules = [];
-    let mapboxRef: MapboxRef = {};
+    let mapboxRef: MapboxRef = {
+      sources: mapboxStyle.sources || {}
+    };
     this.mbMetadata = mapboxStyle.metadata;
     if (mapboxStyle.sprite) {
       this.spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
@@ -763,11 +810,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       style.rules = style.rules.concat(rules);
     }
 
-    if (Object.keys(mapboxRef).length) {
-      style.metadata = {
-        'mapbox:ref': mapboxRef
-      };
-    }
+    style.metadata = {
+      'mapbox:ref': mapboxRef
+    };
     return style;
   }
 
@@ -801,12 +846,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return The Promise resolving with a GeoStylerStyle-WriteStyleResult
    */
-  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<Omit<MbStyle, 'sources'>>> {
-    return new Promise<WriteStyleResult<Omit<MbStyle, 'sources'>>>(resolve => {
+  writeStyle(geoStylerStyle: Style): Promise<WriteStyleResult<MbStyle>> {
+    return new Promise<WriteStyleResult<MbStyle>>(resolve => {
       const unsupportedProperties = this.checkForUnsupportedProperties(geoStylerStyle);
       try {
         const gsStyle = structuredClone(geoStylerStyle);
-        const output: Omit<MbStyle, 'sources'> = this.geoStylerStyleToMapboxObject(gsStyle);
+        const output: MbStyle = this.geoStylerStyleToMapboxObject(gsStyle);
         resolve({
           output,
           unsupportedProperties,
@@ -826,12 +871,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return A Mapbox Style object
    */
-  geoStylerStyleToMapboxObject(geoStylerStyle: Style): Omit<MbStyle, 'sources'> {
+  geoStylerStyleToMapboxObject(geoStylerStyle: Style): MbStyle {
     // Mapbox Style version
     const version = 8;
     const name = geoStylerStyle.name;
-    const metadata = geoStylerStyle.metadata?.['mapbox:ref'];
-    const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules, metadata);
+    const mapboxRef = geoStylerStyle.metadata?.['mapbox:ref'];
+    const {layers, geoStylerRef} = this.getMapboxLayersFromRules(geoStylerStyle.rules, mapboxRef);
     const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this.spriteBaseUrl);
 
     let mapboxObject = omitBy({
@@ -839,7 +884,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       name,
       layers,
       sprite,
-    }, isUndefined) as Omit<MbStyle, 'sources'>;
+      sources: mapboxRef?.sources || {}
+    }, isUndefined) as MbStyle;
 
     if (geoStylerRef){
       mapboxObject = {
@@ -933,6 +979,25 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
             lyrClone.layout = layout;
           }
           lyrClone.id = `r${ruleIndex}_sy${symbolizerIndex}_st${styleIndex}`;
+
+          const sourceMapping = mapboxRef?.sourceMapping;
+          if (sourceMapping) {
+            const matchingSource = Object.keys(sourceMapping)
+              .filter(source => sourceMapping[source].includes(ruleIndex))
+              .pop();
+            if (matchingSource !== undefined) {
+              lyrClone.source = matchingSource;
+            }
+          }
+          const sourceLayerMapping = mapboxRef?.sourceLayerMapping;
+          if (sourceLayerMapping) {
+            const matchingSourceLayer = Object.keys(sourceLayerMapping)
+              .filter(sourceLayer => sourceLayerMapping[sourceLayer].includes(ruleIndex))
+              .pop();
+            if (matchingSourceLayer !== undefined) {
+              lyrClone['source-layer'] = matchingSourceLayer;
+            }
+          }
 
           layers.push(omitBy(lyrClone, isUndefined) as NoneCustomLayer);
 

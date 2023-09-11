@@ -1,12 +1,19 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const pointSimpleText: Omit<MbStyle, 'sources'> = {
+const pointSimpleText: MbStyle = {
   version: 8,
   name: 'Simple Text',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Simple Text',
       type: 'symbol',
+      source: 'testsource',
+      'source-layer': 'foo',
       layout: {
         'text-field': 'River'
       },

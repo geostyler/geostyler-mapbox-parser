@@ -12,54 +12,12 @@ The endpoint MUST return a reference to a single image.
 
 ---
 
-Mapbox Styles require the properties [`sources`](https://docs.mapbox.com/mapbox-gl-js/style-spec/#root-sources) (root property) and [`source`](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layer-source) (layers property). geostyler-mapbox-parser only parses style related properties to keep a clear separation between style and data. Thus, `sources` and `source` have to be added to the created styleobject after parsing, manually. See code snippet below for an example implementation of a wrapper function.
-
-```javascript
-/**
- * Example wrapper function that maps a source to the corresponding
- * layer based on layer id. Expects a mapper object with key value
- * pairs in the format of "layerId:'sourceName'".
-**/
-function wrapper(sources, mapper, style) {
-  if (typeof style === 'undefined') {
-    return;
-  }
-  if (typeof mapper === 'undefined') {
-    return style;
-  }
-  if (typeof sources === 'undefined') {
-    return style;
-  }
-
-  style.sources = sources;
-  style.layers.forEach(l => {
-    l.source = mapper[l.id];
-  });
-  return style;
-}
-
-// required mapper object where the key refers to the layer id
-// and the value to the source name.
-var mapper = {
-  "water": "mapbox-streets"
-};
-
-// mapbox sources object
-var sources = {
-  "mapbox-streets": {
-    "type": "vector",
-    "url": "mapbox://mapbox.mapbox-streets-v6"
-  }
-};
-
-// mapbox style object
-var mbStyle = {
-  version: 8,
-  layers: [...]
-};
-
-var wrappedStyle = wrapper(sources, mapper, style);
-```
+Mapbox styles require the properties [`sources`](https://docs.mapbox.com/mapbox-gl-js/style-spec/#root-sources) (root property)
+and [`source`](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layer-source) (layers property).
+In order to keep a clear separation between style and data, geostyler-mapbox-parser puts the source-related attributes into the metadata block of
+a geostyler-style under `mapbox:ref`. There, the original sources object, as well as the mappings between layers and sources will be stored
+(properties `sources`, `sourceMapping` and `layerSourceMapping`). Applications can then use these mappings for re-creating the same layer structure
+using their map library of choice (e.g. OpenLayers, etc.).
 
 ### How to use
 

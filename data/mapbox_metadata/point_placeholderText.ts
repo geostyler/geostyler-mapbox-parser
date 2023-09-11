@@ -1,12 +1,19 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const pointPlaceholderText: Omit<MbStyle, 'sources'> = {
+const pointPlaceholderText: MbStyle = {
   version: 8,
   name: 'Placeholder Text',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'r0_sy0_st0',
       type: 'symbol',
+      source: 'testsource',
+      'source-layer': 'foo',
       layout: {
         'text-field': ['format',
           'Area: ', {},

@@ -228,7 +228,22 @@ const gs_expression_decisions: Style = {
         ]
       }
     }]
-  },]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      sourceLayerMapping: {
+        foo: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    }
+  }
 };
 
 export default gs_expression_decisions;

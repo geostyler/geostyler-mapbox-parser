@@ -30,7 +30,22 @@ const gs_expression_string: Style = {
         args: ['peter']
       }
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0, 1, 2]
+      },
+      sourceLayerMapping: {
+        foo: [0, 1, 2]
+      }
+    }
+  }
 };
 
 export default gs_expression_string;

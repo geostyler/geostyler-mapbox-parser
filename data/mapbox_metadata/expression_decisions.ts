@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const expression_decisions: Omit<MbStyle, 'sources'> = {
+const expression_decisions: MbStyle = {
   version: 8,
   name: 'Expression Decisions',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'r0_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -19,6 +26,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r1_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -31,6 +40,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r2_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -43,6 +54,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r3_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -55,6 +68,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r4_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -67,6 +82,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r5_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -79,6 +96,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r6_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -91,6 +110,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r7_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [
@@ -106,6 +127,8 @@ const expression_decisions: Omit<MbStyle, 'sources'> = {
     },
     {
       id: 'r8_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': [

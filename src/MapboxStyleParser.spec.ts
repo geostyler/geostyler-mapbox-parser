@@ -51,6 +51,12 @@ import mb_point_placeholdertext_simple_metadata from '../data/mapbox_metadata/po
 import icontext_symbolizer_metadata from '../data/styles_metadata/icontext_symbolizer';
 import mb_icontext_symbolizer from '../data/mapbox/icontext_symbolizer';
 import mb_icontext_symbolizer_metadata from '../data/mapbox_metadata/icontext_symbolizer';
+import source_mapping from '../data/styles/source_mapping';
+import mb_source_mapping from '../data/mapbox/source_mapping';
+import mb_source_mapping_metadata from '../data/mapbox_metadata/source_mapping';
+import source_layer_mapping from '../data/styles/source_layer_mapping';
+import mb_source_layer_mapping from '../data/mapbox/source_layer_mapping';
+import mb_source_layer_mapping_metadata from '../data/mapbox_metadata/source_layer_mapping';
 import { CustomLayerInterface } from 'mapbox-gl';
 import { AnyLayer } from 'mapbox-gl';
 
@@ -195,6 +201,18 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(icontext_symbolizer_metadata);
     });
+
+    it('can keep track of a mapbox style sources', async () => {
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_source_mapping);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(source_mapping);
+    });
+
+    it('can keep track of a mapbox style layer source', async () => {
+      const { output: geostylerStyle } = await styleParser.readStyle(mb_source_layer_mapping);
+      expect(geostylerStyle).toBeDefined();
+      expect(geostylerStyle).toEqual(source_layer_mapping);
+    });
   });
 
   describe('#writeStyle', () => {
@@ -303,6 +321,18 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: mbStyle } = await styleParser.writeStyle(icontext_symbolizer_metadata);
       expect(mbStyle).toBeDefined();
       expect(mbStyle).toEqual(mb_icontext_symbolizer_metadata);
+    });
+
+    it('can properly resolve the source mapping', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(source_mapping);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_source_mapping_metadata);
+    });
+
+    it('can properly resolve the source layer mapping', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(source_layer_mapping);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_source_layer_mapping_metadata);
     });
   });
 });

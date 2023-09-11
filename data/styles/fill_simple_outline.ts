@@ -13,7 +13,22 @@ const fillSimpleFillOutline: Style = {
       outlineCap: 'butt',
       outlineJoin: 'round'
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0]
+      },
+      sourceLayerMapping: {
+        foo: [0]
+      }
+    }
+  }
 };
 
 export default fillSimpleFillOutline;
