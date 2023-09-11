@@ -1,13 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const expression_case: Omit<MbStyle, 'sources'> = {
+const expression_case: MbStyle = {
   version: 8,
   name: 'Expression Case',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'earthquake_circle',
       type: 'circle',
+      source: 'testsource',
+      'source-layer': 'foo',
       paint: {
         'circle-color': [
           'case',

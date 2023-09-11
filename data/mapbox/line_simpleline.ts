@@ -1,11 +1,18 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const lineSimpleLine: Omit<MbStyle, 'sources'> = {
+const lineSimpleLine: MbStyle = {
   version: 8,
   name: 'Simple Line',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Simple Line',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'line',
       paint: {
         'line-color': '#000000',

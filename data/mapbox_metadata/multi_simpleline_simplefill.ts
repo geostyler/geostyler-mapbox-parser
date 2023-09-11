@@ -1,11 +1,18 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const multiSimpleLineSimpleFill: Omit<MbStyle, 'sources'> = {
+const multiSimpleLineSimpleFill: MbStyle = {
   version: 8,
   name: 'Simple Line Simple Fill',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'r0_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'line',
       paint: {
         'line-color': '#000000',
@@ -18,6 +25,8 @@ const multiSimpleLineSimpleFill: Omit<MbStyle, 'sources'> = {
       }
     }, {
       id: 'r1_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'fill',
       paint: {
         'fill-color': '#000000',

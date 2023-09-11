@@ -1,10 +1,17 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const fillSimpleFillOutline: Omit<MbStyle, 'sources'> = {
+const fillSimpleFillOutline: MbStyle = {
   version: 8,
   name: 'Simple Fill With outline',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [{
     id: 'r0_sy0_st0',
+    source: 'testsource',
+    'source-layer': 'foo',
     type: 'fill',
     paint: {
       'fill-color': '#ff0000'
@@ -12,6 +19,8 @@ const fillSimpleFillOutline: Omit<MbStyle, 'sources'> = {
   },
   {
     id: 'r0_sy0_st1',
+    source: 'testsource',
+    'source-layer': 'foo',
     type: 'line',
     paint: {
       'line-opacity': 0.5,

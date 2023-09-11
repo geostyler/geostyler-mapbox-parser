@@ -1,12 +1,19 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const fillSimpleFill: Omit<MbStyle, 'sources'> = {
+const fillSimpleFill: MbStyle = {
   version: 8,
   name: 'Pattern Fill',
   sprite: 'https://testurl.com',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Pattern Fill',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'fill',
       paint: {
         'fill-color': '#000000',

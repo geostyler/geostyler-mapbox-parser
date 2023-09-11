@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const expression_string: Omit<MbStyle, 'sources'> = {
+const expression_string: MbStyle = {
   version: 8,
   name: 'Expression String',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'r0_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'symbol',
       layout: {
         'text-field': [
@@ -18,6 +25,8 @@ const expression_string: Omit<MbStyle, 'sources'> = {
       }
     }, {
       id: 'r1_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'symbol',
       layout: {
         'text-field': [
@@ -27,6 +36,8 @@ const expression_string: Omit<MbStyle, 'sources'> = {
       }
     }, {
       id: 'r2_sy0_st0',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'symbol',
       layout: {
         'text-field': [

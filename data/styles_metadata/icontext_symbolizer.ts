@@ -23,10 +23,21 @@ const iconTextSymbolizer: Style = {
   ],
   metadata: {
     'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
       splitSymbolizers: [{
         rule: 0,
         symbolizers: [0, 1]
-      }]
+      }],
+      sourceMapping: {
+        testsource: [0]
+      },
+      sourceLayerMapping: {
+        foo: [0]
+      }
     }
   }
 };

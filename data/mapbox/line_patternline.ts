@@ -1,13 +1,20 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const linePatternLine: Omit<MbStyle, 'sources'> = {
+const linePatternLine: MbStyle = {
   version: 8,
   name: 'Pattern Line',
   sprite: 'https://testurl.com',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Pattern Line',
       type: 'line',
+      source: 'testsource',
+      'source-layer': 'foo',
       paint: {
         'line-color': '#000000',
         'line-width': 3,

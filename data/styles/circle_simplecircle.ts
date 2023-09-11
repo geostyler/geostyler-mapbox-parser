@@ -14,7 +14,22 @@ const circleSimpleCircle: Style = {
       strokeColor: '#FF0000',
       strokeOpacity: 0.5
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0]
+      },
+      sourceLayerMapping: {
+        foo: [0]
+      }
+    }
+  }
 };
 
 export default circleSimpleCircle;

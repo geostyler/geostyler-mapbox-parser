@@ -1,11 +1,18 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const circleSimpleCircle: Omit<MbStyle, 'sources'> = {
+const circleSimpleCircle: MbStyle = {
   version: 8,
   name: 'Simple Circle',
+  sources: {
+    testsource: {
+      type: 'vector'
+    }
+  },
   layers: [
     {
       id: 'Simple Circle',
+      source: 'testsource',
+      'source-layer': 'foo',
       type: 'circle',
       paint: {
         'circle-color': '#000000',

@@ -86,7 +86,22 @@ const gs_expression_case: Style = {
       radius: 12,
       fillOpacity: 0.6
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0]
+      },
+      sourceLayerMapping: {
+        foo: [0]
+      }
+    }
+  }
 };
 
 export default gs_expression_case;

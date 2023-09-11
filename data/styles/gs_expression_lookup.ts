@@ -22,7 +22,22 @@ const gs_expression_lookup: Style = {
         args: ['peter', 0, 2]
       }
     }]
-  }]
+  }],
+  metadata: {
+    'mapbox:ref': {
+      sources: {
+        testsource: {
+          type: 'vector'
+        }
+      },
+      sourceMapping: {
+        testsource: [0, 1]
+      },
+      sourceLayerMapping: {
+        foo: [0, 1]
+      }
+    }
+  }
 };
 
 export default gs_expression_lookup;
