@@ -15,8 +15,8 @@ const textPlacementPoint: MbStyle = {
       'source-layer': 'foo',
       type: 'symbol',
       layout: {
-        'symbol-placement': 'point',
-      },
+        'symbol-placement': 'point'
+      }
     }
   ],
   metadata: {

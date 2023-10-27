@@ -6,7 +6,7 @@ const textPlacementLineCenter: Style = {
     name: 'Simple Text',
     symbolizers: [{
       kind: 'Text',
-      placement: 'line-center',
+      placement: 'line-center'
     }]
   }],
   metadata: {

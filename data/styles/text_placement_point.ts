@@ -6,7 +6,7 @@ const textPlacementPoint: Style = {
     name: 'Simple Text',
     symbolizers: [{
       kind: 'Text',
-      placement: 'point',
+      placement: 'point'
     }]
   }],
   metadata: {

@@ -26,7 +26,7 @@ import {
   JoinType,
   isFilter,
   isScaleDenominator,
-  isGeoStylerBooleanFunction,
+  isGeoStylerBooleanFunction
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -417,7 +417,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle enum values
       transform: layout?.['text-transform'] as TextSymbolizer['transform'],
       visibility: layout?.visibility && layout?.visibility !== 'none',
-      placement: mb2gsExpression<TextSymbolizer['placement']>(layout?.['symbol-placement']),
+      placement: mb2gsExpression<TextSymbolizer['placement']>(layout?.['symbol-placement'])
     };
 
     if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
