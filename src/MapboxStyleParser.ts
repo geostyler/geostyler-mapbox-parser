@@ -26,7 +26,7 @@ import {
   JoinType,
   isFilter,
   isScaleDenominator,
-  isGeoStylerBooleanFunction
+  isGeoStylerBooleanFunction,
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -416,7 +416,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       size: mb2gsExpression<number>(layout?.['text-size']),
       // TODO: handle enum values
       transform: layout?.['text-transform'] as TextSymbolizer['transform'],
-      visibility: layout?.visibility && layout?.visibility !== 'none'
+      visibility: layout?.visibility && layout?.visibility !== 'none',
+      placement: mb2gsExpression<TextSymbolizer['placement']>(layout?.['symbol-placement']),
     };
 
     if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
@@ -867,7 +868,6 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
   /**
    * Write a Mapbox Style Object based on a GeoStylerStyle.
-   *
    * @param geoStylerStyle A GeoStylerStyle-Style
    * @return A Mapbox Style object
    */
@@ -1515,6 +1515,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       size,
       transform,
       avoidEdges,
+      placement,
       visibility
     } = symbolizer;
 
@@ -1542,6 +1543,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'text-offset': offset as SymbolLayout['text-offset'],
       'text-allow-overlap': allowOverlap as SymbolLayout['text-allow-overlap'],
       'text-optional': optional as SymbolLayout['text-optional'],
+      'symbol-placement': placement as SymbolLayout['symbol-placement'],
       visibility: this.getVisibility(visibility)
     };
 

@@ -59,18 +59,24 @@ import mb_source_layer_mapping from '../data/mapbox/source_layer_mapping';
 import mb_source_layer_mapping_metadata from '../data/mapbox_metadata/source_layer_mapping';
 import { CustomLayerInterface } from 'mapbox-gl';
 import { AnyLayer } from 'mapbox-gl';
-
+import text_placement_line_center from '../data/styles/text_placement_line_center';
+import mb_placement_line_center from '../data/mapbox/text_placement_line_center';
+import mb_text_placement_line_center_metadata from '../data/mapbox_metadata/text_placement_line_center';
+import mb_text_placement_line from '../data/mapbox/text_placement';
+import text_placement_line from '../data/styles/text_placement_line';
+import mb_text_placement_line_metadata from '../data/mapbox_metadata/text_placement_line';
+import mb_text_placement_point from '../data/mapbox/text_placement_point';
+import text_placement_point from '../data/styles/text_placement_point';
+import mb_text_placement_point_metadata from '../data/mapbox_metadata/text_placement_point';
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
 });
 
 describe('MapboxStyleParser implements StyleParser', () => {
   let styleParser: MapboxStyleParser;
-
   beforeEach(() => {
     styleParser = new MapboxStyleParser();
   });
-
   describe('#readStyle', () => {
     it('can read a mapbox Line style', async () => {
       expect.assertions(2);
@@ -84,6 +90,26 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_line_patternline);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(line_patternline);
+    });
+    it('can read a mapbox text placement line value', async () => {
+      expect.assertions(2);
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_text_placement_line);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(text_placement_line);
+    });
+
+    it('can read a mapbox text placement point value', async () => {
+      expect.assertions(2);
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_text_placement_point);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(text_placement_point);
+    });
+
+    it('can read a mapbox text placement line center value', async () => {
+      expect.assertions(2);
+      const { output: geoStylerStyle } = await styleParser.readStyle(mb_placement_line_center);
+      expect(geoStylerStyle).toBeDefined();
+      expect(geoStylerStyle).toEqual(text_placement_line_center);
     });
 
     it('can read a mapbox Fill style with outline', async () => {
@@ -286,6 +312,24 @@ describe('MapboxStyleParser implements StyleParser', () => {
       expect(mbStyle).toEqual(mb_multi_rule_line_fill_metadata);
     });
 
+    it('can write a mapbox text line placement', async() => {
+      expect.assertions(2);
+      const {output: mbStyle} = await styleParser.writeStyle(text_placement_line);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_text_placement_line_metadata);
+    });
+    it('can write a mapbox text line center placement', async() => {
+      expect.assertions(2);
+      const {output: mbStyle} = await styleParser.writeStyle(text_placement_line_center);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_text_placement_line_center_metadata);
+    });
+    it('can write a mapbox text point placement', async() => {
+      expect.assertions(2);
+      const {output: mbStyle} = await styleParser.writeStyle(text_placement_point);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(mb_text_placement_point_metadata);
+    });
     it('can write a mapbox style with a complex filter', async () => {
       expect.assertions(2);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_basefilter);
