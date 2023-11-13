@@ -1,7 +1,7 @@
 # geostyler-mapbox-parser
 
 [![Coverage Status](https://coveralls.io/repos/github/geostyler/geostyler-mapbox-parser/badge.svg?branch=master)](https://coveralls.io/github/geostyler/geostyler-mapbox-parser?branch=master)
-[![License](https://img.shields.io/github/license/geostyler/geostyler-style)](https://github.com/geostyler/geostyler-style/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/geostyler/geostyler-mapbox-parser)](https://github.com/geostyler/geostyler-mapbox-parser/blob/master/LICENSE)
 [![npm version](https://badge.fury.io/js/geostyler-mapbox-parser.svg)](https://www.npmjs.com/package/geostyler-mapbox-parser)
 
 GeoStyler-Style-Parser implementation for Mapbox
