@@ -1,4 +1,8 @@
 # geostyler-mapbox-parser
+
+[![Lint & Test](https://github.com/geostyler/geostyler-mapbox-parser/actions/workflows/on-push-master.yml/badge.svg)](https://github.com/geostyler/geostyler-mapbox-parser/actions/workflows/on-push-master.yml)
+[![License](https://img.shields.io/github/license/geostyler/geostyler-style)](https://github.com/geostyler/geostyler-style/blob/master/LICENSE)
+
 GeoStyler-Style-Parser implementation for Mapbox
 
 ### Important Notes
