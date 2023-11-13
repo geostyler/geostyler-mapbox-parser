@@ -26,7 +26,6 @@
     "build",
     "coverage",
     "data",
-    "dev-build.config.js",
     "jest",
     "node_modules",
     "scripts",
