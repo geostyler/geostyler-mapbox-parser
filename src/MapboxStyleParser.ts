@@ -135,7 +135,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           support: 'none',
           info: 'Use opacity instead.'
         },
-        outlineWidthUnit: 'none'
+        outlineWidthUnit: 'none',
+        graphicFill: {
+          support: 'partial',
+          info: 'Only Sprite is supported.'
+        }
       },
       LineSymbolizer: {
         dashOffset: 'none',
@@ -143,7 +147,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
         gapWidthUnit: 'none',
         spacing: 'none',
         spacingUnit: 'none',
-        widthUnit: 'none'
+        widthUnit: 'none',
+        graphicFill: {
+          support: 'partial',
+          info: 'Only Sprite is supported.'
+        }
       },
       MarkSymbolizer: {
         support: 'partial',
@@ -159,7 +167,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       IconSymbolizer: {
         haloOpacity: 'none',
         haloWidthUnit: 'none',
-        sizeUnit: 'none'
+        sizeUnit: 'none',
+        image: {
+          support: 'partial',
+          info: 'Only Sprite is supported.'
+        }
       },
       RasterSymbolizer: 'none',
       TextSymbolizer: {
@@ -312,7 +324,6 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       size
     });
 
-    // TODO: check if ther can be other filenendings
     return {
       source: this.spriteBaseUrl + '.png',
       position,
@@ -1328,11 +1339,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    */
   handleSprite(sprite: string | GeoStylerStringFunction | Sprite): (string | undefined) {
     if (typeof sprite === 'string' || isGeoStylerFunction(sprite)) {
-      // TODO add to unsupportedProperties
-      return undefined;
+      return;
     }
     if (isGeoStylerStringFunction(sprite.source)) {
-      return undefined;
+      return;
     } else {
       // remove fileending
       this.spriteBaseUrl = sprite.source.replace(/\.[^/.]+$/, '');
