@@ -93,10 +93,10 @@ export type MapboxRef = {
   };
   sprite?: {
     [key: string]: {
-      position: [number, number],
-      size: [number, number]
-    }
-  }
+      position: [number, number];
+      size: [number, number];
+    };
+  };
 };
 
 type SymbolType = {
@@ -949,9 +949,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
    *
    * @param rules An array of GeoStylerStyle-Rules
    */
-  getMapboxLayersFromRules(rules: Rule[]):
-    { layers: NoneCustomLayer[]; geoStylerRef: GeoStylerRef }
-  {
+  getMapboxLayersFromRules(rules: Rule[]): { layers: NoneCustomLayer[]; geoStylerRef: GeoStylerRef } {
     // one layer corresponds to a single symbolizer within a rule
     // so filters and scaleDenominators have to be set for each symbolizer explicitly
     const layers: NoneCustomLayer[] = [];
@@ -1474,7 +1472,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'icon-allow-overlap': gs2mbExpression<boolean>(allowOverlap),
       'icon-optional': optional as SymbolLayout['icon-optional'],
       'icon-rotation-alignment': gs2mbExpression<SymbolLayout['icon-rotation-alignment']>
-        (rotationAlignment) as SymbolLayout['icon-rotation-alignment'],
+      (rotationAlignment) as SymbolLayout['icon-rotation-alignment'],
       'icon-size': gs2mbExpression<number>(size),
       'icon-text-fit': gs2mbExpression<SymbolLayout['icon-text-fit']>(textFit) as SymbolLayout['icon-text-fit'],
       // TODO: handle array values
@@ -1488,7 +1486,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'icon-offset': offset as SymbolLayout['icon-offset'],
       'icon-anchor': gs2mbExpression<SymbolLayout['icon-anchor']>(anchor),
       'icon-pitch-alignment': gs2mbExpression<SymbolLayout['icon-pitch-alignment']>
-        (pitchAlignment) as SymbolLayout['icon-pitch-alignment'],
+      (pitchAlignment) as SymbolLayout['icon-pitch-alignment'],
       visibility: this.getVisibility(visibility)
     };
     return omitBy(layout, isUndefined);
@@ -1554,9 +1552,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const paint: SymbolLayout = {
       'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
       'text-pitch-alignment': gs2mbExpression<SymbolLayout['text-pitch-alignment']>
-        (pitchAlignment) as SymbolLayout['text-pitch-alignment'],
+      (pitchAlignment) as SymbolLayout['text-pitch-alignment'],
       'text-rotation-alignment': gs2mbExpression<SymbolLayout['text-rotation-alignment']>
-        (rotationAlignment) as SymbolLayout['text-rotation-alignment'],
+      (rotationAlignment) as SymbolLayout['text-rotation-alignment'],
       'text-field': this.getTextFieldFromLabel(label),
       // TODO: handle array values
       'text-font': font as SymbolLayout['text-font'],
@@ -1641,11 +1639,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle array values
       'circle-translate': offset as CirclePaint['circle-translate'],
       'circle-translate-anchor': gs2mbExpression<CirclePaint['circle-translate-anchor']>
-        (offsetAnchor) as CirclePaint['circle-translate-anchor'],
+      (offsetAnchor) as CirclePaint['circle-translate-anchor'],
       'circle-pitch-scale': gs2mbExpression<CirclePaint['circle-pitch-scale']>
-        (pitchScale) as CirclePaint['circle-pitch-scale'],
+      (pitchScale) as CirclePaint['circle-pitch-scale'],
       'circle-pitch-alignment': gs2mbExpression<CirclePaint['circle-pitch-alignment']>
-        (pitchAlignment) as CirclePaint['circle-pitch-alignment'],
+      (pitchAlignment) as CirclePaint['circle-pitch-alignment'],
       'circle-stroke-width': gs2mbExpression<number>(strokeWidth),
       'circle-stroke-color': gs2mbExpression<string>(strokeColor),
       'circle-stroke-opacity': gs2mbExpression<number>(strokeOpacity)

@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import MapboxStyleParser from './MapboxStyleParser';
-import { mockFetchResult } from '../test/util';
 
 import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
@@ -69,6 +68,18 @@ import mb_text_placement_line_metadata from '../data/mapbox_metadata/text_placem
 import mb_text_placement_point from '../data/mapbox/text_placement_point';
 import text_placement_point from '../data/styles/text_placement_point';
 import mb_text_placement_point_metadata from '../data/mapbox_metadata/text_placement_point';
+
+const mockFetchResult = (data: any) => {
+  jest.spyOn(global, 'fetch')
+    .mockImplementationOnce(() => {
+      const response = {
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(data),
+      } as Response;
+      return Promise.resolve(response);
+    });
+};
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
