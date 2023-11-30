@@ -1,4 +1,5 @@
-import { Symbolizer, TextSymbolizer } from 'geostyler-style';
+import { Sprite, Symbolizer, TextSymbolizer } from 'geostyler-style';
+import { MapboxRef } from '../MapboxStyleParser';
 
 class MapboxStyleUtil {
 
@@ -157,6 +158,24 @@ class MapboxStyleUtil {
       return `{${match}}`;
     });
     return gsLabel;
+  }
+
+  public static getSpriteName(sprite: Sprite, metadata: MapboxRef): string {
+    if (!metadata?.sprite || !sprite) {
+      throw new Error('Can not retrieve sprite name. Sprite or metadata missing.');
+    }
+    const name = Object.keys(metadata.sprite)
+      .find(key => {
+        const value = metadata.sprite![key];
+        return value.position[0] === sprite.position[0] &&
+          value.position[1] === sprite.position[1] &&
+          value.size[0] === sprite.size[0] &&
+          value.size[1] === sprite.size[1];
+      });
+    if (!name) {
+      throw new Error('Can not retrieve sprite name. No matching sprite in metadata.');
+    }
+    return name || '';
   }
 }
 

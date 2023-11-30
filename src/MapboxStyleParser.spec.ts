@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import MapboxStyleParser from './MapboxStyleParser';
+import { mockFetchResult } from '../test/util';
 
 import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
@@ -68,6 +69,7 @@ import mb_text_placement_line_metadata from '../data/mapbox_metadata/text_placem
 import mb_text_placement_point from '../data/mapbox/text_placement_point';
 import text_placement_point from '../data/styles/text_placement_point';
 import mb_text_placement_point_metadata from '../data/mapbox_metadata/text_placement_point';
+
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
 });
@@ -79,14 +81,20 @@ describe('MapboxStyleParser implements StyleParser', () => {
   });
   describe('#readStyle', () => {
     it('can read a mapbox Line style', async () => {
-      expect.assertions(2);
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_line_simpleline);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(line_simpleline);
     });
 
     it('can read a mapbox Line style with fill pattern', async () => {
-      expect.assertions(2);
+      mockFetchResult({
+        poi: {
+          width: 12,
+          height: 12,
+          x: 0,
+          y: 0
+        }
+      });
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_line_patternline);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(line_patternline);
@@ -127,7 +135,14 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can read a mapbox Fill style with fill pattern', async () => {
-      expect.assertions(2);
+      mockFetchResult({
+        poi: {
+          width: 12,
+          height: 12,
+          x: 0,
+          y: 0
+        }
+      });
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_fill_patternfill);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(fill_patternfill);
@@ -209,20 +224,42 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can read a mapbox style with an icon', async () => {
-      expect.assertions(2);
+      mockFetchResult({
+        poi: {
+          width: 12,
+          height: 12,
+          x: 0,
+          y: 0
+        }
+      });
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_icon_simpleicon);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(icon_simpleicon);
     });
 
     it('can read a mapbox style with an icon and resolves mapbox api', async () => {
-      expect.assertions(2);
+      mockFetchResult({
+        poi: {
+          width: 12,
+          height: 12,
+          x: 0,
+          y: 0
+        }
+      });
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_icon_simpleicon_mapboxapi);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(icon_simpleicon_mapboxapi);
     });
 
     it('can read a mapbox style with icontext symbolizer', async () => {
+      mockFetchResult({
+        poi: {
+          width: 12,
+          height: 12,
+          x: 0,
+          y: 0
+        }
+      });
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_icontext_symbolizer);
       expect(geoStylerStyle).toBeDefined();
       expect(geoStylerStyle).toEqual(icontext_symbolizer_metadata);

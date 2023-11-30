@@ -3,7 +3,7 @@ import { MbStyle } from '../../src/MapboxStyleParser';
 const linePatternLine: MbStyle = {
   version: 8,
   name: 'Pattern Line',
-  sprite: 'https://testurl.com',
+  sprite: 'https://testurl.com/sprites/mysprite',
   sources: {
     testsource: {
       type: 'vector'
