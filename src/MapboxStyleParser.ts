@@ -99,6 +99,13 @@ export type MapboxRef = {
   };
 };
 
+type MapboxSpriteInfo = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 type SymbolType = {
   textSymbolizer?: TextSymbolizer;
   iconSymbolizer?: IconSymbolizer;
@@ -229,6 +236,10 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
 
   private spriteBaseUrl: string;
 
+  private spriteCache: {
+    [spriteName: string]: MapboxSpriteInfo;
+  };
+
   constructor(options?: OptionsType) {
     if (options && options.ignoreConversionErrors) {
       this.ignoreConversionErrors = options.ignoreConversionErrors;
@@ -298,6 +309,17 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     return gsLabel;
   }
 
+  async getSpriteData(spriteName: string): Promise<MapboxSpriteInfo> {
+    if (this.spriteCache?.[spriteName]) {
+      return this.spriteCache[spriteName];
+    } else {
+      const response = await fetch(this.spriteBaseUrl + '.json');
+      const json = await response.json();
+      this.spriteCache = json;
+      return json[spriteName];
+    }
+  }
+
   /**
    * Creates an image url based on the sprite baseurl and the sprite name.
    *
@@ -309,12 +331,13 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       return;
     }
     if (!this.spriteBaseUrl) {
-      return;
+      throw new Error(`Could not resolve sprite ${spriteName}. No base url found.`);
+    }
+    if (!isString(spriteName)) {
+      throw new Error('Can not handle mapbox expressions for sprite names (e.g. icon-image).');
     }
 
-    const response = await fetch(this.spriteBaseUrl + '.json');
-    const json = await response.json();
-    const data = json[spriteName];
+    const data = await this.getSpriteData(spriteName);
     const position: [number, number] = [data.x, data.y];
     const size: [number, number] = [data.width, data.height];
 
