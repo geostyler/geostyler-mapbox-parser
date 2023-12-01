@@ -6,7 +6,11 @@ const iconSimpleIcon: Style = {
     name: 'Simple Icon',
     symbolizers: [{
       kind: 'Icon',
-      image: '/sprites/?name=poi&baseurl=' + encodeURIComponent('https://api.mapbox.com/sprites/mapbox/streets-v8')
+      image: {
+        source: 'https://api.mapbox.com/sprites/mapbox/streets-v8.png',
+        position: [0, 0],
+        size: [12, 12]
+      }
     }]
   }],
   metadata: {
@@ -21,7 +25,19 @@ const iconSimpleIcon: Style = {
       },
       sourceLayerMapping: {
         foo: [0]
-      }
+      },
+      sprite: {
+        poi: {
+          position: [
+            0,
+            0,
+          ],
+          size: [
+            12,
+            12,
+          ],
+        },
+      },
     }
   }
 };

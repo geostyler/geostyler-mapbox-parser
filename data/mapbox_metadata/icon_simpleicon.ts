@@ -3,7 +3,7 @@ import { MbStyle } from '../../src/MapboxStyleParser';
 const iconSimpleIcon: MbStyle = {
   version: 8,
   name: 'Simple Icon',
-  sprite: 'https://testurl.com',
+  sprite: 'https://testurl.com/sprites/mysprite',
   sources: {
     testsource: {
       type: 'vector'
