@@ -162,7 +162,7 @@ class MapboxStyleUtil {
 
   public static getSpriteName(sprite: Sprite, metadata: MapboxRef): string {
     if (!metadata?.sprite || !sprite) {
-      throw new Error('Can not retrieve sprite name. Sprite or metadata missing.');
+      throw new Error('Cannot retrieve sprite name. Sprite or metadata missing.');
     }
     const name = Object.keys(metadata.sprite)
       .find(key => {
@@ -173,7 +173,7 @@ class MapboxStyleUtil {
           value.size[1] === sprite.size[1];
       });
     if (!name) {
-      throw new Error('Can not retrieve sprite name. No matching sprite in metadata.');
+      throw new Error('Cannot retrieve sprite name. No matching sprite in metadata.');
     }
     return name || '';
   }

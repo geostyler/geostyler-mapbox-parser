@@ -334,7 +334,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       throw new Error(`Could not resolve sprite ${spriteName}. No base url found.`);
     }
     if (!isString(spriteName)) {
-      throw new Error('Can not handle mapbox expressions for sprite names (e.g. icon-image).');
+      throw new Error('Cannot handle mapbox expressions for sprite names (e.g. icon-image).');
     }
 
     const data = await this.getSpriteData(spriteName);
