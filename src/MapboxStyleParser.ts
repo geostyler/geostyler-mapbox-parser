@@ -321,7 +321,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   }
 
   /**
-   * Creates an image url based on the sprite baseurl and the sprite name.
+   * Transforms the mapbox sprite into a GeoStyler sprite
    *
    * @param spriteName Name of the sprite
    * @return the url that returns the single image
@@ -749,7 +749,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
             await Promise.all(
               rule.symbolizers.map(async (layerIds, symbolizerIndex): Promise<any> => {
                 const matchingLayers = layers.filter(layer => layerIds.includes(layer.id));
-                const symbolizerPromsies = matchingLayers
+                const symbolizerPromises = matchingLayers
                   .map(async (layer) => {
                     const symbs = await this.getSymbolizersFromMapboxLayer(layer);
                     if (symbs.length > 1) {
@@ -760,7 +760,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
                     }
                     return symbs;
                   });
-                const flattenedSymbolizers = (await Promise.all(symbolizerPromsies)).flat();
+                const flattenedSymbolizers = (await Promise.all(symbolizerPromises)).flat();
                 symbolizers[symbolizerIndex] = this.mergeSymbolizers(flattenedSymbolizers);
 
                 // TODO: check if there are multiple layers with different filters
@@ -871,12 +871,17 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     let style: Style = {} as Style;
     style.name = mapboxStyle.name || '';
     style.rules = [];
+
+    // set metadata from style to the state variable
+    this.mbMetadata = mapboxStyle.metadata;
+
+    // prepare gsMetadata so it can be written
     this.gsMetadata = {
       'mapbox:ref': {
         sources: mapboxStyle.sources || {}
       }
     };
-    this.mbMetadata = mapboxStyle.metadata;
+
     if (mapboxStyle.sprite) {
       this.spriteBaseUrl = MapboxStyleUtil.getUrlForMbPlaceholder(mapboxStyle.sprite);
     }
@@ -890,6 +895,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       style.rules = style.rules.concat(rules);
     }
 
+    // set metadata from the state variable to style
     style.metadata = this.gsMetadata;
     return style;
   }
@@ -952,9 +958,12 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     // Mapbox Style version
     const version = 8;
     const name = geoStylerStyle.name;
+
+    // set metadata from style to the state variable
     this.gsMetadata = {
       'mapbox:ref': geoStylerStyle.metadata?.['mapbox:ref']
     };
+
     const { layers, geoStylerRef } = this.getMapboxLayersFromRules(geoStylerStyle.rules);
     const sprite = MapboxStyleUtil.getMbPlaceholderForUrl(this.spriteBaseUrl);
 
@@ -966,6 +975,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       sources: this.gsMetadata['mapbox:ref']?.sources || {}
     }, isUndefined) as MbStyle;
 
+    // set metadata from the state variable to style
     if (geoStylerRef) {
       mapboxObject = {
         ...mapboxObject,
