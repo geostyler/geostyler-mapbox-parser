@@ -1,3 +1,12 @@
+## [5.0.1](https://github.com/geostyler/geostyler-mapbox-parser/compare/v5.0.0...v5.0.1) (2023-12-05)
+
+
+### Bug Fixes
+
+* allow scale to be a GeoStylerFunction ([73d2271](https://github.com/geostyler/geostyler-mapbox-parser/commit/73d2271e536b14604ca222aaa9af6972014930aa))
+* treat ison-size as scale ([ebc9434](https://github.com/geostyler/geostyler-mapbox-parser/commit/ebc9434443ffa4ead4d0bf0296b3422cc73aa2c4))
+* use width and multiply directly ([113ef5e](https://github.com/geostyler/geostyler-mapbox-parser/commit/113ef5e8c051e4433971fd3034ff102922f74adf))
+
 ## [5.0.0](https://github.com/geostyler/geostyler-mapbox-parser/compare/v4.0.0...v5.0.0) (2023-12-04)
 
 
