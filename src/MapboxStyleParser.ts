@@ -433,14 +433,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     // mabpox icon-size scales the image and does not define its size
     if (layout?.['icon-size'] && image) {
       const scale = mb2gsExpression<number>(layout['icon-size']) as number;
-      const widthHeightAverage = ((image.size[0] as number) + (image.size[1] as number)) / 2;
-      symbolizer.size = {
-        name: 'mul',
-        args: [
-          scale,
-          widthHeightAverage
-        ]
-      };
+      // mulitply the mb icon-size with the width of the sprite to get the scale
+      symbolizer.size = scale * (image.size[0] as number);
 
       // Add icon-size to metadata
       set(

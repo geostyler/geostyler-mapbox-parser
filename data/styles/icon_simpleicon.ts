@@ -11,10 +11,7 @@ const iconSimpleIcon: Style = {
         position: [0, 0],
         size: [12, 12]
       },
-      size: {
-        name: 'mul',
-        args: [2, 12]
-      }
+      size: 24
     }]
   }],
   metadata: {
