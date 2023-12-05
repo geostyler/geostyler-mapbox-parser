@@ -16,7 +16,8 @@ const iconSimpleIcon: MbStyle = {
       'source-layer': 'foo',
       type: 'symbol',
       layout: {
-        'icon-image': 'poi'
+        'icon-image': 'poi',
+        'icon-size': 2
       }
     }
   ],
