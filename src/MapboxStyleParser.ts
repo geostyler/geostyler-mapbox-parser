@@ -93,6 +93,7 @@ export type MapboxRef = {
   };
   sprite?: {
     [key: string]: {
+      'icon-size'?: number;
       position: [number, number];
       size: [number, number];
     };
@@ -423,11 +424,35 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       pitchAlignment: layout?.['icon-pitch-alignment'],
       rotate: mb2gsExpression<number>(layout?.['icon-rotate']),
       rotationAlignment: layout?.['icon-rotation-alignment'],
-      size: mb2gsExpression<number>(layout?.['icon-size']),
       textFit: layout?.['icon-text-fit'], // TODO: handle enum values
       // TODO: handle array values
       textFitPadding: layout?.['icon-text-fit-padding'] as IconSymbolizer['textFitPadding'],
       visibility: layout?.visibility && layout?.visibility !== 'none'
+    };
+
+    // mabpox icon-size scales the image and does not define its size
+    if (layout?.['icon-size'] && image) {
+      const scale = mb2gsExpression<number>(layout['icon-size']);
+
+      // multiply the mb icon-size with the width of the sprite to get the scale
+      if (isGeoStylerFunction(scale)) {
+        symbolizer.size = {
+          name: 'mul',
+          args: [
+            scale,
+            image.size[0]
+          ]
+        };
+      } else if (scale) {
+        symbolizer.size = scale * (image.size[0] as number);
+      }
+
+      // Add icon-size to metadata
+      set(
+        this.gsMetadata['mapbox:ref'],
+        `sprite.${layout?.['icon-image']}.icon-size`,
+        layout['icon-size']
+      );
     };
 
     if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
@@ -1510,18 +1535,23 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       visibility
     } = symbolizer;
 
+    const iconImage = image ? this.handleSprite(image) : undefined;
+    const iconSize = iconImage
+      ? this.gsMetadata['mapbox:ref'].sprite?.[iconImage]['icon-size']
+      : gs2mbExpression<number>(size);
+
     const layout: SymbolLayout = {
       'symbol-avoid-edges': avoidEdges as SymbolLayout['symbol-avoid-edges'],
       'icon-allow-overlap': gs2mbExpression<boolean>(allowOverlap),
       'icon-optional': optional as SymbolLayout['icon-optional'],
       'icon-rotation-alignment': gs2mbExpression<SymbolLayout['icon-rotation-alignment']>
       (rotationAlignment) as SymbolLayout['icon-rotation-alignment'],
-      'icon-size': gs2mbExpression<number>(size),
+      'icon-size': iconSize,
       'icon-text-fit': gs2mbExpression<SymbolLayout['icon-text-fit']>(textFit) as SymbolLayout['icon-text-fit'],
       // TODO: handle array values
       'icon-text-fit-padding': textFitPadding as SymbolLayout['icon-text-fit-padding'],
       // TODO: check sprite handling
-      'icon-image': image ? this.handleSprite(image) : undefined,
+      'icon-image': iconImage,
       'icon-rotate': gs2mbExpression<number>(rotate),
       'icon-padding': gs2mbExpression<number>(padding),
       'icon-keep-upright': keepUpright as SymbolLayout['icon-keep-upright'],

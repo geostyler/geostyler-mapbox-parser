@@ -10,7 +10,8 @@ const iconSimpleIcon: Style = {
         source: 'https://testurl.com/sprites/mysprite.png',
         position: [0, 0],
         size: [12, 12]
-      }
+      },
+      size: 24
     }]
   }],
   metadata: {
@@ -28,6 +29,7 @@ const iconSimpleIcon: Style = {
       },
       sprite: {
         poi: {
+          'icon-size': 2,
           position: [
             0,
             0,
