@@ -10,7 +10,7 @@ class MapboxStyleUtil {
     // This simplyfies working with zoom levels but might lead to unexpected
     // behaviour.
     resolutions.push(res * 2);
-    for (res; resolutions.length < 22; res /= 2) {
+    for (res; resolutions.length <= 24; res /= 2) {
       resolutions.push(res);
     }
     return resolutions;
