@@ -177,6 +177,59 @@ class MapboxStyleUtil {
     }
     return name || '';
   }
+
+  /**
+   * Splits a RGBA encoded color into its color values.
+   *
+   * @param {string} rgbaColor RGB(A) encoded color
+   * @return {number[]} Numeric color values as array
+   */
+  public static splitRgbaColor(rgbaColor: string): number[] {
+    const colorsOnly = rgbaColor.substring(rgbaColor.indexOf('(') + 1, rgbaColor.lastIndexOf(')')).split(/,\s*/);
+    const red = parseInt(colorsOnly[0], 10);
+    const green = parseInt(colorsOnly[1], 10);
+    const blue = parseInt(colorsOnly[2], 10);
+    const opacity = parseFloat(colorsOnly[3]);
+
+    return [red, green, blue, opacity];
+  }
+
+  /**
+   * Returns the hex code for a given RGB(A) array.
+   *
+   * @param colorArr RGB(A) array. e.g. [255,0,0]
+   * @return {string} The HEX color representation of the given color
+   */
+  public static getHexCodeFromRgbArray(colorArr: number[]): string {
+    return '#' + colorArr.map((x, idx) => {
+      const hex = x.toString(16);
+      // skip opacity if passed as fourth entry
+      if (idx < 3) {
+        return hex.length === 1 ? '0' + hex : hex;
+      }
+      return '';
+    }).join('');
+  }
+
+  /**
+   * Transforms a RGB(A) or named color value to a HEX encoded notation.
+   * If a HEX color is provided it will be returned untransformed.
+   *
+   * @param {string} inColor The color to transform
+   * @return {string | undefined} The HEX color representation of the given color
+   */
+  public static getHexColor(inColor: string): string | undefined {
+    // if passing in a hex code we just return it
+    if (inColor.startsWith('#')) {
+      return inColor;
+    } else if (inColor.startsWith('rgb')) {
+      const colorArr = this.splitRgbaColor(inColor);
+      return this.getHexCodeFromRgbArray(colorArr);
+    } else {
+      return;
+    }
+  }
+
 }
 
 export default MapboxStyleUtil;

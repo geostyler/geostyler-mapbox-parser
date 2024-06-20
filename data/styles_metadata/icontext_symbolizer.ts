@@ -8,7 +8,7 @@ const iconTextSymbolizer: Style = {
       symbolizers: [
         {
           kind: 'Text',
-          color: 'rgba(45, 45, 45, 1)',
+          color: '#2d2d2d',
           label: '{{name}}',
           size: 12,
           visibility: true

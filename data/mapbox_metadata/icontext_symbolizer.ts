@@ -15,7 +15,7 @@ const iconTextSymbolizer: MbStyle = {
       source: 'testsource',
       'source-layer': 'foo',
       paint: {
-        'text-color': 'rgba(45, 45, 45, 1)',
+        'text-color': '#2d2d2d',
       },
       layout: {
         'text-field': '{name}',

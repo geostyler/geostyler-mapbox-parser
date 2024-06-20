@@ -13,6 +13,8 @@ import {
   StyleFunction
 } from 'mapbox-gl';
 
+import MapboxStyleUtil from './Util/MapboxStyleUtil';
+
 const expressionNames: ExpressionName[] = ['array',
   'boolean',
   'collator',
@@ -216,12 +218,15 @@ export function gs2mbExpression<T extends PropertyType>(gsExpression?: GeoStyler
 
 type MbInput = MapboxExpression | PropertyType | StyleFunction;
 
-export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
+export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput, isColor?: boolean):
   GeoStylerExpression<T> | undefined {
 
   // TODO: is this check valid ?
   // fails for arrays like offset = [10, 20]
   if (!(Array.isArray(mbExpression) && expressionNames.includes(mbExpression[0]))) {
+    if (typeof mbExpression === 'string' && isColor) {
+      return MapboxStyleUtil.getHexColor(mbExpression) as GeoStylerExpression<T>;
+    }
     return mbExpression as GeoStylerExpression<T> | undefined;
   }
 
@@ -240,7 +245,7 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
     case 'case':
       const gsArgs: any[] = [];
       args.forEach((a, index) => {
-        if (index < (args.length -  1)) {
+        if (index < (args.length - 1)) {
           var gsIndex = index < 2 ? 0 : Math.floor(index / 2);
           if (!gsArgs[gsIndex]) {
             gsArgs[gsIndex] = {};
@@ -252,12 +257,12 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
           } else {
             gsArgs[gsIndex] = {
               ...gsArgs[gsIndex] as any,
-              value: mb2gsExpression(a)
+              value: mb2gsExpression(a, isColor)
             };
           }
         }
       });
-      gsArgs.push(mbExpression.at(- 1));
+      gsArgs.push(mb2gsExpression(mbExpression.at(-1), isColor));
       func = {
         name: 'case',
         args: gsArgs as Fcase['args']
@@ -275,7 +280,7 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput):
       }
       func = {
         name: gsFunctionName,
-        args: args.map(mb2gsExpression)
+        args: args.map(arg => mb2gsExpression(arg))
       } as GeoStylerFunction;
       break;
   }
