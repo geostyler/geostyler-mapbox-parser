@@ -369,7 +369,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     const symbolizer: MarkSymbolizer = {
       kind: 'Mark',
       blur: mb2gsExpression<number>(paint?.['circle-blur']),
-      color: mb2gsExpression<string>(paint?.['circle-color']),
+      color: mb2gsExpression<string>(paint?.['circle-color'], true),
       // TODO: handle array values
       offset: paint?.['circle-translate'] as MarkSymbolizer['offset'],
       offsetAnchor: paint?.['circle-translate-anchor'],
@@ -377,7 +377,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       pitchAlignment: paint?.['circle-pitch-alignment'],
       pitchScale: paint?.['circle-pitch-scale'],
       radius: mb2gsExpression<number>(paint?.['circle-radius']),
-      strokeColor: mb2gsExpression<string>(paint?.['circle-stroke-color']),
+      strokeColor: mb2gsExpression<string>(paint?.['circle-stroke-color'], true),
       strokeOpacity: mb2gsExpression<number>(paint?.['circle-stroke-opacity']),
       strokeWidth: mb2gsExpression<number>(paint?.['circle-stroke-width']),
       visibility: layout?.visibility && layout?.visibility !== 'none',
@@ -409,9 +409,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       allowOverlap: mb2gsExpression<boolean>(layout?.['icon-allow-overlap']),
       anchor: layout?.['icon-anchor'] as IconSymbolizer['anchor'],
       avoidEdges: layout?.['symbol-avoid-edges'],
-      color: mb2gsExpression<string>(paint?.['icon-color']),
+      color: mb2gsExpression<string>(paint?.['icon-color'], true),
       haloBlur: mb2gsExpression<number>(paint?.['icon-halo-blur']),
-      haloColor: mb2gsExpression<string>(paint?.['icon-halo-color']),
+      haloColor: mb2gsExpression<string>(paint?.['icon-halo-color'], true),
       haloWidth: mb2gsExpression<number>(paint?.['icon-halo-width']),
       image,
       keepUpright: mb2gsExpression<boolean>(layout?.['icon-keep-upright']),
@@ -476,11 +476,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle enum values
       anchor: layout?.['text-anchor'] as TextSymbolizer['anchor'],
       avoidEdges: mb2gsExpression<boolean>(layout?.['symbol-avoid-edges']),
-      color: mb2gsExpression<string>(paint?.['text-color']),
+      color: mb2gsExpression<string>(paint?.['text-color'], true),
       // TODO: handle array values
       font: layout?.['text-font'],
       haloBlur: mb2gsExpression<number>(paint?.['text-halo-blur']),
-      haloColor: mb2gsExpression<string>(paint?.['text-halo-color']),
+      haloColor: mb2gsExpression<string>(paint?.['text-halo-color'], true),
       haloWidth: mb2gsExpression<number>(paint?.['text-halo-width']),
       // TODO: handle enum values
       justify: layout?.['text-justify'] as TextSymbolizer['justify'],
@@ -530,8 +530,8 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       visibility: layout?.visibility && layout?.visibility !== 'none',
       antialias: mb2gsExpression<boolean>(paint?.['fill-antialias']),
       opacity: mb2gsExpression<number>(paint?.['fill-opacity']),
-      color: mb2gsExpression<string>(paint?.['fill-color']),
-      outlineColor: mb2gsExpression<string>(paint?.['fill-outline-color']),
+      color: mb2gsExpression<string>(paint?.['fill-color'], true),
+      outlineColor: mb2gsExpression<string>(paint?.['fill-outline-color'], true),
       graphicFill
     };
     return omitBy(fillSymbolizer, isUndefined) as FillSymbolizer;
@@ -566,7 +566,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       miterLimit: mb2gsExpression<number>(layout?.['line-miter-limit']),
       roundLimit: mb2gsExpression<number>(layout?.['line-round-limit']),
       opacity: mb2gsExpression<number>(paint?.['line-opacity']),
-      color: mb2gsExpression<string>(paint?.['line-color']),
+      color: mb2gsExpression<string>(paint?.['line-color'], true),
       width: mb2gsExpression<number>(paint?.['line-width']),
       gapWidth: mb2gsExpression<number>(paint?.['line-gap-width']),
       perpendicularOffset: mb2gsExpression<number>(paint?.['line-offset']),

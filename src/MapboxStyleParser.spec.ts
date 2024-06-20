@@ -68,6 +68,8 @@ import mb_text_placement_line_metadata from '../data/mapbox_metadata/text_placem
 import mb_text_placement_point from '../data/mapbox/text_placement_point';
 import text_placement_point from '../data/styles/text_placement_point';
 import mb_text_placement_point_metadata from '../data/mapbox_metadata/text_placement_point';
+import color_rgba from '../data/styles/color_rgba';
+import mb_color_rgba from '../data/mapbox/color_rgba';
 
 const mockFetchResult = (data: any) => {
   jest.spyOn(global, 'fetch')
@@ -286,6 +288,12 @@ describe('MapboxStyleParser implements StyleParser', () => {
       const { output: geostylerStyle } = await styleParser.readStyle(mb_source_layer_mapping);
       expect(geostylerStyle).toBeDefined();
       expect(geostylerStyle).toEqual(source_layer_mapping);
+    });
+
+    it('can read a style with rgba color values', async () => {
+      const { output: geostylerStyle } = await styleParser.readStyle(mb_color_rgba);
+      expect(geostylerStyle).toBeDefined();
+      expect(geostylerStyle).toEqual(color_rgba);
     });
   });
 
