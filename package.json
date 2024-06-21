@@ -1,6 +1,6 @@
 {
   "name": "geostyler-mapbox-parser",
-  "version": "5.0.1",
+  "version": "6.0.0-next.1",
   "description": "GeoStyler-Style-Parser implementation for Mapbox",
   "type": "module",
   "main": "dist/MapboxStyleParser.js",
