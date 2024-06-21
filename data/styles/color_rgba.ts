@@ -1,26 +1,26 @@
 import { Style } from 'geostyler-style';
 
-const circleSimpleCircle: Style = {
-  name: 'Simple Circle',
+const colorRgba: Style = {
+  name: 'Color RGBA',
   rules: [{
-    name: 'Simple Circle',
+    name: 'Color RGBA',
     symbolizers: [{
       kind: 'Mark',
       wellKnownName: 'circle',
       color: '#000000',
       strokeColor: {
         name: 'case',
-        args: [{
-          case: {
-            name: 'lessThan',
-            args: [{
-              name: 'property',
-              args: ['mag']
-            }, 2]
-          },
-          value: '#ff0000'
-        },
-        '#00ff00'
+        args: [
+          '#00ff00', {
+            case: {
+              name: 'lessThan',
+              args: [{
+                name: 'property',
+                args: ['mag']
+              }, 2]
+            },
+            value: '#ff0000'
+          }
         ]
       }
     }]
@@ -42,4 +42,4 @@ const circleSimpleCircle: Style = {
   }
 };
 
-export default circleSimpleCircle;
+export default colorRgba;

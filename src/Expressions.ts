@@ -1,6 +1,7 @@
 import {
   Expression,
   Fcase,
+  Finterpolate,
   Expression as GeoStylerExpression,
   GeoStylerFunction,
   PropertyType,
@@ -118,6 +119,7 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   strSubstringStart: null,
   strToLowerCase: 'downcase',
   strToUpperCase: 'upcase',
+  strToString: null,
   strTrim: null,
   // ---- number ----
   add: '+',
@@ -131,6 +133,7 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   div: '/',
   exp: 'e',
   floor: 'floor',
+  interpolate: 'interpolate',
   log: 'ln',
   // – : 'ln2'
   // – : 'log10'
@@ -150,6 +153,7 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   sub: '-',
   tan: 'tan',
   toDegrees: null,
+  toNumber: null,
   toRadians: null,
   // ---- boolean ----
   all: 'all',
@@ -169,11 +173,7 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   // ---- unknown ----
   case: 'case',
   property: 'get',
-  // TODO use/translate these new functions if possible
-  step: null,
-  interpolate: null,
-  toNumber: null,
-  strToString: null
+  step: null
 };
 
 const invertedFunctionNameMap: Partial<Record<ExpressionName, GeoStylerFunction['name']>> =
@@ -189,19 +189,41 @@ export function gs2mbExpression<T extends PropertyType>(gsExpression?: GeoStyler
 
   // special handling
   switch (gsExpression.name) {
-    case 'case':
+    case 'case': {
+      const mbArgs: any = [];
+      let fallback: any;
+      args.forEach((arg: any, index: number) => {
+        if (index === 0) {
+          fallback = gs2mbExpression(arg);
+          return;
+        }
+        if (arg.case === null || arg.case === undefined || arg.value === null || arg.value === undefined) {
+          throw new Error('Could not translate GeoStyler Expression: ' + gsExpression);
+        }
+        mbArgs.push(gs2mbExpression(arg.case));
+        mbArgs.push(gs2mbExpression(arg.value));
+      });
+      return ['case', ...mbArgs, fallback];
+    }
+    case 'interpolate': {
       const mbArgs: any = [];
       args.forEach((arg: any, index: number) => {
-        if (index === (args.length - 1)) {
-          mbArgs.push(gs2mbExpression(arg));
-        } else if (arg.case && arg.value) {
-          mbArgs.push(gs2mbExpression(arg.case));
-          mbArgs.push(gs2mbExpression(arg.value));
-        } else {
-          throw new Error('Could not translate GeoStyler Expression: ' + gs2mbExpression);
+        if (index === 0) {
+          mbArgs.push([arg.name]);
+          return;
         }
+        if (index === 1) {
+          mbArgs.push(gs2mbExpression(arg));
+          return;
+        }
+        if (arg.stop === null || arg.stop === undefined || arg.value === null || arg.value === undefined) {
+          throw new Error('Could not translate GeoStyler Expression: ' + gsExpression);
+        }
+        mbArgs.push(gs2mbExpression(arg.stop));
+        mbArgs.push(gs2mbExpression(arg.value));
       });
-      return ['case', ...mbArgs];
+      return ['interpolate', ...mbArgs];
+    }
     case 'exp':
       if (args[0] === 1) {
         return ['e'];
@@ -247,32 +269,56 @@ export function mb2gsExpression<T extends PropertyType>(mbExpression?: MbInput, 
         args: [1]
       };
       break;
-    case 'case':
+    case 'case': {
       const gsArgs: any[] = [];
+      const fallback = mb2gsExpression(args.pop(), isColor);
       args.forEach((a, index) => {
-        if (index < (args.length - 1)) {
-          var gsIndex = index < 2 ? 0 : Math.floor(index / 2);
-          if (!gsArgs[gsIndex]) {
-            gsArgs[gsIndex] = {};
-          }
-          if (index % 2 === 0) {
-            gsArgs[gsIndex] = {
-              case: mb2gsExpression(a)
-            };
-          } else {
-            gsArgs[gsIndex] = {
-              ...gsArgs[gsIndex] as any,
-              value: mb2gsExpression(a, isColor)
-            };
-          }
+        var gsIndex = Math.floor(index / 2);
+        if (index % 2 === 0) {
+          gsArgs[gsIndex] = {
+            case: mb2gsExpression(a)
+          };
+        } else {
+          gsArgs[gsIndex] = {
+            ...gsArgs[gsIndex] as any,
+            value: mb2gsExpression(a, isColor)
+          };
         }
       });
-      gsArgs.push(mb2gsExpression(mbExpression.at(-1), isColor));
+      // adding the fallback as the first arg
+      gsArgs.unshift(fallback);
       func = {
         name: 'case',
         args: gsArgs as Fcase['args']
       };
       break;
+    }
+    case 'interpolate': {
+      const interpolationType = (args.shift() as [string])[0];
+      const input = mb2gsExpression(args.shift());
+      const gsArgs: any[] = [];
+
+      args.forEach((a, index) => {
+        const gsIndex = Math.floor(index / 2);
+        if (index % 2 === 0) {
+          gsArgs[gsIndex] = {
+            stop: mb2gsExpression(a)
+          };
+        } else {
+          gsArgs[gsIndex] = {
+            ...gsArgs[gsIndex] as any,
+            value: mb2gsExpression(a)
+          };
+        }
+      });
+      // adding the interpolation type and the input as the first args
+      gsArgs.unshift({name: interpolationType}, input);
+      func = {
+        name: 'interpolate',
+        args: gsArgs as Finterpolate['args']
+      };
+      break;
+    }
     case 'pi':
       func = {
         name: 'pi'

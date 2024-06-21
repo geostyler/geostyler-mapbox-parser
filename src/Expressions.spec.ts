@@ -15,6 +15,9 @@ import gs_expression_string from '../data/styles/gs_expression_string';
 import expression_string_metadata from '../data/mapbox_metadata/expression_string';
 import expression_lookup_metadata from '../data/mapbox_metadata/expression_lookup';
 import gs_expression_lookup from '../data/styles/gs_expression_lookup';
+import gs_expression_interpolate from '../data/styles/gs_expression_interpolate';
+import expression_interpolate from '../data/mapbox/expression_interpolate';
+import expression_interpolate_metadata from '../data/mapbox_metadata/expression_interpolate';
 
 describe('MapboxStyleParser can parse Expressions', () => {
   let styleParser: MapboxStyleParser;
@@ -60,6 +63,12 @@ describe('MapboxStyleParser can parse Expressions', () => {
       expect(geoStylerStyle).toEqual(gs_expression_math);
       return;
     });
+
+    it('can read the "interpolate" expressions', async () => {
+      const { output: geostylerStyle } = await styleParser.readStyle(expression_interpolate);
+      expect(geostylerStyle).toBeDefined();
+      expect(geostylerStyle).toEqual(gs_expression_interpolate);
+    });
   });
 
   describe('#writeStyle', () => {
@@ -98,6 +107,11 @@ describe('MapboxStyleParser can parse Expressions', () => {
       expect(mbStyle).toBeDefined();
       expect(mbStyle).toEqual(expression_string_metadata);
       return;
+    });
+    it('can write the "interpolate" expression', async () => {
+      const { output: mbStyle } = await styleParser.writeStyle(gs_expression_interpolate);
+      expect(mbStyle).toBeDefined();
+      expect(mbStyle).toEqual(expression_interpolate_metadata);
     });
   });
 });
