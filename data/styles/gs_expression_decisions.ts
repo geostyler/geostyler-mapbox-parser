@@ -11,6 +11,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'not',
@@ -23,8 +24,7 @@ const gs_expression_decisions: Style = {
               }]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -36,6 +36,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'notEqualTo',
@@ -45,8 +46,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -58,6 +58,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'lessThan',
@@ -67,8 +68,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -80,6 +80,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'lessThanOrEqualTo',
@@ -89,8 +90,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -102,6 +102,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'equalTo',
@@ -111,8 +112,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -124,6 +124,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'greaterThan',
@@ -133,8 +134,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -146,6 +146,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'greaterThanOrEqualTo',
@@ -155,8 +156,7 @@ const gs_expression_decisions: Style = {
               }, 1]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -168,6 +168,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'all',
@@ -189,8 +190,7 @@ const gs_expression_decisions: Style = {
               ]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
@@ -202,6 +202,7 @@ const gs_expression_decisions: Style = {
       color: {
         name: 'case',
         args: [
+          '#000000',
           {
             case: {
               name: 'any',
@@ -223,8 +224,7 @@ const gs_expression_decisions: Style = {
               ]
             },
             value: '#FFFFFF'
-          },
-          '#000000'
+          }
         ]
       }
     }]
