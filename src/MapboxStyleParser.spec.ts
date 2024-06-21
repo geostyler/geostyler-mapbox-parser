@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import MapboxStyleParser from './MapboxStyleParser';
 
+import { beforeEach, expect, it, describe, vi } from 'vitest';
+
 import line_simpleline from '../data/styles/line_simpleline';
 import mb_line_simpleline from '../data/mapbox/line_simpleline';
 import mb_line_simpleline_metadata from '../data/mapbox_metadata/line_simpleline';
@@ -72,7 +74,7 @@ import color_rgba from '../data/styles/color_rgba';
 import mb_color_rgba from '../data/mapbox/color_rgba';
 
 const mockFetchResult = (data: any) => {
-  jest.spyOn(global, 'fetch')
+  vi.spyOn(global, 'fetch')
     .mockImplementationOnce(() => {
       const response = {
         ok: true,
