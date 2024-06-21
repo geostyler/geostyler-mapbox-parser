@@ -10,7 +10,7 @@ const gs_expression_case: Style = {
       wellKnownName: 'circle',
       color: {
         name: 'case',
-        args: [{
+        args: ['#e31a1c', {
           case: {
             name: 'lessThan',
             args: [{
@@ -80,8 +80,7 @@ const gs_expression_case: Style = {
             }]
           },
           value:'#fc4e2a'
-        },
-        '#e31a1c']
+        }]
       },
       radius: 12,
       fillOpacity: 0.6
