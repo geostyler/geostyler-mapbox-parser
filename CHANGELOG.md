@@ -1,3 +1,10 @@
+## [6.0.0-next.2](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.0.0-next.1...v6.0.0-next.2) (2024-06-25)
+
+
+### Bug Fixes
+
+* update dependencies ([5926b1b](https://github.com/geostyler/geostyler-mapbox-parser/commit/5926b1b087ca05ac3825b9fb262756f27510112f))
+
 ## [6.0.0-next.1](https://github.com/geostyler/geostyler-mapbox-parser/compare/v5.0.1...v6.0.0-next.1) (2024-06-21)
 
 
