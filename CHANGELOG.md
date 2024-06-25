@@ -1,3 +1,22 @@
+## [6.0.0](https://github.com/geostyler/geostyler-mapbox-parser/compare/v5.0.1...v6.0.0) (2024-06-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* Switches to esm build and to vite. Users possibly
+need to adapt their imports and their bundler.
+
+### Features
+
+* prepare next release ([f110eec](https://github.com/geostyler/geostyler-mapbox-parser/commit/f110eecbdedd3830a03be0b31cb13615fbc03027))
+* read rgba color values into hex ([#323](https://github.com/geostyler/geostyler-mapbox-parser/issues/323)) ([e47192d](https://github.com/geostyler/geostyler-mapbox-parser/commit/e47192d7a62b9e70f9e1d2fd36e8f74f1abe6dcd))
+
+
+### Bug Fixes
+
+* update dependencies ([5926b1b](https://github.com/geostyler/geostyler-mapbox-parser/commit/5926b1b087ca05ac3825b9fb262756f27510112f))
+* update resolutions to levels 0-24 ([#320](https://github.com/geostyler/geostyler-mapbox-parser/issues/320)) ([b02d9a5](https://github.com/geostyler/geostyler-mapbox-parser/commit/b02d9a5bbafba4d544f935c3ac40a785cbb7ecec))
+
 ## [6.0.0-next.2](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.0.0-next.1...v6.0.0-next.2) (2024-06-25)
 
 
