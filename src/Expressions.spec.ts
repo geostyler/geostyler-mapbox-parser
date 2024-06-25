@@ -1,3 +1,5 @@
+import { beforeEach, expect, it, describe } from 'vitest';
+
 import expression_case from '../data/mapbox/expression_case';
 import expression_case_metadata from '../data/mapbox_metadata/expression_case';
 import expression_get from '../data/mapbox/expression_get';

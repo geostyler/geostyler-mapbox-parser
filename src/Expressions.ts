@@ -168,7 +168,12 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   parseBoolean: 'to-boolean',
   // ---- unknown ----
   case: 'case',
-  property: 'get'
+  property: 'get',
+  // TODO use/translate these new functions if possible
+  step: null,
+  interpolate: null,
+  toNumber: null,
+  strToString: null
 };
 
 const invertedFunctionNameMap: Partial<Record<ExpressionName, GeoStylerFunction['name']>> =

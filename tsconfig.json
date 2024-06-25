@@ -6,30 +6,31 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "inlineSources": true,
-    "lib": ["es2020", "dom"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "lib": ["ES2022", "es6", "dom"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "outDir": "build/dist",
+    "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "ES2022",
   },
   "exclude": [
     "acceptance-tests",
     "browser-build.config.js",
     "browser",
-    "build",
+    "dist",
     "coverage",
     "data",
     "jest",
     "node_modules",
     "scripts",
     "src/**.spec.ts",
-    "webpack"
+    "vite.config.ts",
+    "vitest.config.ts"
   ]
 }
