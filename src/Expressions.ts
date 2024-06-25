@@ -171,7 +171,7 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   property: 'get',
   // TODO use/translate these new functions if possible
   step: null,
-  toBoolean: null,
+  interpolate: null,
   toNumber: null,
   strToString: null
 };
