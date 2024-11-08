@@ -1309,6 +1309,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
     symbolizerClone = structuredClone(symbolizer as FillSymbolizer);
     const lineSymbolizer: LineSymbolizer = {
       kind: 'Line',
+      visibility: symbolizerClone?.visibility,
       color: symbolizerClone?.outlineColor,
       opacity: symbolizerClone?.outlineOpacity,
       width: symbolizerClone?.outlineWidth,
