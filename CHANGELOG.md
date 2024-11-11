@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.0.0...v6.0.1) (2024-11-11)
+
+
+### Bug Fixes
+
+* preserve visibility in line symbolizer during cloning ([dfda998](https://github.com/geostyler/geostyler-mapbox-parser/commit/dfda9982199eb1769d3b1a103d26940517949874))
+
 ## [6.0.0](https://github.com/geostyler/geostyler-mapbox-parser/compare/v5.0.1...v6.0.0) (2024-06-25)
 
 
