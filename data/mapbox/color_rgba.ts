@@ -1,8 +1,8 @@
 import { MbStyle } from '../../src/MapboxStyleParser';
 
-const circleSimpleCircle: MbStyle = {
+const colorRgba: MbStyle = {
   version: 8,
-  name: 'Simple Circle',
+  name: 'Color RGBA',
   sources: {
     testsource: {
       type: 'vector'
@@ -10,7 +10,7 @@ const circleSimpleCircle: MbStyle = {
   },
   layers: [
     {
-      id: 'Simple Circle',
+      id: 'Color RGBA',
       source: 'testsource',
       'source-layer': 'foo',
       type: 'circle',
@@ -27,4 +27,4 @@ const circleSimpleCircle: MbStyle = {
   ]
 };
 
-export default circleSimpleCircle;
+export default colorRgba;
