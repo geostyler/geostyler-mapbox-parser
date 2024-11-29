@@ -25,7 +25,8 @@ const fillSimpleFillOutline: MbStyle = {
     paint: {
       'line-opacity': 0.5,
       'line-color': '#00ff00',
-      'line-width': 2
+      'line-width': 2,
+      'line-dasharray': [13, 37]
     },
     layout: {
       'line-cap': 'butt',

@@ -11,7 +11,8 @@ const fillSimpleFillOutline: Style = {
       outlineWidth: 2,
       outlineOpacity: 0.5,
       outlineCap: 'butt',
-      outlineJoin: 'round'
+      outlineJoin: 'round',
+      outlineDasharray: [13, 37]
     }]
   }],
   metadata: {

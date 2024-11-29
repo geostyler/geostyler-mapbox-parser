@@ -736,6 +736,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
           merged.outlineCap = lineSymbolizer.cap;
           merged.outlineJoin = lineSymbolizer.join;
           merged.outlineWidth = lineSymbolizer.width;
+          merged.outlineDasharray = lineSymbolizer.dasharray;
         } else {
           throw new Error(`Trying to merge two symbolizers of different kinds: ${s1.kind}, ${s2.kind}`);
         }
@@ -1315,6 +1316,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       width: symbolizerClone?.outlineWidth,
       join: symbolizerClone?.outlineJoin,
       cap: symbolizerClone?.outlineCap,
+      dasharray: symbolizerClone?.outlineDasharray,
     };
 
     const outlineLayer: Omit<LineLayer, 'id'> = {
