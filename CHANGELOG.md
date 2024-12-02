@@ -1,3 +1,16 @@
+## [6.1.0](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.0.1...v6.1.0) (2024-12-02)
+
+
+### Features
+
+* add interpolate function ([#325](https://github.com/geostyler/geostyler-mapbox-parser/issues/325)) ([6567d8b](https://github.com/geostyler/geostyler-mapbox-parser/commit/6567d8b14c0158f96856de8786081d4fd0f554ff))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @types/mapbox-gl to v2.7.21 ([d7cf5ea](https://github.com/geostyler/geostyler-mapbox-parser/commit/d7cf5ea2d80a4baae9b5990f9b90ac7c5fa5b330))
+* preserve outline dash array ([77edffb](https://github.com/geostyler/geostyler-mapbox-parser/commit/77edffbf967d31c668e6b4a2e8c3a8d90b9517a4))
+
 ## [6.0.1](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.0.0...v6.0.1) (2024-11-11)
 
 
