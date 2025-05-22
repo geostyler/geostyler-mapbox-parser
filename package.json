@@ -37,6 +37,7 @@
     "lint:test": "npm run lint && npm run test",
     "lint": "eslint -c .eslintrc.cjs --ext .ts . && tsc --noEmit",
     "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "test-watch": "NODE_OPTIONS=--import=extensionless/register vitest",
     "test": "NODE_OPTIONS=--import=extensionless/register vitest --coverage run"
   },
