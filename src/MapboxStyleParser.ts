@@ -114,6 +114,7 @@ type SymbolType = {
 
 type OptionsType = {
   ignoreConversionErrors?: boolean;
+  replaceGraphicFillWithColor?: boolean;
   pretty?: boolean;
 };
 
@@ -224,6 +225,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   } satisfies UnsupportedProperties;
 
   public ignoreConversionErrors: boolean = false;
+  public replaceGraphicFillWithColor: boolean = false;
 
   public pretty: boolean = false;
 
@@ -242,12 +244,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
   };
 
   constructor(options?: OptionsType) {
-    if (options && options.ignoreConversionErrors) {
-      this.ignoreConversionErrors = options.ignoreConversionErrors;
-    }
-    if (options?.pretty !== undefined) {
-      this.pretty = options?.pretty;
-    }
+    this.ignoreConversionErrors = !!options?.ignoreConversionErrors;
+    this.pretty = !!options?.pretty;
+    this.replaceGraphicFillWithColor = !!options?.replaceGraphicFillWithColor;
   }
 
   public isSymbolType(s: Symbolizer | SymbolType): s is SymbolType {
@@ -1350,8 +1349,43 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       'fill-outline-color': gs2mbExpression<string>(outlineColor),
       'fill-pattern': this.getPatternOrGradientFromPointSymbolizer(graphicFill)
     };
+    if (!!graphicFill && this.replaceGraphicFillWithColor && !paint['fill-color']) {
+      if (graphicFill.kind === 'Mark') {
+        paint['fill-color'] = this.getColorFromMarkSymbolizer(graphicFill);
+        // mark symbolizers don't completely cover, so we should make the
+        // solid color semitransparent
+        if (!!paint['fill-color'] && (!paint['fill-opacity'])){
+          paint['fill-opacity'] = 0.5;
+        }
+      }
+    }
     return omitBy(paint, isUndefined);
   }
+
+  /**
+   * Extracts the color from a GeostylerStyle-MarkSymbolizer.
+   * Useful for using solid color as a fallback for converted Marks.
+   *
+   * @param symbolizer your mark symbolizer narrowed from graphicFill
+   * @returns a mapbox color
+   */
+  getColorFromMarkSymbolizer(symbolizer: MarkSymbolizer): string | undefined {
+    const color = symbolizer.color ?? symbolizer.strokeColor;
+    if (!color) {
+      if (this.ignoreConversionErrors) {
+        return undefined;
+      }
+      throw new Error('Encountered a colorless mark symbolizer.');
+    }
+    if (typeof color !== 'string') {
+      if (this.ignoreConversionErrors) {
+        return undefined;
+      }
+      throw new Error('Mark fill color expressions not supported.');
+    }
+    return color;
+  }
+
 
   /**
    * Creates a Mapbox Layer Layout object from a GeostylerStyle-FillSymbolizer
@@ -1381,6 +1415,9 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       return undefined;
     }
     if (symbolizer.kind !== 'Icon') {
+      if (this.replaceGraphicFillWithColor ) {
+        return;
+      }
       if (this.ignoreConversionErrors) {
         return;
       }
@@ -1460,6 +1497,11 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle array values
       'line-gradient': gradient as LinePaint['line-gradient']
     };
+    if (!!graphicFill && this.replaceGraphicFillWithColor && !paint['line-color']) {
+      if (graphicFill.kind === 'Mark') {
+        paint['line-color'] = this.getColorFromMarkSymbolizer(graphicFill);
+      }
+    }
     return omitBy(paint, isUndefined);
   }
 
