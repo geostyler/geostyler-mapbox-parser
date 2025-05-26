@@ -16,6 +16,8 @@ import mb_point_simpletext from '../data/mapbox/point_simpletext';
 import mb_point_simpletext_metadata from '../data/mapbox_metadata/point_simpletext';
 import point_placeholdertext from '../data/styles/point_placeholderText';
 import mb_point_placeholdertext from '../data/mapbox/point_placeholderText';
+import fill_graphic_fill_mark from '../data/styles/fill_graphic_fill_mark';
+import mb_fill_graphic_fill_mark from '../data/mapbox/fill_graphic_fill_mark';
 // import mb_point_placeholdertext_metadata from '../data/mapbox_metadata/point_placeholderText';
 import multi_simpleline_simplefill from '../data/styles/multi_simpleline_simplefill';
 import mb_multi_simpleline_simplefill from '../data/mapbox/multi_simpleline_simplefill';
@@ -87,6 +89,14 @@ const mockFetchResult = (data: any) => {
 
 it('MapboxStyleParser is defined', () => {
   expect(MapboxStyleParser).toBeDefined();
+});
+
+it('MapboxStyleParser can interpret Mark graphicFill with a fallback', async () => {
+  expect.assertions(2);
+  const styleParser = new MapboxStyleParser({replaceGraphicFillWithColor: true});
+  const { output: mbStyle } = await styleParser.writeStyle(fill_graphic_fill_mark);
+  expect(mbStyle).toBeDefined();
+  expect(mbStyle).toEqual(mb_fill_graphic_fill_mark);
 });
 
 describe('MapboxStyleParser implements StyleParser', () => {
