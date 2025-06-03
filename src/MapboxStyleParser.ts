@@ -114,6 +114,10 @@ type SymbolType = {
 
 type OptionsType = {
   ignoreConversionErrors?: boolean;
+  /** Replace repeated shapes (such as dotted areas and lines) with a transparent color.
+   * This is a fallback since Mapbox doesn't allow repeated shapes unless they're
+   * in the spritesheet.
+   */
   replaceGraphicFillWithColor?: boolean;
   pretty?: boolean;
 };
