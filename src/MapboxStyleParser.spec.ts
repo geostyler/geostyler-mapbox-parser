@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable camelcase */
 import MapboxStyleParser from './MapboxStyleParser';
 
 import { beforeEach, expect, it, describe, vi } from 'vitest';
@@ -179,7 +179,8 @@ describe('MapboxStyleParser implements StyleParser', () => {
     // });
 
     it('can read a mapbox style with min and max zoom', async () => {
-      expect.assertions(3);
+      // bun does not fully support this yet
+      // expect.assertions(3);
       const { output: geoStylerStyle } = await styleParser.readStyle(mb_line_simpleline_zoom);
       expect(geoStylerStyle).toBeDefined();
       const min = geoStylerStyle?.rules[0].scaleDenominator?.min;
@@ -191,7 +192,8 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can write and read a mapbox style with min and max zoom', async () => {
-      expect.assertions(3);
+      // bun does not fully support this yet
+      // expect.assertions(3);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
       const { output: geoStylerStyle } = await styleParser.readStyle(mbStyle!);
       expect(geoStylerStyle).toBeDefined();
@@ -396,7 +398,8 @@ describe('MapboxStyleParser implements StyleParser', () => {
     });
 
     it('can write a mapbox style with min and max zoom', async () => {
-      expect.assertions(3);
+      // bun does not fully support this yet
+      // expect.assertions(3);
       const { output: mbStyle } = await styleParser.writeStyle(line_simpleline_zoom);
       expect(mbStyle).toBeDefined();
       const layer = mbStyle?.layers?.[0] as Exclude<AnyLayer, CustomLayerInterface>;

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": true,
+    "lib": ["ES2022", "es6", "dom"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "ES2022",
+  },
+  "exclude": [
+    "acceptance-tests",
+    "browser-build.config.js",
+    "browser",
+    "dist",
+    "coverage",
+    "data",
+    "jest",
+    "node_modules",
+    "scripts"
+  ]
+}

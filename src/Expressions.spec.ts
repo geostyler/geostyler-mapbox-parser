@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { beforeEach, expect, it, describe } from 'vitest';
 
 import expression_case from '../data/mapbox/expression_case';
