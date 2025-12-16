@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Install dependencies ⏬
-        run: npm install
+        run: npm install --force
 
       - name: Build artifacts 🏗️
         run: npm run build
