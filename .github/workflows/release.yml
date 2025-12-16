@@ -31,4 +31,4 @@ jobs:
         name: Release with Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: bunx semantic-release
