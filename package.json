@@ -62,7 +62,7 @@
     "lodash": "^4.17.21",
     "semantic-release": "^25.0.2",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
+    "vite": "^7.0.0",
     "vitest": "^3.2.1"
   },
   "funding": "https://opencollective.com/geostyler"
