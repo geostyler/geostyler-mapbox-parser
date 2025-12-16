@@ -1,6 +1,6 @@
 {
   "name": "geostyler-mapbox-parser",
-  "version": "6.1.1",
+  "version": "6.2.0",
   "description": "GeoStyler-Style-Parser implementation for Mapbox",
   "type": "module",
   "main": "dist/MapboxStyleParser.js",
@@ -59,7 +59,7 @@
     "eslint": "^9.28.0",
     "extensionless": "^1.9.9",
     "jest": "^29.7.0",
-    "lodash":"^4.17.21",
+    "lodash": "^4.17.21",
     "semantic-release": "^25.0.2",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",

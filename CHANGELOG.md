@@ -1,3 +1,27 @@
+## [6.2.0](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.1.1...v6.2.0) (2025-12-16)
+
+### Features
+
+* add option to replace markers with solid color ([7fe7467](https://github.com/geostyler/geostyler-mapbox-parser/commit/7fe7467ee015da5298d01980bd9fffce76dd95f0))
+* add prepare script to allow installing a git reference ([10689b8](https://github.com/geostyler/geostyler-mapbox-parser/commit/10689b8a1ef2290709af96dadfe6a5b4bb24941a))
+* update dependencies and switch to bun ([70e8ade](https://github.com/geostyler/geostyler-mapbox-parser/commit/70e8adea3931b0914598dc6be6fc5bac989ad9f1))
+
+### Bug Fixes
+
+* add imported indirect dependency to devDependencies ([970b788](https://github.com/geostyler/geostyler-mapbox-parser/commit/970b7889eb4ebd83e5021fcbab49b5a4da1a7d74))
+* add test for graphicFill fallback ([1fbd8a0](https://github.com/geostyler/geostyler-mapbox-parser/commit/1fbd8a066306ebf244c669a9e9a4c0ccc13fd4e1))
+* fix workflow ([046c2ac](https://github.com/geostyler/geostyler-mapbox-parser/commit/046c2ac14d9ec2669165b0094db566668c26f53e))
+* fix workflow ([41b35f4](https://github.com/geostyler/geostyler-mapbox-parser/commit/41b35f459c2cfe6e1ae0c17f8e4537437cb5184c))
+* fix workflow ([14b0226](https://github.com/geostyler/geostyler-mapbox-parser/commit/14b02268fadc0ca6ab8e8347de495ae0fe13c57c))
+* fix workflow ([b0b344e](https://github.com/geostyler/geostyler-mapbox-parser/commit/b0b344ec793139eee37a9af2478a5a885a29110e))
+* fix workflow ([f76a1f1](https://github.com/geostyler/geostyler-mapbox-parser/commit/f76a1f1d314b7a4b4ee3bad2ef069cef48017ea7))
+* fix workflow ([f8c0a26](https://github.com/geostyler/geostyler-mapbox-parser/commit/f8c0a268be00fd748bddccb8717c1265d05bba37))
+* fix workflow ([85aa519](https://github.com/geostyler/geostyler-mapbox-parser/commit/85aa5194ba668f4c4067d502cb0412e3e40daf91))
+* fix workflow ([2073066](https://github.com/geostyler/geostyler-mapbox-parser/commit/2073066eadd8086cb866f273780b794d81443b1c))
+* fix workflow ([719f72c](https://github.com/geostyler/geostyler-mapbox-parser/commit/719f72cdf0166fe606c2fcaf8e4a1fb0bb81b812))
+* fix workflow ([1ffe937](https://github.com/geostyler/geostyler-mapbox-parser/commit/1ffe937e2f1453fd46883b04d355651c82b5811f))
+* update dependency, fix workflow ([c5f64be](https://github.com/geostyler/geostyler-mapbox-parser/commit/c5f64be1d1c85492b89e780f8068bc6e66a2b980))
+
 ## [6.1.1](https://github.com/geostyler/geostyler-mapbox-parser/compare/v6.1.0...v6.1.1) (2025-03-12)
 
 ### Bug Fixes
