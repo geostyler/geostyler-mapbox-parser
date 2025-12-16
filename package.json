@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@types/mapbox-gl": "^3.4.1",
-    "geostyler-style": "^10.1.0"
+    "geostyler-style": "^10.5.0"
   },
   "scripts": {
     "build-browser": "vite build",
