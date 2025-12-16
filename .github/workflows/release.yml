@@ -18,17 +18,17 @@ jobs:
       - name: Checkout sources 🔰
         uses: actions/checkout@v4
 
-      - name: Set up bun
-        uses: oven-sh/setup-bun@v2
+      - name: Set up node
+        uses: actions/setup-node@v6
 
       - name: Install dependencies ⏬
-        run: bun install
+        run: npm install
 
       - name: Build artifacts 🏗️
-        run: bun run build
+        run: npm run build
 
       - id: semantic-release-step
         name: Release with Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bunx semantic-release
+        run: npx semantic-release
