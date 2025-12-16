@@ -23,8 +23,8 @@ jobs:
       - name: Build artifacts 🏗️
         run: bun run build
 
-      - name: Release 🚀
-        uses: cycjimmy/semantic-release-action@v4.1.1
-        id: semantic
+      - id: semantic-release-step
+        name: Release with Semantic Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: npx semantic-release
