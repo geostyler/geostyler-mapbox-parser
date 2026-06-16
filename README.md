@@ -6,9 +6,9 @@
 
 GeoStyler-Style-Parser implementation for Mapbox
 
-## :rocket: GeoStyler Code Sprint 2025
+## :rocket: GeoStyler Code Sprint 2026
 
-We are happy to announce the next GeoStyler Code Sprint from **02.-06.06.2025** in Switzerland. Be part of it! More infos on https://geostyler.org/.
+We are happy to announce the next **online-only** GeoStyler Code Sprint from **28.-30.09.2026**. Be part of it! More infos on https://geostyler.org.
 
 ### Important Notes
 Since mapbox works with [spritesheets](https://docs.mapbox.com/api/maps/#sprites), geostyler-mapbox-parser is only capable of handling sprites/icons if the application that is using the parser implements following API:
