@@ -58,7 +58,7 @@
     "conventional-changelog-conventionalcommits": "^9.0.0",
     "eslint": "^9.28.0",
     "extensionless": "^1.9.9",
-    "jest": "^29.7.0",
+    "jest": "^30.0.0",
     "lodash": "^4.17.21",
     "semantic-release": "^25.0.2",
     "typescript": "^5.8.3",
