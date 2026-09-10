@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['eslint.config.mjs', 'dist/**', 'data/**', '.commitlintrc.cjs']
+    ignores: ['eslint.config.mjs', 'dist/**', 'data/**', 'build/**', 'browser/**', '.commitlintrc.cjs']
   },
   ...compat.extends('@terrestris/eslint-config-typescript'),
   {

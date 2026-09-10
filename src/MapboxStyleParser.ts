@@ -28,7 +28,8 @@ import {
   isFilter,
   isScaleDenominator,
   isGeoStylerBooleanFunction,
-  isGeoStylerStringFunction
+  isGeoStylerStringFunction,
+  PlacementType
 } from 'geostyler-style';
 
 import MapboxStyleUtil from './Util/MapboxStyleUtil';
@@ -296,7 +297,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       return MapboxStyleUtil.resolveMbTextPlaceholder(label);
     }
     if (label[0] !== 'format') {
-      return mb2gsExpression(label);
+      return mb2gsExpression<string>(label);
     }
     let gsLabel = '';
     // ignore all even indexes since we cannot handle them
@@ -509,7 +510,7 @@ export class MapboxStyleParser implements StyleParser<Omit<MbStyle, 'sources'>> 
       // TODO: handle enum values
       transform: layout?.['text-transform'] as TextSymbolizer['transform'],
       visibility: layout?.visibility && layout?.visibility !== 'none',
-      placement: mb2gsExpression<TextSymbolizer['placement']>(layout?.['symbol-placement'])
+      placement: mb2gsExpression<PlacementType>(layout?.['symbol-placement'])
     };
 
     if (MapboxStyleUtil.symbolizerAllUndefined(symbolizer)) {
