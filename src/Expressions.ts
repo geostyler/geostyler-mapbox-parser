@@ -173,7 +173,12 @@ const functionNameMap: Record<GeoStylerFunction['name'], ExpressionName | null> 
   // ---- unknown ----
   case: 'case',
   property: 'get',
-  step: null
+  step: null,
+  // ---- geometric ----
+  custom: null,
+  startPoint: null,
+  endPoint: null,
+  centroid: null
 };
 
 const invertedFunctionNameMap: Partial<Record<ExpressionName, GeoStylerFunction['name']>> =
